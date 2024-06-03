@@ -36,8 +36,7 @@ const sendOTP = async (req, res) => {
     }
 
     const options = {
-      authorization:
-        "Ac1aVWji8vy29rgh0b5TJoMEeIQqUwGPDKHfm3nBlRsOXC7FzkEtjVvPFOp06am23shixyoW9YKHQDBc",
+      authorization: process.env.FAST2SMS_API_KEY,
       message: `your OTP verification code is ${otp}`,
       numbers: [phoneNumber],
     };
