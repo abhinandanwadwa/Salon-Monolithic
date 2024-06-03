@@ -1,0 +1,483 @@
+import mongoose from "mongoose";
+import SalonModel from "../Models/Salon.js";
+import Service from "../Models/Services.js";
+import NodeGeocoder from "node-geocoder";
+
+/**
+ * @desc Create a new salon
+ * @method POST
+ * @route /api/salon/create-salon
+ * @access Private
+ * @requestBody { SalonName: String, OwnerName: String, BusinessType: String, Gender: String, workingDays: [String], startTime: String, endTime: String, location: { type: String, coordinates: [Number] }, CoverImage: String, StorePhotos: [String], Brochure: String , Address: { Address1: String, Address2: String, Landmark: String, Pincode: Number, City: String, State: String Country: String}}
+ */
+
+const createSalon = async (req, res) => {
+  try {
+    const { Address1, Address2, Landmark, Pincode, City, State, Country } =
+      req.body.Address;
+    const {
+      SalonName,
+      OwnerName,
+      BusinessType,
+      Gender,
+      workingDays,
+      startTime,
+      endTime,
+      location,
+      CoverImage,
+      StorePhotos,
+      Brochure,
+    } = req.body;
+
+    let locationDetails = null;
+
+    // Get authenticated user's ID
+    const { _id: userId } = req.user;
+
+    if (!Address1 || !City || !State || !Country || !Pincode) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Address details are incomplete" });
+    }
+
+    const address = {
+      Address1,
+      Address2,
+      Landmark,
+      Pincode,
+      City,
+      State,
+      Country,
+    };
+
+    // Geocoding
+    if (!location) {
+      const options = {
+        provider: "google",
+        apiKey: process.env.GOOGLE_MAPS_API_KEY,
+      };
+
+      const geocoder = NodeGeocoder(options);
+      const mergedAddress = `${Address1} ${Address2}`;
+      const response = await geocoder.geocode(
+        `${mergedAddress} ${City} ${State} ${Country}`
+      );
+
+      if (!response.length) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid address" });
+      }
+
+      locationDetails = {
+        type: "Point",
+        coordinates: [response[0].latitude, response[0].longitude],
+      };
+    }
+
+    const salon = new SalonModel({
+      userId,
+      SalonName,
+      OwnerName,
+      address,
+      BusinessType,
+      Gender,
+      workingDays,
+      startTime,
+      endTime,
+      CoverImage,
+      StorePhotos,
+      Brochure,
+      location: locationDetails || location,
+    });
+
+    await salon.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Salon created successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in creating salon",
+    });
+  }
+};
+
+/**
+ * @desc Update salon
+ * @method PUT
+ * @route /api/salon/update-salon
+ * @access Private
+ * @requestBody { salonName: String, ownerName: String, ShopPhoneNumber: Number, location: { type: String, coordinates: [Number] }, workingDays: [String], startTime: String, endTime: String, Insta: String, Facebook: String }
+ */
+
+const UpdateSalon = async (req, res) => {
+  try {
+    const {
+      salonName,
+      ownerName,
+      ShopPhoneNumber,
+      location,
+      workingDays,
+      startTime,
+      endTime,
+      Insta,
+      Facebook,
+    } = req.body;
+
+    const user = req.user._id;
+    const salon = await SalonModel.findOne({ userId: user });
+
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    salon.SalonName = salonName || salon.SalonName;
+    salon.OwnerName = ownerName || salon.OwnerName;
+    salon.salonPhoneNumber = ShopPhoneNumber || salon.ShopPhoneNumber;
+    salon.location = location || salon.location;
+    salon.workingDays = workingDays || salon.workingDays;
+    salon.startTime = startTime || salon.startTime;
+    salon.endTime = endTime || salon.endTime;
+    salon.Instagram = Insta || salon.Insta || null;
+    salon.Facebook = Facebook || salon.Facebook || null;
+
+    await salon.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Salon updated successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in updating salon",
+    });
+  }
+};
+
+/**
+ * @desc Get salon by location
+ * @method POST
+ * @route /api/salon/getSalon
+ * @access Public
+ * @requestBody { latitude: Number, longitude: Number }
+ * @response { Salon }
+ */
+
+const getSalonByLocation = async (req, res) => {
+  try {
+    const { latitude, longitude } = req.body;
+    console.log(req.body);
+    const salons = await SalonModel.aggregate([
+      {
+        $geoNear: {
+          near: { type: "Point", coordinates: [latitude, longitude] }, // Note the order: [longitude, latitude]
+          distanceField: "distance",
+          maxDistance: 10000,
+          spherical: true,
+        },
+      },
+    ]);
+    return res.status(200).json(salons);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching salon",
+    });
+  }
+};
+
+/**
+ * @desc Get salon by ID
+ * @method GET
+ * @route /api/salon/getSalon/:id
+ * @access Public
+ * @request { id }
+*/
+
+const getSalonById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const salon = await SalonModel.findById(id)
+      .populate("Services")
+      .populate("Artists")
+      .populate("Reviews");
+    return res.status(200).json(salon);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching salon",
+    });
+  }
+};
+
+/**
+ * @desc Get salon by owner
+ * @method GET
+ * @route /api/salon/get-owner-salon
+ * @access Private
+ * @request None
+*/
+
+const getOwnerSalon = async (req, res) => {
+  try {
+    const OwnerId = req.user._id;
+    const salons = await SalonModel.find({ userId : OwnerId }).populate("Services").populate({
+      path: "Artists",
+      populate: {
+        path: "appointments",
+      },
+    }).populate("appointments");
+    if (!salons.length) {
+      return res.status(404).json({
+        success: false,
+        isSalon: false,
+        message: "No salon found",
+      });
+    }
+    return res.status(200).json({
+      isSalon: true,
+      success: true,
+      data: salons,
+      message: "Salon found",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching salon",
+    });
+  }
+};
+
+/**
+ * @desc Search salons
+ * @method POST
+ * @route /api/salon/search-salons
+ * @access Public
+ * @requestBody { service: String, address: String, location: { latitude: Number, longitude: Number } }
+ * @response { Salon }
+ */
+
+const searchSalons = async (req, res) => {
+  try {
+    const { service, address, location } = req.body;
+    let regex, matchingServices, salonIds, locations, salons;
+    // Handle service search
+    if (service) {
+      regex = new RegExp(service, "i"); // 'i' makes it case-insensitive
+      matchingServices = await Service.find({ ServiceName: { $regex: regex } });
+      salonIds = [...new Set(matchingServices.map((service) => service.salon))];
+    }
+
+    // Handle address geocoding
+    if (address) {
+      const options = {
+        provider: "google",
+        apiKey: process.env.GOOGLE_MAPS_API_KEY, // Make sure to set your Google Maps API key in the environment variables
+      };
+      const geocoder = NodeGeocoder(options);
+      const response = await geocoder.geocode(address);
+      if (!response.length) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid address" });
+      }
+
+      locations = {
+        type: "Point",
+        coordinates: [response[0].latitude, response[0].longitude],
+      };
+    }
+
+    // Handle provided coordinates directly
+    if (location) {
+      locations = {
+        type: "Point",
+        coordinates: [location.latitude, location.longitude],
+      };
+    }
+
+    // Construct query based on provided inputs
+    // Construct aggregation pipeline
+    const aggregationPipeline = [];
+
+    // Only add $geoNear stage if salonIds array is not empty
+    if (salonIds.length > 0) {
+      aggregationPipeline.push({
+        $geoNear: {
+          near: locations,
+          distanceField: "distance",
+          maxDistance: 20000, // 20 kilometers
+          spherical: true,
+        },
+      });
+    }
+
+    // Add $match stage to filter by salon IDs
+    if (salonIds.length > 0) {
+      aggregationPipeline.push({
+        $match: {
+          _id: { $in: salonIds.map((id) => new mongoose.Types.ObjectId(id)) },
+        },
+      });
+    }
+
+    // Execute aggregation pipeline
+    salons = await SalonModel.aggregate(aggregationPipeline);
+
+    return res.status(200).json(salons);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching salons",
+    });
+  }
+};
+
+/**
+ * @desc Upload salon brochure
+ * @method POST
+ * @route /api/salon/upload-brochure
+ * @access Private
+ * @requestBody { Brochure: String }
+ */
+
+
+const uploadBrochure = async (req, res) => {
+  try {
+    const { Brochure } = req.body;
+
+    const user = req.user._id;
+    const salon = await SalonModel.findOne({ userId: user });
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    salon.Brochure = Brochure || salon.Brochure || null;
+    await salon.save();
+    return res.status(200).json({
+      success: true,
+      message: "Brochure uploaded successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in uploading brochure",
+    });
+  }
+};
+
+/**
+ * @desc Delete salon
+ * @method DELETE
+ * @route /api/salon/delete-salon
+ * @access Private
+ * @request None
+ */
+
+
+const deleteSalon = async (req, res) => {
+  try {
+    const user = req.user._id;
+    const salon = await SalonModel.findOne({ userId: user });
+    if (!salon) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Salon not found" 
+      });
+    }
+
+    await salon.remove();
+
+    return res.status(200).json({
+      success: true,
+      message: "Salon deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in deleting salon",
+    });
+  }
+};
+
+/**
+ * @desc Add photos to salon
+ * @method POST
+ * @route /api/salon/add-photos
+ * @access Private
+ * @requestBody { coverPhoto: String, ProfilePhotos: [String] }
+ */
+
+
+const AddPhotos = async (req, res) => {
+    try {
+        const { coverPhoto , ProfilePhotos } = req.body;
+    
+        const user = req.user._id;
+        const salon = await SalonModel.findOne({ userId : user });
+        if (!salon) {
+            return res.status(404).json({ 
+              success: false,
+              message: "Salon not found" 
+            });
+        }
+
+        if(ProfilePhotos.length > 0){
+            if (!Array.isArray(ProfilePhotos)) {
+                return res.status(400).json({
+                success: false,
+                message: "Artists data should be an array of objects",
+                });
+            }
+        }
+
+        salon.CoverImage = coverPhoto || salon.CoverImage;
+        salon.StorePhotos = ProfilePhotos || salon.StorePhotos || null;
+
+        await salon.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Photos uploaded successfully",
+        });
+    }
+    catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: "Error in uploading photos",
+        });
+    }
+}
+
+    
+
+export {
+  createSalon,
+  getSalonById,
+  getSalonByLocation,
+  searchSalons,
+  getOwnerSalon,
+  uploadBrochure,
+  deleteSalon,
+  UpdateSalon,
+  AddPhotos
+};
