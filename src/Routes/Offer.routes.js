@@ -1,7 +1,7 @@
-import { createOffer,getOffers,deleteOffer,validateOffer } from "../Controllers/Offer.controller";
+import { createOffer,getOffers,deleteOffer,validateOffer } from "../Controllers/Offer.controller.js";
 
 import express from "express";
-import { roleAuthorization, verify } from "../middlewares/authenticated";
+import { roleAuthorization, verify } from "../middlewares/authenticated.js";
 
 const Offerrouter = express.Router();
 

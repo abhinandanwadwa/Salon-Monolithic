@@ -1,5 +1,5 @@
-import OfferModel from "../Models/Offer";
-import SalonModel from "../Models/Salon";
+import OfferModel from "../Models/Offer.js";
+import SalonModel from "../Models/Salon.js";
 
 /**
  * @desc Create Offer
