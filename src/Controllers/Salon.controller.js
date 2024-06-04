@@ -121,14 +121,14 @@ const createSalon = async (req, res) => {
 const UpdateSalon = async (req, res) => {
   try {
     const {
-      salonName,
-      ownerName,
-      ShopPhoneNumber,
+      SalonName,
+      OwnerName,
+      salonPhoneNumber,
       location,
       workingDays,
       startTime,
       endTime,
-      Insta,
+      Instagram,
       Facebook,
     } = req.body;
 
@@ -142,14 +142,14 @@ const UpdateSalon = async (req, res) => {
       });
     }
 
-    salon.SalonName = salonName || salon.SalonName;
-    salon.OwnerName = ownerName || salon.OwnerName;
-    salon.salonPhoneNumber = ShopPhoneNumber || salon.ShopPhoneNumber;
+    salon.SalonName = SalonName || salon.SalonName;
+    salon.OwnerName = OwnerName || salon.OwnerName;
+    salon.salonPhoneNumber = salonPhoneNumber || salon.salonPhoneNumber;
     salon.location = location || salon.location;
     salon.workingDays = workingDays || salon.workingDays;
     salon.startTime = startTime || salon.startTime;
     salon.endTime = endTime || salon.endTime;
-    salon.Instagram = Insta || salon.Insta || null;
+    salon.Instagram = Instagram || salon.Instagram || null;
     salon.Facebook = Facebook || salon.Facebook || null;
 
     await salon.save();
