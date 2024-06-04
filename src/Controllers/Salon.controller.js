@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import SalonModel from "../Models/Salon.js";
 import Service from "../Models/Services.js";
+import UserModel from "../Models/User.js";
 import NodeGeocoder from "node-geocoder";
 
 /**
@@ -240,7 +241,7 @@ const getOwnerSalon = async (req, res) => {
       populate: {
         path: "appointments",
       },
-    }).populate("appointments");
+    }).populate("appointments").populate("userId", "phoneNumber");
     if (!salons.length) {
       return res.status(404).json({
         success: false,
