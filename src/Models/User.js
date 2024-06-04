@@ -19,7 +19,10 @@ const User = new mongoose.Schema({
         get: (otpExpiration) => otpExpiration.getTime(),
         set: (otpExpiration) => new Date(otpExpiration)
     },
-    
+    isSalon : {
+        type: Boolean,
+        default: false
+    },
 }, { timestamps: true })
 
 const UserModel = mongoose.model('User', User);

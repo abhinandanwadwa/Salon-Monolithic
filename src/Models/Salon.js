@@ -31,11 +31,9 @@ const Salon = new mongoose.Schema({
         },
         City: {
             type: String,
-            required: true
         },
         State: {
             type: String,
-            required: true
         },
         Country: {
             type: String,
@@ -114,6 +112,12 @@ const Salon = new mongoose.Schema({
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Appointment'
+        }
+    ],
+    offers : [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Offer'
         }
     ],
 });

@@ -51,7 +51,7 @@ const createOffer = async (req, res) => {
     });
     await offer.save();
 
-    salon.Offers.push(offer);
+    salon.offers.push(offer);
     await salon.save();
 
     return res.status(201).json({
@@ -118,14 +118,8 @@ const deleteOffer = async (req, res) => {
       });
     }
 
-    const offer = await OfferModel.findById(offerId);
-    if (!offer) {
-      return res.status(404).json({ 
-        success: false,
-        message: "Offer not found" });
-    }
-
-    await offer.remove();
+    await OfferModel.findByIdAndDelete(offerId);
+    await salon.offers.pull(offerId);
 
     return res.status(200).json({
       success: true,

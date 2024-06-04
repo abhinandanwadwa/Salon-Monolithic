@@ -33,6 +33,7 @@ const createSalon = async (req, res) => {
 
     // Get authenticated user's ID
     const { _id: userId } = req.user;
+    const user = await UserModel.findById(userId);
 
     if (!Address1 || !City || !State || !Country || !Pincode) {
       return res.status(400).json({ 
@@ -91,6 +92,8 @@ const createSalon = async (req, res) => {
       location: locationDetails || location,
     });
 
+    user.isSalon = true;
+    await user.save();
     await salon.save();
 
     return res.status(201).json({
@@ -241,12 +244,10 @@ const getOwnerSalon = async (req, res) => {
     if (!salons.length) {
       return res.status(404).json({
         success: false,
-        isSalon: false,
         message: "No salon found",
       });
     }
     return res.status(200).json({
-      isSalon: true,
       success: true,
       data: salons,
       message: "Salon found",
@@ -395,7 +396,7 @@ const uploadBrochure = async (req, res) => {
 const deleteSalon = async (req, res) => {
   try {
     const user = req.user._id;
-    const salon = await SalonModel.findOne({ userId: user });
+    const salon = await SalonModel.findOneAndDelete({ userId: user });
     if (!salon) {
       return res.status(404).json({ 
         success: false,
@@ -403,7 +404,7 @@ const deleteSalon = async (req, res) => {
       });
     }
 
-    await salon.remove();
+    
 
     return res.status(200).json({
       success: true,

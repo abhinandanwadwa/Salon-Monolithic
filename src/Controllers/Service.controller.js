@@ -154,7 +154,7 @@ const deleteService = async (req, res) => {
           message: "Service not found" 
         });
         }
-        await service.remove();
+        await service.deleteOne();
         return res.status(200).json({ 
             success: true,
             message: "Service deleted successfully" 

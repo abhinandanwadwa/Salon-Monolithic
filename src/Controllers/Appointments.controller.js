@@ -7,6 +7,15 @@ import CustomerModel from "../Models/Customer.js";
 
 moment.suppressDeprecationWarnings = true;
 
+/**
+ * @desc Get Time Slots
+ * @route POST /api/appointments/get-time-slots
+ * @access Public
+ * @request { artistId, timePeriod }
+ * @response { slots }
+ * @errors Artist not found
+ */
+
 const getTimeSlots = async (req, res) => {
     const { artistId, timePeriod } = req.body;
     const artist = await ArtistModel.findById(artistId).populate('appointments');
@@ -71,6 +80,12 @@ const getTimeSlots = async (req, res) => {
     });
 }
 
+/**
+ * @desc Create Appointment By Owner
+ * @route POST /api/appointments/create-appointment
+ * @access Public
+ * @request { artistId, appointmentDate, appointmentStartTime, appointmentEndTime, name, phoneNumber }
+ */
 
 const createAppointmentByOwner = async (req, res) => {
     const { artistId, appointmentDate, appointmentStartTime, appointmentEndTime, name, phoneNumber } = req.body;
@@ -122,6 +137,12 @@ const createAppointmentByOwner = async (req, res) => {
     });
 }
 
+/**
+ * @desc Create Appointment Lock
+ * @route POST /api/appointments/create-appointment-lock
+ * @access Public
+ * @request { artistId, appointmentDate, appointmentStartTime, appointmentEndTime }
+ */
 
 const createAppointmentLock = async (req, res) => {
     const { artistId, appointmentDate, appointmentStartTime, appointmentEndTime} = req.body;
@@ -158,6 +179,15 @@ const createAppointmentLock = async (req, res) => {
         success: true,
         message: "Appointment created successfully" });
 }
+
+/**
+ * @desc Book Appointment
+ * @route POST /api/appointments/book-appointment
+ * @access Public
+ * @params { appointmentId }
+ * @request { appointmentCost }
+ * @response { message }
+ */
 
 const BookAppointment = async (req, res) => {
     const { appointmentId } = req.params;
@@ -204,6 +234,8 @@ const BookAppointment = async (req, res) => {
     });
 }
 
+
+
 const releaseExpiredLocks = async () => {
     try {
         const expiredLocks = await AppointmentModel.find({
@@ -223,6 +255,6 @@ const releaseExpiredLocks = async () => {
     }
 };
 
-setInterval(releaseExpiredLocks, 600000 );
+setInterval(releaseExpiredLocks, 60000 );
 
-export {getTimeSlots,createAppointmentByOwner};
+export {getTimeSlots,createAppointmentByOwner,createAppointmentLock,BookAppointment};

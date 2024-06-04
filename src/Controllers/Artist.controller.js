@@ -303,15 +303,7 @@ const deleteArtist = async (req, res) => {
             });
         }
     
-        const artist = await ArtistModel.findById(artistId);    
-        if (!artist) {
-            return res.status(404).json({
-                success: false,
-                message: "Artist not found",
-            });
-        }
-
-        await artist.remove();
+        await ArtistModel.findByIdAndDelete(artistId);
 
         return res.status(200).json({
             success: true,
