@@ -11,6 +11,7 @@ import Artistrouter from './Routes/Artist.routes.js';
 import Servicerouter from './Routes/Services.routes.js';
 import Appointmentrouter from './Routes/appointment.routes.js';
 import Salonrouter from './Routes/Salon.routes.js';
+import Offerrouter from './Routes/Offer.routes.js';
 
 
 
@@ -27,6 +28,8 @@ app.use('/api/artist', Artistrouter);
 app.use('/api/service', Servicerouter);
 app.use('/api/appointment', Appointmentrouter);
 app.use('/api/salon', Salonrouter);
+app.use('/api/offer', Offerrouter);
+
 
 app.use(notfound);
 app.use(errorHandler);
