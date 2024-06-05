@@ -260,7 +260,7 @@ const updateArtist = async (req, res) => {
         }
 
         artist.name = name || artist.name;
-        artist.PhoneNumber = phoneNumber || artist.phoneNumber;
+        artist.PhoneNumber = phoneNumber || artist.PhoneNumber;
         artist.workingDays = workingDays || artist.workingDays;
         artist.services = services || artist.services;
 

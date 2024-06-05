@@ -113,19 +113,21 @@ const updateService = async (req, res) => {
         message: "Service not found" });
     }
 
-    const updatedService = await Service.findById(serviceId)
+    const updateService = await Service.findById(serviceId)
 
-    updateService.ServiceName = ServiceName || updatedService.ServiceName;
-    updateService.ServiceType = ServiceType || updatedService.ServiceType;
-    updateService.ServiceCost = ServiceCost || updatedService.ServiceCost;
-    updateService.ServiceTime = ServiceTime || updatedService.ServiceTime;
-    updateService.ServiceGender = ServiceGender || updatedService.ServiceGender;
+    console.log(ServiceName,ServiceType,ServiceCost,ServiceTime,ServiceGender)
 
-    await updatedService.save();
+    updateService.ServiceName = ServiceName || updateService.ServiceName;
+    updateService.ServiceType = ServiceType || updateService.ServiceType;
+    updateService.ServiceCost = ServiceCost || updateService.ServiceCost;
+    updateService.ServiceTime = ServiceTime || updateService.ServiceTime;
+    updateService.ServiceGender = ServiceGender || updateService.ServiceGender;
+
+    await updateService.save();
 
     return res.status(200).json({ 
         success: true,
-        data:updatedService 
+        data:updateService 
     });
   } catch (error) {
     return res.status(500).json({ 
