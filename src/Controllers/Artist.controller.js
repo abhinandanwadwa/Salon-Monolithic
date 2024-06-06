@@ -259,7 +259,7 @@ const updateArtist = async (req, res) => {
             await user.save();
         }
 
-        artist.name = name || artist.name;
+        artist.ArtistName = name || artist.ArtistName;
         artist.PhoneNumber = phoneNumber || artist.PhoneNumber;
         artist.workingDays = workingDays || artist.workingDays;
         artist.services = services || artist.services;
