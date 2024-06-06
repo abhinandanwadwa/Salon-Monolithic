@@ -10,7 +10,7 @@ Artistrouter.post("/create-artist-with-services",verify,roleAuthorization(['Owne
 Artistrouter.get("/get-artist-by-service",GetArtistbyService);
 Artistrouter.get("/get-artist-by-salon",verify,
 roleAuthorization(['Owner','subAdmin']),getArtistsBySalon);
-Artistrouter.put("/update-artist",verify,roleAuthorization(['Owner','subAdmin']),updateArtist);
+Artistrouter.put("/update-artist/:artistId",verify,roleAuthorization(['Owner','subAdmin']),updateArtist);
 Artistrouter.delete("/delete-artist/:artistId",verify,roleAuthorization(['Owner']),deleteArtist);
 
 export default Artistrouter;
