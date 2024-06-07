@@ -7,7 +7,7 @@ const Artistrouter = express.Router();
 
 Artistrouter.post("/create-artists",verify,roleAuthorization(['Owner','subAdmin']),createArtists);
 Artistrouter.post("/create-artist-with-services",verify,roleAuthorization(['Owner']),CreateArtistWithAllServices);
-Artistrouter.get("/get-artist-by-service",GetArtistbyService);
+Artistrouter.post("/get-artist-by-service/:salonid",GetArtistbyService);
 Artistrouter.get("/get-artist-by-salon",verify,
 roleAuthorization(['Owner','subAdmin']),getArtistsBySalon);
 Artistrouter.put("/update-artist/:artistId",verify,roleAuthorization(['Owner','subAdmin']),updateArtist);

@@ -353,7 +353,7 @@ const getArtistsBySalon = async (req, res) => {
  * @desc Get Artists by Service
  * @method POST
  * @access Public
- * @route /api/artist/get-artist-by-service
+ * @route /api/artist/get-artist-by-service/:salonid
  * @requestBody { serviceIds: Array of Strings }
  * @requestParams { salonid: String }
  */
