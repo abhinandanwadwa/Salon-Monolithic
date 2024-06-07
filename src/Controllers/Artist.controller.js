@@ -124,7 +124,7 @@ const CreateArtistWithAllServices = async (req, res) => {
 const createArtists = async (req, res) => {
   try {
 
-    const artistsData = req.body;
+    const {artistsData} = req.body;
 
     if (!Array.isArray(artistsData)) {
       return res.status(400).json({
@@ -135,7 +135,7 @@ const createArtists = async (req, res) => {
 
     const userId = req.user._id;
 
-    const salon = await SalonModel.findOne({ OwnerId: userId });
+    const salon = await SalonModel.findOne({ userId });
     if (!salon) {
       return res.status(404).json({
         success: false,
@@ -157,30 +157,31 @@ const createArtists = async (req, res) => {
         services,
       } = artistData;
 
-      let user = await UserModel.findOne({ PhoneNumber });
+      let user = await UserModel.findOne({ phoneNumber:PhoneNumber  });
       if (!user) {
-        user = new UserModel({ PhoneNumber,role: "Artist"});
+        user = new UserModel({ phoneNumber:PhoneNumber,role: "Artist"});
         await user.save();
 
-      // Validate inputs for each artist
-      if (
-        !ArtistName ||
-        !PhoneNumber ||
-        !ArtistType ||
-        !workingDays ||
-        !startTime ||
-        !endTime
-      ) {
-        return res.status(400).json({
-          success: false,
-          message: "Artist data is incomplete",
-        });
-      }
+      // // Validate inputs for each artist
+      // if (
+      //   !ArtistName ||
+      //   !PhoneNumber ||
+      //   !ArtistType ||
+      //   !workingDays ||
+      //   !startTime ||
+      //   !endTime
+      // ) {
+      //   return res.status(400).json({
+      //     success: false,
+      //     message: "Artist data is incomplete",
+      //   });
+      // }
 
       
             
       // Create the artist
       const artist = new ArtistModel({
+        userId: user._id,
         ArtistName,
         PhoneNumber,
         ArtistType,
