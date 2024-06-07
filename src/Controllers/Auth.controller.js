@@ -4,112 +4,155 @@ import generateToken from "../utils/generatetoken.js";
 import otpGenerator from "otp-generator";
 import fast2sms from "fast-two-sms";
 
+// /**
+//  * @desc Send OTP to the user
+//  * @route POST /api/auth/send-otp
+//  * @access Public
+//  * @request { phoneNumber, role }
+//  */
+
+// const sendOTP = async (req, res) => {
+//   try {
+//     const { phoneNumber, role } = req.body;
+
+//     let user = await UserModel.findOne({ phoneNumber });
+
+//     const otp = otpGenerator.generate(4, {
+//       upperCaseAlphabets: false,
+//       specialChars: false,
+//       lowerCaseAlphabets: false,
+//     });
+
+//     const otpExpiration = new Date();
+//     otpExpiration.setMinutes(otpExpiration.getMinutes() + 1);
+
+//     if (!user) {
+//       user = new UserModel({ phoneNumber, role, otp, otpExpiration });
+//       await user.save();
+//     } else {
+//       user.otp = otp;
+//       user.otpExpiration = otpExpiration;
+//       await user.save();
+//     }
+
+//     const options = {
+//       authorization: process.env.FAST2SMS_API_KEY,
+//       message: `your OTP verification code is ${otp}`,
+//       numbers: [phoneNumber],
+//     };
+
+//     fast2sms
+//       .sendMessage(options)
+//       .then((response) => {
+//         console.log("otp sent successfully", response);
+//       })
+//       .catch((error) => {
+//         console.log(error);
+//       });
+
+//     return res.status(200).json({ message: "OTP sent:", otp });
+//   } catch (error) {
+//     console.log("Error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to send OTP",
+//     });
+//   }
+// };
+
+// /**
+//  * @desc Verify OTP
+//  * @route POST /api/auth/verify-otp
+//  * @access Public
+//  * @request { phoneNumber, enteredOTP }
+//  * @response { _id, phoneNumber, role }
+//  */
+
+// const verifyOTP = async (req, res) => {
+//   try {
+//     const { phoneNumber, enteredOTP, name } = req.body;
+//     const user = await UserModel.findOne({ phoneNumber });
+
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "user not found",
+//       });
+//     }
+
+//     if (enteredOTP !== user.otp) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid OTP",
+//       });
+//     }
+
+//     const currentDateTime = new Date();
+//     if (currentDateTime > user.otpExpiration) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "OTP expired",
+//       });
+//     }
+
+//     if (user.role === "Customer") {
+//       const customer = await CustomerModel.findOne({ userId: user._id });
+//       if (!customer) {
+//         const newCustomer = new CustomerModel({
+//           userId: user._id,
+//           name,
+//           phoneNumber,
+//         });
+//         await newCustomer.save();
+//       }
+//     }
+
+//     user.otp = null;
+//     user.otpExpiration = null;
+//     await user.save();
+
+//     generateToken(res, user);
+//     return res.status(201).json({
+//       _id: user._id,
+//       phoneNumber: user.phoneNumber,
+//       role: user.role,
+//     });
+//   } catch (error) {
+//     console.log("Error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to verify OTP",
+//     });
+//   }
+// };
+
+
 /**
- * @desc Send OTP to the user
- * @route POST /api/auth/send-otp
+ * @desc Verify User
+ * @route POST /api/auth/verifyUser
  * @access Public
- * @request { phoneNumber, role }
- */
-
-const sendOTP = async (req, res) => {
-  try {
-    const { phoneNumber, role } = req.body;
-
-    let user = await UserModel.findOne({ phoneNumber });
-
-    const otp = otpGenerator.generate(4, {
-      upperCaseAlphabets: false,
-      specialChars: false,
-      lowerCaseAlphabets: false,
-    });
-
-    const otpExpiration = new Date();
-    otpExpiration.setMinutes(otpExpiration.getMinutes() + 1);
-
-    if (!user) {
-      user = new UserModel({ phoneNumber, role, otp, otpExpiration });
-      await user.save();
-    } else {
-      user.otp = otp;
-      user.otpExpiration = otpExpiration;
-      await user.save();
-    }
-
-    const options = {
-      authorization: process.env.FAST2SMS_API_KEY,
-      message: `your OTP verification code is ${otp}`,
-      numbers: [phoneNumber],
-    };
-
-    fast2sms
-      .sendMessage(options)
-      .then((response) => {
-        console.log("otp sent successfully", response);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-
-    return res.status(200).json({ message: "OTP sent:", otp });
-  } catch (error) {
-    console.log("Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to send OTP",
-    });
-  }
-};
-
-/**
- * @desc Verify OTP
- * @route POST /api/auth/verify-otp
- * @access Public
- * @request { phoneNumber, enteredOTP }
+ * @request { phoneNumber, verified ,role }
  * @response { _id, phoneNumber, role }
  */
 
-const verifyOTP = async (req, res) => {
+
+const verifyUser = async (req, res) => {
   try {
-    const { phoneNumber, enteredOTP, name } = req.body;
+    const { phoneNumber, verified,role } = req.body;
+
     const user = await UserModel.findOne({ phoneNumber });
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "user not found",
+    if (!user  && verified) {
+      const newUser = new UserModel({ phoneNumber , role});
+      await newUser.save();
+
+      generateToken(res, newUser);
+      return res.status(201).json({
+        _id: newUser._id,
+        phoneNumber: newUser.phoneNumber,
+        role: newUser.role,
       });
     }
-
-    if (enteredOTP !== user.otp) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid OTP",
-      });
-    }
-
-    const currentDateTime = new Date();
-    if (currentDateTime > user.otpExpiration) {
-      return res.status(400).json({
-        success: false,
-        message: "OTP expired",
-      });
-    }
-
-    if (user.role === "Customer") {
-      const customer = await CustomerModel.findOne({ userId: user._id });
-      if (!customer) {
-        const newCustomer = new CustomerModel({
-          userId: user._id,
-          name,
-          phoneNumber,
-        });
-        await newCustomer.save();
-      }
-    }
-
-    user.otp = null;
-    user.otpExpiration = null;
-    await user.save();
 
     generateToken(res, user);
     return res.status(201).json({
@@ -117,11 +160,12 @@ const verifyOTP = async (req, res) => {
       phoneNumber: user.phoneNumber,
       role: user.role,
     });
+
   } catch (error) {
     console.log("Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to verify OTP",
+      message: "Failed to verify User",
     });
   }
 };
@@ -187,4 +231,4 @@ const logout = async (req, res) => {
   });
 };
 
-export { sendOTP, verifyOTP, ChangeRole, logout };
+export { verifyUser, ChangeRole, logout };

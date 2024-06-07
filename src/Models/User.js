@@ -10,15 +10,6 @@ const User = new mongoose.Schema({
         enum: ['Customer','Artist','Owner','subAdmin'],
         required: true
     },
-    otp : {
-        type: String,
-    },
-    otpExpiration : {
-        type: Date,
-        default: Date.now,
-        get: (otpExpiration) => otpExpiration.getTime(),
-        set: (otpExpiration) => new Date(otpExpiration)
-    },
     isSalon : {
         type: Boolean,
         default: false
