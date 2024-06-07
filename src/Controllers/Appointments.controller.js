@@ -7,6 +7,21 @@ import CustomerModel from "../Models/Customer.js";
 
 moment.suppressDeprecationWarnings = true;
 
+
+function convertTo24Hour(time) {
+    let [hours, period] = time.split(' ');
+
+    if (period.toUpperCase() === 'PM' && hours !== '12') {
+        hours = Number(hours) + 12;
+    } else if (period.toUpperCase() === 'AM' && hours === '12') {
+        hours = '00';
+    }
+
+    // Pad the hours with a leading zero if necessary
+    hours = hours.toString().padStart(2, '0');
+
+    return `${hours}:00`;
+}
 /**
  * @desc Get Time Slots
  * @route POST /api/appointments/get-time-slots
@@ -29,12 +44,19 @@ const getTimeSlots = async (req, res) => {
 
     const { workingDays, startTime, endTime } = artist;
 
-    
+    //start time and end time are like this 6 AM
+
+    // convert the start and end time to 24 hour format
+
+    const startTime24 = convertTo24Hour(startTime);
+    const endTime24 = convertTo24Hour(endTime);
+
+    console.log(startTime24, endTime24)
 
     const date = moment();
-    const startTimeDate = moment(`${date.format('YYYY-MM-DD')}T${startTime}:00.000+00:00`);
+    const startTimeDate = moment(`${date.format('YYYY-MM-DD')}T${startTime24}:00.000+00:00`);
     const endDate = moment().add(10, 'days');
-    const endTimeDate = moment(`${endDate.format('YYYY-MM-DD')}T${endTime}:00.000+00:00`);
+    const endTimeDate = moment(`${endDate.format('YYYY-MM-DD')}T${endTime24}:00.000+00:00`);
 
     const WorkingDaysInNumber = workingDays.map((day) => {
         switch (day) {
