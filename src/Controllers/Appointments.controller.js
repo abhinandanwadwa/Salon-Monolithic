@@ -109,7 +109,8 @@ const getTimeSlots = async (req, res) => {
  */
 
 const createAppointmentByOwner = async (req, res) => {
-    const { artistId, appointmentDate, appointmentStartTime, appointmentEndTime, name, phoneNumber,cost } = req.body;
+    try {
+        const { artistId, appointmentDate,services ,appointmentStartTime, duration, name, phoneNumber,cost } = req.body;
     const artist = await ArtistModel.findById(artistId);
 
     const user = await UserModel.findOne({ phoneNumber });
@@ -133,16 +134,20 @@ const createAppointmentByOwner = async (req, res) => {
 
     const cusomter = await CustomerModel.findOne({ userId: user });
 
-    const Duration = moment.duration(appointmentEndTime).asMinutes() - moment.duration(appointmentStartTime).asMinutes();
+    const Duration = moment.duration(duration).asMinutes();
+
+    const appointmentEndTime = moment(appointmentStartTime).add(Duration, 'minutes').toISOString();
 
     const appointment = new AppointmentModel({
         user: user,
         appointmentDate,
         appointmentStartTime,
         appointmentEndTime,
+        servies : services,
         Duration,
         artist : artistId,
-        appointmentCost : cost
+        appointmentCost : cost,
+        Status: 'Booked'
     });
 
     await appointment.save();
@@ -157,6 +162,12 @@ const createAppointmentByOwner = async (req, res) => {
         success: true,
         message: "Appointment created successfully" 
     });
+    } catch (error) {
+        return res.status(500).json({ 
+            success: false, 
+            message: "Internal server error",
+        });
+    }
 }
 
 
