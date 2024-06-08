@@ -110,7 +110,7 @@ const getTimeSlots = async (req, res) => {
 
 const createAppointmentByOwner = async (req, res) => {
     try {
-        const { artistId, appointmentDate,services ,appointmentStartTime, duration, name, phoneNumber,cost } = req.body;
+        const { artistId,services ,appointmentStartTime, duration, name, phoneNumber,cost } = req.body;
     const artist = await ArtistModel.findById(artistId);
 
     const user = await UserModel.findOne({ phoneNumber });
@@ -131,6 +131,9 @@ const createAppointmentByOwner = async (req, res) => {
             message: "Artist not found"
          });
     }
+
+    const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
+
 
     const cusomter = await CustomerModel.findOne({ userId: user });
 
@@ -172,7 +175,7 @@ const createAppointmentByOwner = async (req, res) => {
 
 const editAppointment = async (req, res) => {
     try {
-        const { appointmentId, appointmentDate, artistId ,appointmentStartTime, duration, services, cost } = req.body;
+        const { appointmentId, artistId ,appointmentStartTime, duration, services, cost } = req.body;
         const userId = req.user._id;
         const user = await UserModel.findById(userId);
 
@@ -187,6 +190,10 @@ const editAppointment = async (req, res) => {
         }
 
         artist.appointments.pull(appointment);
+
+// get the date from appointmentStartTime
+
+        const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
 
         const newArtist = await ArtistModel.findById(artistId);
 
