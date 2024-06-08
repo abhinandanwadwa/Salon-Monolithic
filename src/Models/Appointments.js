@@ -11,7 +11,7 @@ const appointmentSchema = new mongoose.Schema({
         ref: 'Artist',
         required: true
     },
-    servies : [
+    services : [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Service'

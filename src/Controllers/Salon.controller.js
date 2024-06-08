@@ -470,6 +470,27 @@ const AddPhotos = async (req, res) => {
     }
 }
 
+const getSalonsAppointments = async (req, res) => {
+  try {
+    const id = req.user._id;
+    const salon = await SalonModel.findOne({ userId: id }).populate({
+      path: "Appointments",
+      populate: {
+        path: "user",
+        path: "services",
+        path: "artist",
+      },
+    });
+    return res.status(200).json(salon);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching salon",
+    });
+  }
+}
+
     
 
 export {
@@ -481,5 +502,6 @@ export {
   uploadBrochure,
   deleteSalon,
   UpdateSalon,
+  getSalonsAppointments,
   AddPhotos
 };

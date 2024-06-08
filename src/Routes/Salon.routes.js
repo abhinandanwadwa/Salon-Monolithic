@@ -1,4 +1,4 @@
-import { createSalon,getOwnerSalon,searchSalons,getSalonById,getSalonByLocation,uploadBrochure,AddPhotos,deleteSalon,UpdateSalon } from "../Controllers/Salon.controller.js";
+import { createSalon,getOwnerSalon,searchSalons,getSalonById,getSalonByLocation,uploadBrochure,AddPhotos,deleteSalon,UpdateSalon,getSalonsAppointments } from "../Controllers/Salon.controller.js";
 import { verify,roleAuthorization } from "../middlewares/authenticated.js";
 
 import express from "express";
@@ -13,6 +13,7 @@ Salonrouter.get("/getSalon/:id", getSalonById);
 Salonrouter.post("/getSalon", getSalonByLocation);
 Salonrouter.post("/add-photos",verify,roleAuthorization(['Owner','subAdmin']),AddPhotos);
 Salonrouter.delete("/delete-salon",verify,roleAuthorization(['Owner']),deleteSalon);
+Salonrouter.get("/get-salon-appointments",verify,roleAuthorization(['Owner','subAdmin']),getSalonsAppointments);
 Salonrouter.put("/update-salon",verify,roleAuthorization(['Owner','subAdmin']),UpdateSalon);
 
 export default Salonrouter;

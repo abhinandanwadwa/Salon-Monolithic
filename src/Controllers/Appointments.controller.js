@@ -143,7 +143,7 @@ const createAppointmentByOwner = async (req, res) => {
         appointmentDate,
         appointmentStartTime,
         appointmentEndTime,
-        servies : services,
+        services : services,
         Duration,
         artist : artistId,
         appointmentCost : cost,
@@ -198,7 +198,7 @@ const editAppointment = async (req, res) => {
         appointment.appointmentStartTime = appointmentStartTime || appointment.appointmentStartTime;
         appointment.appointmentEndTime = appointmentEndTime || appointment.appointmentEndTime;
         appointment.Duration = Duration || appointment.Duration;
-        appointment.servies = services || appointment.servies;
+        appointment.services = services || appointment.services;
         appointment.appointmentCost = cost || appointment.appointmentCost;
 
         await appointment.save();
