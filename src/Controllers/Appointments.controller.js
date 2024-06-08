@@ -109,7 +109,7 @@ const getTimeSlots = async (req, res) => {
  */
 
 const createAppointmentByOwner = async (req, res) => {
-    const { artistId, appointmentDate, appointmentStartTime, appointmentEndTime, name, phoneNumber } = req.body;
+    const { artistId, appointmentDate, appointmentStartTime, appointmentEndTime, name, phoneNumber,cost } = req.body;
     const artist = await ArtistModel.findById(artistId);
 
     const user = await UserModel.findOne({ phoneNumber });
@@ -141,7 +141,8 @@ const createAppointmentByOwner = async (req, res) => {
         appointmentStartTime,
         appointmentEndTime,
         Duration,
-        artist : artistId
+        artist : artistId,
+        appointmentCost : cost
     });
 
     await appointment.save();
