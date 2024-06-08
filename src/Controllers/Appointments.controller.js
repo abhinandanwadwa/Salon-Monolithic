@@ -135,7 +135,7 @@ const createAppointmentByOwner = async (req, res) => {
     const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
 
 
-    const cusomter = await CustomerModel.findOne({ userId: user });
+    const customer = await CustomerModel.findOne({ userId: user });
 
     const Duration = moment.duration(duration).asMinutes();
 
@@ -158,8 +158,8 @@ const createAppointmentByOwner = async (req, res) => {
     artist.appointments.push(appointment);
     await artist.save();
 
-    cusomter.appointments.push(appointment);
-    await cusomter.save();
+    customer.appointments.push(appointment);
+    await customer.save();
 
     return res.status(201).json({ 
         success: true,
