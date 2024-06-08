@@ -114,11 +114,17 @@ const createAppointmentByOwner = async (req, res) => {
     const { artistId,services ,appointmentStartTime, duration, name, phoneNumber,cost } = req.body;
     const artist = await ArtistModel.findById(artistId);
 
+    const owner = req.user._id;
+    const salon = await SalonModel.findOne({ userId: owner });
+
+
+
     const user = await UserModel.findOne({ phoneNumber });
 
 
+
     if (!user) {
-        
+
         const newUser = new UserModel({ name, phoneNumber, role: 'Customer' });
         await newUser.save();
 
@@ -163,6 +169,9 @@ const createAppointmentByOwner = async (req, res) => {
 
     customer.appointments.push(appointment);
     await customer.save();
+
+    salon.appointments.push(appointment);
+    await salon.save();
 
     return res.status(201).json({ 
         success: true,

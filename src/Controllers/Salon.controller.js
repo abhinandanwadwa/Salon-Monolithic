@@ -474,14 +474,26 @@ const getSalonsAppointments = async (req, res) => {
   try {
     const id = req.user._id;
     const salon = await SalonModel.findOne({ userId: id }).populate({
-      path: "Appointments",
-      populate: {
-        path: "user",
-        path: "services",
-        path: "artist",
-      },
+      path: "appointments",
+      populate: [
+        { path: "user" },
+        { path: "services" },
+        { path: "artist" }
+      ]
     });
-    return res.status(200).json(salon);
+
+    // If salon not found or no appointments
+    if (!salon || !salon.appointments) {
+      return res.status(404).json({
+        success: false,
+        message: "No appointments found for this salon",
+      });
+    }
+
+    // Extract appointments from the salon object
+    const appointments = salon.appointments;
+
+    return res.status(200).json(appointments);
   } catch (error) {
     console.error(error);
     return res.status(500).json({
