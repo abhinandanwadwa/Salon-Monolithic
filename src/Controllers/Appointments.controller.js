@@ -158,6 +158,137 @@ const createAppointmentByOwner = async (req, res) => {
     });
 }
 
+
+/**
+ * @desc Reschedule Appointment
+ * @route PUT /api/appointments/reschedule-appointment
+ * @access Public
+ * @request { appointmentId, appointmentDate, appointmentStartTime, appointmentEndTime }
+ * @response { message }
+ */
+
+const rescheduleAppointment = async (req, res) => {
+    try {
+        const { appointmentId, appointmentDate, appointmentStartTime, appointmentEndTime } = req.body;
+    const userId = req.user._id;
+    const user = await UserModel.findById(userId);
+
+    if(user.role === 'Owner'){
+        const appointment = await AppointmentModel.findOne({ _id: appointmentId });
+        const artist = await ArtistModel.findById(appointment.artist);
+
+        if (!appointment) {
+            return res.status(404).json({
+                success: false,
+                message: "Appointment not found"
+            });
+        }
+
+        appointment.appointmentDate = appointmentDate;
+        appointment.appointmentStartTime = appointmentStartTime;
+        appointment.appointmentEndTime = appointmentEndTime;
+        appointment.Duration = moment.duration(appointmentEndTime).asMinutes() - moment.duration(appointmentStartTime).asMinutes();
+
+        await appointment.save();   
+
+        return res.status(200).json({
+            success: true,
+            message: "Appointment rescheduled successfully"
+        });
+    }
+
+    const appointment = await AppointmentModel.findOne({ _id: appointmentId, user: user });
+
+    if (!appointment) {
+        return res.status(404).json({
+            success: false,
+            message: "Appointment not found"
+        });
+    }
+
+    appointment.appointmentDate = appointmentDate;
+    appointment.appointmentStartTime = appointmentStartTime;
+    appointment.appointmentEndTime = appointmentEndTime;
+    appointment.Duration = moment.duration(appointmentEndTime).asMinutes() - moment.duration(appointmentStartTime).asMinutes();
+
+    await appointment.save();
+
+    return res.status(200).json({
+        success: true,
+        message: "Appointment rescheduled successfully"
+    });
+    } catch (error) {
+        return res.status(500).json({ 
+            success: false, 
+            message: "Internal server error",
+        });
+    }
+}
+
+
+
+/**
+ * @desc Cancel Appointment
+ * @route DELETE /api/appointments/cancel-appointment/:appointmentId
+ * @access Public
+ * @response { message }
+ * @errors Appointment not found
+ */
+
+const cancelAppointment = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    const userId = req.user._id;
+    const user = await UserModel.findById(userId);
+
+    if(user.role === 'Owner'){
+        const appointment = await AppointmentModel.findOne({ _id: appointmentId });
+        const artist = await ArtistModel.findById(appointment.artist);
+
+        if (!appointment) {
+            return res.status(404).json({
+                success: false,
+                message: "Appointment not found"
+            });
+        }
+
+        appointment.Status = 'Cancelled';
+
+        await appointment.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Appointment cancelled successfully"
+        });
+    }
+
+    const appointment = await AppointmentModel.findOne({ _id: appointmentId, user: user });
+
+    if (!appointment) {
+        return res.status(404).json({
+            success: false,
+            message: "Appointment not found"
+        });
+    }
+
+    appointment.Status = 'Cancelled';
+
+    await appointment.save();
+    
+
+    return res.status(200).json({
+        success: true,
+        message: "Appointment Cancelled successfully"
+    });
+  } catch (error) {
+    return res.status(500).json({ 
+        success: false, 
+        message: "Internal server error",
+    });
+  }
+}
+
+
 /**
  * @desc Create Appointment Lock
  * @route POST /api/appointments/create-appointment-lock
@@ -278,4 +409,4 @@ const releaseExpiredLocks = async () => {
 
 // setInterval(releaseExpiredLocks, 60000 );
 
-export {getTimeSlots,createAppointmentByOwner,createAppointmentLock,BookAppointment};
+export {getTimeSlots,createAppointmentByOwner,createAppointmentLock,BookAppointment,cancelAppointment,rescheduleAppointment};

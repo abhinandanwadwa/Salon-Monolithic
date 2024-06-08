@@ -1,4 +1,4 @@
-import { createAppointmentByOwner,getTimeSlots,createAppointmentLock,BookAppointment } from "../Controllers/Appointments.controller.js";
+import { createAppointmentByOwner,getTimeSlots,createAppointmentLock,BookAppointment,cancelAppointment,rescheduleAppointment } from "../Controllers/Appointments.controller.js";
 import { verify,roleAuthorization } from "../middlewares/authenticated.js";
 
 import express, { application } from "express";
@@ -10,5 +10,7 @@ Appointmentrouter.post("/createAppointmentByOwner",verify,roleAuthorization(['Ow
 Appointmentrouter.post("/getTimeSlots", getTimeSlots);
 Appointmentrouter.post("/createAppointmentLock",verify,roleAuthorization(['Customer']), createAppointmentLock);
 Appointmentrouter.post("/BookAppointment",verify,roleAuthorization(['Customer']), BookAppointment);
+Appointmentrouter.post("/cancelAppointment/:appointmentId",verify, cancelAppointment);
+Appointmentrouter.post("/rescheduleAppointment",verify,rescheduleAppointment);
 
 export default Appointmentrouter;
