@@ -17,7 +17,6 @@ function convertTo24Hour(time) {
         hours = '00';
     }
 
-    // Pad the hours with a leading zero if necessary
     hours = hours.toString().padStart(2, '0');
 
     return `${hours}:00`;
@@ -277,6 +276,6 @@ const releaseExpiredLocks = async () => {
     }
 };
 
-setInterval(releaseExpiredLocks, 60000 );
+// setInterval(releaseExpiredLocks, 60000 );
 
 export {getTimeSlots,createAppointmentByOwner,createAppointmentLock,BookAppointment};
