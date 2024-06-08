@@ -5,6 +5,7 @@ import generator from 'slot-generator';
 import UserModel from "../Models/User.js";
 import CustomerModel from "../Models/Customer.js";
 
+
 moment.suppressDeprecationWarnings = true;
 
 
@@ -115,12 +116,13 @@ const createAppointmentByOwner = async (req, res) => {
 
     const user = await UserModel.findOne({ phoneNumber });
 
+
     if (!user) {
         const newUser = new UserModel({ name, phoneNumber, role: 'Customer' });
         await newUser.save();
-        user = newUser;
 
-        const newCustomer = new CustomerModel({ userId: newUser._id ,name,phoneNumber});
+
+        const newCustomer = new CustomerModel({ userId: newUser._id,name,phoneNumber});
         await newCustomer.save();
     }
 
@@ -135,14 +137,16 @@ const createAppointmentByOwner = async (req, res) => {
     const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
 
 
-    const customer = await CustomerModel.findOne({ userId: user });
+    const customer = await CustomerModel.findOne({ phoneNumber });
+
+
 
     const Duration = moment.duration(duration).asMinutes();
 
     const appointmentEndTime = moment(appointmentStartTime).add(Duration, 'minutes').toISOString();
 
     const appointment = new AppointmentModel({
-        user: user,
+        user: customer,
         appointmentDate,
         appointmentStartTime,
         appointmentEndTime,
@@ -166,6 +170,7 @@ const createAppointmentByOwner = async (req, res) => {
         message: "Appointment created successfully" 
     });
     } catch (error) {
+        console.log(error)
         return res.status(500).json({ 
             success: false, 
             message: "Internal server error",
