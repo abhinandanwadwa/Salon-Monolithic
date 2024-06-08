@@ -170,6 +170,62 @@ const createAppointmentByOwner = async (req, res) => {
     }
 }
 
+const editAppointment = async (req, res) => {
+    try {
+        const { appointmentId, appointmentDate, artistId ,appointmentStartTime, duration, services, cost } = req.body;
+        const userId = req.user._id;
+        const user = await UserModel.findById(userId);
+
+        const appointment = await AppointmentModel.findOne({ _id: appointmentId });
+        const artist = await ArtistModel.findById(appointment.artist);
+
+        if (!appointment) {
+            return res.status(404).json({
+                success: false,
+                message: "Appointment not found"
+            });
+        }
+
+        artist.appointments.pull(appointment);
+
+        const newArtist = await ArtistModel.findById(artistId);
+
+        const Duration = moment.duration(duration).asMinutes();
+
+        const appointmentEndTime = moment(appointmentStartTime).add(Duration, 'minutes').toISOString();
+
+        appointment.appointmentDate = appointmentDate || appointment.appointmentDate;
+        appointment.appointmentStartTime = appointmentStartTime || appointment.appointmentStartTime;
+        appointment.appointmentEndTime = appointmentEndTime || appointment.appointmentEndTime;
+        appointment.Duration = Duration || appointment.Duration;
+        appointment.servies = services || appointment.servies;
+        appointment.appointmentCost = cost || appointment.appointmentCost;
+
+        await appointment.save();
+
+        newArtist.appointments.push(appointment);
+
+        await newArtist.save();
+
+
+
+        return res.status(200).json({
+            success: true,
+            message: "Appointment updated successfully"
+        });
+
+    } catch (error) {
+        return res.status(500).json({ 
+            success: false, 
+            message: "Internal server error",
+        });
+    }
+}
+        
+
+
+
+
 
 /**
  * @desc Reschedule Appointment
@@ -421,4 +477,4 @@ const releaseExpiredLocks = async () => {
 
 // setInterval(releaseExpiredLocks, 60000 );
 
-export {getTimeSlots,createAppointmentByOwner,createAppointmentLock,BookAppointment,cancelAppointment,rescheduleAppointment};
+export {getTimeSlots,createAppointmentByOwner,createAppointmentLock,BookAppointment,cancelAppointment,rescheduleAppointment,editAppointment};
