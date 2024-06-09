@@ -113,6 +113,7 @@ const getTimeSlots = async (req, res) => {
 const createAppointmentByOwner = async (req, res) => {
     try {
     const { artistId,services ,appointmentStartTime, duration, name, phoneNumber,cost } = req.body;
+    // const { appointmentId, artistId ,appointmentStartTime, duration, services, cost } = req.body;
     const artist = await ArtistModel.findById(artistId);
 
     const owner = req.user._id;
@@ -191,11 +192,11 @@ const createAppointmentByOwner = async (req, res) => {
 const editAppointment = async (req, res) => {
     try {
         const { appointmentId, artistId ,appointmentStartTime, duration, services, cost } = req.body;
-        
+        console.log(appointmentId, artistId, appointmentStartTime, duration, services, cost)
 
         const appointment = await AppointmentModel.findById(appointmentId);
         const artist = await ArtistModel.findById(artistId);
-
+        
         if (!appointment) {
             return res.status(404).json({
                 success: false,
@@ -259,7 +260,7 @@ const editAppointment = async (req, res) => {
 
 const rescheduleAppointment = async (req, res) => {
     try {
-        const { appointmentId, appointmentDate, appointmentStartTime, appointmentEndTime } = req.body;
+        const { appointmentId, appointmentStartTime, duration } = req.body;
     const userId = req.user._id;
     const user = await UserModel.findById(userId);
 
@@ -273,6 +274,9 @@ const rescheduleAppointment = async (req, res) => {
                 message: "Appointment not found"
             });
         }
+
+        const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
+        const appointmentEndTime = moment(appointmentStartTime).add(duration, 'minutes').toISOString();
 
         appointment.appointmentDate = appointmentDate;
         appointment.appointmentStartTime = appointmentStartTime;
