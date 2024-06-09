@@ -218,7 +218,7 @@ const editAppointment = async (req, res) => {
         appointment.appointmentDate = appointmentDate || appointment.appointmentDate;
         appointment.appointmentStartTime = appointmentStartTime || appointment.appointmentStartTime;
         appointment.appointmentEndTime = appointmentEndTime || appointment.appointmentEndTime;
-        appointment.Duration = Duration || appointment.Duration;
+        appointment.Duration = duration || appointment.Duration;
         appointment.services = services || appointment.services;
         appointment.appointmentCost = cost || appointment.appointmentCost;
 
