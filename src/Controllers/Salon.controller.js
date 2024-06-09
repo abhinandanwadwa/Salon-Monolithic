@@ -476,11 +476,17 @@ const getSalonsAppointments = async (req, res) => {
     const salon = await SalonModel.findOne({ userId: id }).populate({
       path: "appointments",
       populate: [
-        { path: "user" },
-        { path: "services" },
+        { 
+          path: "user",
+          select: "name phoneNumber _id" 
+        },
+        { 
+          path: "services" ,
+          select: "ServiceName  _id"
+        },
         { 
           path: "artist" ,
-          select: "-appointments"
+          select: "ArtistName PhoneNumber _id" 
         }
       ]
     });
