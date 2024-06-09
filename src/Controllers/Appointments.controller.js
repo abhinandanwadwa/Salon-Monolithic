@@ -191,11 +191,10 @@ const createAppointmentByOwner = async (req, res) => {
 const editAppointment = async (req, res) => {
     try {
         const { appointmentId, artistId ,appointmentStartTime, duration, services, cost } = req.body;
-        const userId = req.user._id;
-        const user = await UserModel.findById(userId);
+        
 
         const appointment = await AppointmentModel.findOne({ _id: appointmentId });
-        const artist = await ArtistModel.findById(appointment.artist);
+        const artist = await ArtistModel.findById(artistId);
 
         if (!appointment) {
             return res.status(404).json({
@@ -237,6 +236,7 @@ const editAppointment = async (req, res) => {
         });
 
     } catch (error) {
+        console.log(error)
         return res.status(500).json({ 
             success: false, 
             message: "Internal server error",
