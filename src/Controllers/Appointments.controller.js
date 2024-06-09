@@ -193,7 +193,7 @@ const editAppointment = async (req, res) => {
         const { appointmentId, artistId ,appointmentStartTime, duration, services, cost } = req.body;
         
 
-        const appointment = await AppointmentModel.findOne({ _id: appointmentId });
+        const appointment = await AppointmentModel.findById(appointmentId);
         const artist = await ArtistModel.findById(artistId);
 
         if (!appointment) {
