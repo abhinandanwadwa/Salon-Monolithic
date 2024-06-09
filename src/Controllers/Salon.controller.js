@@ -486,7 +486,7 @@ const getSalonsAppointments = async (req, res) => {
         },
         { 
           path: "artist" ,
-          select: "ArtistName PhoneNumber _id" 
+          select: "ArtistName PhoneNumber _id workingDays startTime endTime" 
         }
       ]
     });
