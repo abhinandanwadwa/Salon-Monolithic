@@ -13,7 +13,7 @@ Salonrouter.get("/getSalon/:id", getSalonById);
 Salonrouter.post("/getSalon", getSalonByLocation);
 Salonrouter.post("/add-photos",verify,roleAuthorization(['Owner','subAdmin']),AddPhotos);
 Salonrouter.delete("/delete-salon",verify,roleAuthorization(['Owner']),deleteSalon);
-Salonrouter.post("/get-salon-appointments",verify,roleAuthorization(['Owner','subAdmin']),getSalonsAppointments);
+Salonrouter.get("/get-salon-appointments",verify,roleAuthorization(['Owner','subAdmin']),getSalonsAppointments);
 Salonrouter.put("/update-salon",verify,roleAuthorization(['Owner','subAdmin']),UpdateSalon);
 
 export default Salonrouter;
