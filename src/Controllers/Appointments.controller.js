@@ -319,6 +319,35 @@ const rescheduleAppointment = async (req, res) => {
     }
 }
 
+const CompleteAppointment = async (req, res) => {
+    try {
+        const { appointmentId } = req.params;
+
+        const appointment = await AppointmentModel.findById(appointmentId);
+        
+        if(!appointmentId){
+            return res.status(400).json({
+                success: false,
+                message: "Appointment Id is required"
+            });
+        }
+
+        
+        appointment.Status = 'Completed';
+
+        await appointment.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Appointment Completed successfully"
+        });
+    } catch (error) {
+        return res.status(500).json({ 
+            success: false, 
+            message: "Internal server error",
+        });
+    }
+}
 
 
 /**
@@ -510,4 +539,4 @@ const releaseExpiredLocks = async () => {
 
 // setInterval(releaseExpiredLocks, 60000 );
 
-export {getTimeSlots,createAppointmentByOwner,createAppointmentLock,BookAppointment,cancelAppointment,rescheduleAppointment,editAppointment};
+export {getTimeSlots,createAppointmentByOwner,createAppointmentLock,BookAppointment,cancelAppointment,rescheduleAppointment,editAppointment,CompleteAppointment};
