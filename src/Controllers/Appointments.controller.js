@@ -3,6 +3,7 @@ import moment from "moment";
 import AppointmentModel from "../Models/Appointments.js";
 import generator from 'slot-generator';
 import UserModel from "../Models/User.js";
+import SalonModel from "../Models/Salon.js";
 import CustomerModel from "../Models/Customer.js";
 
 
@@ -169,6 +170,7 @@ const createAppointmentByOwner = async (req, res) => {
 
     customer.appointments.push(appointment);
     await customer.save();
+    
 
     salon.appointments.push(appointment);
     await salon.save();

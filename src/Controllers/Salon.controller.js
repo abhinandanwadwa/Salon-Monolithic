@@ -478,7 +478,10 @@ const getSalonsAppointments = async (req, res) => {
       populate: [
         { path: "user" },
         { path: "services" },
-        { path: "artist" }
+        { 
+          path: "artist" ,
+          select: "-appointments"
+        }
       ]
     });
 
@@ -492,6 +495,8 @@ const getSalonsAppointments = async (req, res) => {
 
     // Extract appointments from the salon object
     const appointments = salon.appointments;
+
+    console.log(appointments)
 
     return res.status(200).json(appointments);
   } catch (error) {
