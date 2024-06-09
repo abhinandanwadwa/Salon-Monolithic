@@ -342,6 +342,13 @@ const cancelAppointment = async (req, res) => {
             });
         }
 
+        if(appointment.Status === 'Cancelled'){
+            return res.status(400).json({
+                success: false,
+                message: "Appointment already cancelled"
+            });
+        }
+
         appointment.Status = 'Cancelled';
 
         await appointment.save();

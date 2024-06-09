@@ -151,6 +151,7 @@ const verifyUser = async (req, res) => {
         _id: newUser._id,
         phoneNumber: newUser.phoneNumber,
         role: newUser.role,
+        isSalon: newUser.isSalon,
       });
     }
 
@@ -159,6 +160,7 @@ const verifyUser = async (req, res) => {
       _id: user._id,
       phoneNumber: user.phoneNumber,
       role: user.role,
+      isSalon: user.isSalon,
     });
 
   } catch (error) {
