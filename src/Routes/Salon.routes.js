@@ -8,7 +8,7 @@ const Salonrouter = express.Router();
 Salonrouter.post("/create-salon",verify,roleAuthorization(['Owner','subAdmin']),createSalon);
 Salonrouter.post("/upload-brochure",verify,roleAuthorization(['Owner','subAdmin']),uploadBrochure);
 Salonrouter.get("/get-owner-salon",verify,roleAuthorization(['Owner','subAdmin']),getOwnerSalon);
-Salonrouter.get("/search-salons", searchSalons);
+Salonrouter.post("/search-salons", searchSalons);
 Salonrouter.get("/getSalon/:id", getSalonById);
 Salonrouter.post("/getSalon", getSalonByLocation);
 Salonrouter.post("/add-photos",verify,roleAuthorization(['Owner','subAdmin']),AddPhotos);

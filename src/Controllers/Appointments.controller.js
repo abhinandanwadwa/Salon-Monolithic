@@ -5,6 +5,8 @@ import generator from 'slot-generator';
 import UserModel from "../Models/User.js";
 import SalonModel from "../Models/Salon.js";
 import CustomerModel from "../Models/Customer.js";
+import Service from "../Models/Services.js";
+import ServiceArtist from "../Models/ServiceArtist.js";
 
 
 moment.suppressDeprecationWarnings = true;
@@ -33,8 +35,25 @@ function convertTo24Hour(time) {
  */
 
 const getTimeSlots = async (req, res) => {
-    const { artistId, timePeriod } = req.body;
+    const { artistId, timePeriod,services } = req.body;
     const artist = await ArtistModel.findById(artistId).populate('appointments');
+
+    let timeDuration = timePeriod || 0;
+
+    console.log(artistId)
+
+    if (!timePeriod) {
+        for (let i = 0; i < services.length; i++) {
+            const service = await Service.findById(services[i]);
+            if (service) {
+                timeDuration += service.ServiceTime; // Accumulate durations
+            }
+        }
+    }
+    
+    console.log(timeDuration); // timeDuration is now the sum of all service durations
+    
+
 
     if (!artist) {
         return res.status(404).json({ 
@@ -49,10 +68,14 @@ const getTimeSlots = async (req, res) => {
 
     // convert the start and end time to 24 hour format
 
+   
+
     const startTime24 = convertTo24Hour(startTime);
     const endTime24 = convertTo24Hour(endTime);
 
-    console.log(startTime24, endTime24)
+    // const startTime24 = startTime;
+    // const endTime24 = endTime;
+
 
     const date = moment();
     const startTimeDate = moment(`${date.format('YYYY-MM-DD')}T${startTime24}:00.000+00:00`);
@@ -71,9 +94,11 @@ const getTimeSlots = async (req, res) => {
         }
     });
 
+    
+
     const params = {
         start: startTimeDate.toISOString(),
-        step: timePeriod,
+        step: timeDuration,
         end: endTimeDate.toISOString(),
         period: 'm',
         daysInWeek: WorkingDaysInNumber,
@@ -99,6 +124,7 @@ const getTimeSlots = async (req, res) => {
     return res.status(200).json({
         success: true,
         data: slots,
+        duration: timeDuration,
         message: "Time slots generated successfully"
     });
 }
@@ -112,24 +138,19 @@ const getTimeSlots = async (req, res) => {
 
 const createAppointmentByOwner = async (req, res) => {
     try {
-    const { artistId,services ,appointmentStartTime, duration, name, phoneNumber,cost } = req.body;
+    const { artistId,services ,appointmentStartTime, duration, name, phoneNumber,gender } = req.body;
     // const { appointmentId, artistId ,appointmentStartTime, duration, services, cost } = req.body;
     const artist = await ArtistModel.findById(artistId);
 
     const owner = req.user._id;
     const salon = await SalonModel.findOne({ userId: owner });
-
-
-
     const user = await UserModel.findOne({ phoneNumber });
-
 
 
     if (!user) {
 
         const newUser = new UserModel({ name, phoneNumber, role: 'Customer' });
         await newUser.save();
-
 
         const newCustomer = new CustomerModel({ userId: newUser._id,name,phoneNumber});
         await newCustomer.save();
@@ -143,6 +164,19 @@ const createAppointmentByOwner = async (req, res) => {
          });
     }
 
+    let cost = 0;
+
+    for(let i = 0; i < services.length; i++){
+        const serviceArtist = await ServiceArtist.findOne({artist: artistId, service: services[i]});
+        if(!serviceArtist){
+            return res.status(404).json({
+                success: false,
+                message: "Service not found"
+            });
+        }
+        cost += serviceArtist.Price;
+    }
+        
     const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
 
 
@@ -161,7 +195,8 @@ const createAppointmentByOwner = async (req, res) => {
         Duration: duration,
         artist : artistId,
         appointmentCost : cost,
-        Status: 'Booked'
+        Status: 'Booked',
+        gender,
     });
 
     await appointment.save();
@@ -172,7 +207,6 @@ const createAppointmentByOwner = async (req, res) => {
     customer.appointments.push(appointment);
     await customer.save();
     
-
     salon.appointments.push(appointment);
     await salon.save();
 
@@ -191,8 +225,8 @@ const createAppointmentByOwner = async (req, res) => {
 
 const editAppointment = async (req, res) => {
     try {
-        const { appointmentId, artistId ,appointmentStartTime, duration, services, cost } = req.body;
-        console.log(appointmentId, artistId, appointmentStartTime, duration, services, cost)
+        const { appointmentId, artistId ,appointmentStartTime, duration, services } = req.body;
+        console.log(appointmentId, artistId, appointmentStartTime, duration, services)
 
         const appointment = await AppointmentModel.findById(appointmentId);
         const artist = await ArtistModel.findById(artistId);
@@ -206,7 +240,18 @@ const editAppointment = async (req, res) => {
 
         artist.appointments.pull(appointment);
 
-// get the date from appointmentStartTime
+        let cost = 0;
+
+        for(let i = 0; i < services.length; i++){
+            const serviceArtist = await ServiceArtist.findOne({artist: artistId, service: services[i]});
+            if(!serviceArtist){
+                return res.status(404).json({
+                    success: false,
+                    message: "Service not found"
+                });
+            }
+            cost += serviceArtist.Price;
+        }
 
         const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
 
@@ -418,125 +463,194 @@ const cancelAppointment = async (req, res) => {
   }
 }
 
-
-/**
- * @desc Create Appointment Lock
- * @route POST /api/appointments/create-appointment-lock
- * @access Public
- * @request { artistId, appointmentDate, appointmentStartTime, appointmentEndTime }
- */
-
-const createAppointmentLock = async (req, res) => {
-    const { artistId, appointmentDate, appointmentStartTime, appointmentEndTime} = req.body;
-    const userId = req.user._id;
-    const user = await UserModel.findById(userId);
-    const artist = await ArtistModel.findById(artistId);
-
-    if (!artist) {
-        return res.status(404).json({ 
-            success: false,
-            message: "Artist not found" 
-        });
-    }
-
-    const Duration = moment.duration(appointmentEndTime).asMinutes() - moment.duration(appointmentStartTime).asMinutes();
-
-    const appointment = new AppointmentModel({
-        user: user,
-        appointmentDate,
-        appointmentStartTime,
-        appointmentEndTime,
-        Duration,
-        Status: 'Locked',
-        lockExpires: moment().add(10, 'minutes'),
-        artist : artistId
-    });
-
-    await appointment.save();
-
-    artist.appointments.push(appointment);
-    await artist.save();
-
-    return res.status(201).json({ 
-        success: true,
-        message: "Appointment created successfully" });
-}
-
-/**
- * @desc Book Appointment
- * @route POST /api/appointments/book-appointment
- * @access Public
- * @params { appointmentId }
- * @request { appointmentCost }
- * @response { message }
- */
-
-const BookAppointment = async (req, res) => {
-    const { appointmentId } = req.params;
-    const {appointmentCost} = req.body;
-    const userId = req.user._id;
-    const user = await UserModel.findById(userId);
-    const appointment = await AppointmentModel.findOne({
-        _id: appointmentId,
-        user: user,
-        Status: 'Locked',
-    });
-
-    const artist = await ArtistModel.findById(appointment.artist);
-
-    if (!appointment) {
-        return res.status(404).json({
-            success: false,
-            message: "Appointment not found or Session Expired" 
-        });
-    }
-
-    if(appointment.lockExpires < moment()){
-        await appointment.remove();
-        await artist.appointments.pull(appointment);
-        return res.status(400).json({ 
-            success: false,
-            message: "Session Expired" 
-        });
-    }
-
-    appointment.Status = 'Booked';
-    appointment.lockExpires = null;
-    appointment.appointmentCost = appointmentCost;
-
-    await appointment.save();
-
-    const customer = await CustomerModel.findOne({ userId: user });
-    customer.appointments.push(appointment);
-    await customer.save();
-
-    return res.status(200).json({ 
-        success: true,
-        message: "Appointment Booked Successfully" 
-    });
-}
-
-
-
-const releaseExpiredLocks = async () => {
+const CreateAppointment = async (req, res) => {
     try {
-        const expiredLocks = await AppointmentModel.find({
-            Status: 'Locked',
-            lockExpires: { $lt: moment() }
-        });
+        const { artistId, appointmentStartTime, duration, services, cost } = req.body;
+        const userId = req.user._id;
+        const customer = await CustomerModel.findOne({ userId: userId });
+        const artist = await ArtistModel.findById(artistId);
 
-        for (const lock of expiredLocks) {
-            const artist = await ArtistModel.findById(lock.artist);
-            await lock.remove();
-            await artist.appointments.pull(lock);
-            await artist.save();
+        if (!artist) {
+            return res.status(404).json({ 
+                success: false,
+                message: "Artist not found" 
+            });
         }
 
-    } catch (error) {
-      console.error('Error releasing expired locks:', error);
+        const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
+        const appointmentEndTime = moment(appointmentStartTime).add(duration, 'minutes').toISOString();
+
+        const overlappingAppointments = await AppointmentModel.find({
+            artist: artistId,
+            appointmentDate,
+            $or: [
+                { appointmentStartTime: { $lt: appointmentEndTime, $gte: appointmentStartTime } },
+                { appointmentEndTime: { $gt: appointmentStartTime, $lte: appointmentEndTime } },
+                { appointmentStartTime: { $lte: appointmentStartTime }, appointmentEndTime: { $gte: appointmentEndTime } }
+            ]
+        });
+
+        if (overlappingAppointments.length > 0) {
+            return res.status(400).json({ 
+                success: false,
+                message: "Appointment time slot already booked" 
+            });
+        }
+
+        const appointment = new AppointmentModel({
+            user: customer,
+            artist: artistId,
+            appointmentDate,
+            appointmentStartTime,
+            appointmentEndTime,
+            duration,
+            services,
+            appointmentCost: cost,
+            Status: 'Booked'
+        });
+
+        await appointment.save();
+           artist.appointments.push(appointment);
+        await artist.save();
+        customer.appointments.push(appointment);
+        await customer.save();
+
+        return res.status(201).json({ 
+            success: true,
+            message: "Appointment created successfully"
+        });
+
     }
-};
+    catch (error) {
+        return res.status(500).json({ 
+            success: false, 
+            message: "Internal server error",
+        });
+    }
+}
+
+
+
+export {getTimeSlots,createAppointmentByOwner,cancelAppointment,rescheduleAppointment,editAppointment,CompleteAppointment};
+
+
+// /**
+//  * @desc Create Appointment Lock
+//  * @route POST /api/appointments/create-appointment-lock
+//  * @access Public
+//  * @request { artistId, appointmentDate, appointmentStartTime, appointmentEndTime }
+//  */
+
+// const createAppointmentLock = async (req, res) => {
+//     const { artistId, appointmentDate, appointmentStartTime, duration,services} = req.body;
+//     const userId = req.user._id;
+//     const user = await UserModel.findById(userId);
+//     const artist = await ArtistModel.findById(artistId);
+
+//     if (!artist) {
+//         return res.status(404).json({ 
+//             success: false,
+//             message: "Artist not found" 
+//         });
+//     }
+
+//     const appointmentEndTime = moment(appointmentStartTime).add(duration, 'minutes').toISOString();
+
+//     const appointment = new AppointmentModel({
+//         user: user,
+//         appointmentDate,
+//         appointmentStartTime,
+//         appointmentEndTime,
+//         Duration: duration,
+//         services: services,
+//         Status: 'Locked',
+//         lockExpires: moment().add(10, 'minutes'),
+//         artist : artistId
+//     });
+
+//     await appointment.save();
+
+//     artist.appointments.push(appointment);
+//     await artist.save();
+
+//     return res.status(201).json({ 
+//         success: true,
+//         message: "Appointment created successfully" });
+// }
+
+// /**
+//  * @desc Book Appointment
+//  * @route POST /api/appointments/book-appointment
+//  * @access Public
+//  * @params { appointmentId }
+//  * @request { appointmentCost }
+//  * @response { message }
+//  */
+
+// const BookAppointment = async (req, res) => {
+//     const { appointmentId } = req.params;
+//     const {appointmentCost} = req.body;
+//     const userId = req.user._id;
+//     const user = await UserModel.findById(userId);
+//     const appointment = await AppointmentModel.findOne({
+//         _id: appointmentId,
+//         user: user,
+//         Status: 'Locked',
+//     });
+
+//     const artist = await ArtistModel.findById(appointment.artist);
+
+//     if (!appointment) {
+//         return res.status(404).json({
+//             success: false,
+//             message: "Appointment not found or Session Expired" 
+//         });
+//     }
+
+//     if(appointment.lockExpires < moment()){
+//         await appointment.remove();
+//         await artist.appointments.pull(appointment);
+//         return res.status(400).json({ 
+//             success: false,
+//             message: "Session Expired" 
+//         });
+//     }
+
+//     appointment.Status = 'Booked';
+//     appointment.lockExpires = null;
+//     appointment.appointmentCost = appointmentCost;
+
+//     await appointment.save();
+
+//     const customer = await CustomerModel.findOne({ userId: user });
+//     customer.appointments.push(appointment);
+//     await customer.save();
+
+//     return res.status(200).json({ 
+//         success: true,
+//         message: "Appointment Booked Successfully" 
+//     });
+// }
+
+
+
+// const releaseExpiredLocks = async () => {
+//     try {
+//         const expiredLocks = await AppointmentModel.find({
+//             Status: 'Locked',
+//             lockExpires: { $lt: moment() }
+//         });
+
+//         for (const lock of expiredLocks) {
+//             const artist = await ArtistModel.findById(lock.artist);
+//             await lock.remove();
+//             await artist.appointments.pull(lock);
+//             await artist.save();
+//         }
+
+//     } catch (error) {
+//       console.error('Error releasing expired locks:', error);
+//     }
+// };
 
 // setInterval(releaseExpiredLocks, 60000 );
-
-export {getTimeSlots,createAppointmentByOwner,createAppointmentLock,BookAppointment,cancelAppointment,rescheduleAppointment,editAppointment,CompleteAppointment};

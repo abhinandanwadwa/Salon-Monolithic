@@ -191,6 +191,20 @@ const validateOffer = async (req, res) => {
   }
 }
 
+const testApi = async (req, res) => {
+
+  const user = req.user._id;
+  if(user){
+    return res.status(200).json({
+      success: true,
+      message: "User found",
+    });
+  }
+  return res.status(404).json({
+    success: false,
+    message: "User not found",
+  });
+}
 
 
-export { createOffer, getOffers, deleteOffer ,validateOffer };
+export { createOffer, getOffers, deleteOffer ,validateOffer,testApi };

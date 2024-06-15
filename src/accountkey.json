@@ -1,0 +1,14 @@
+{
+    "type": "service_account",
+    "project_id": "steam-mantis-426021-d1",
+    "private_key_id": "76019433cf680cbffc0bfb46d48397e92d129ad1",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC92Tcj5axDNmW8\nFcP0VcMNowbCoD6KZJ6u3AegcKYX2nAUw+mPHqoe2P3hq1AadX5iqok/cw85m8pM\nmZcXWrZFFhfRkxXXyMeW+0YQq5XdCLcT2IWCorbgwZLiY1n9FDADr5HuHf1MY/HO\nnPyb6ReVr6JOrSRnkAbPeC9xiE1zL6jMxU98qi6xmWx64JhaInz0o4fpiuW4aCSh\nnvTOnOREomZkiMGhPYRZY9peQc2Kr6t3tAB1dfSsbjq9Rb455S+xVzl+wBCUc0FZ\n8ITtSBn/vGWg5UbsHAs0ADuQPcRoZpZMaeTaj5ipLwF/e9xLO9OXN1htF3yAotZc\nIwvfPW0fAgMBAAECggEARpercjSnrkJe5+Yr/AGbyslQ7TPKrYkmnByC1Xyttfbq\ncD487ZPYbCoBlVUvLvd7bFK/QBGXmrM8MOl3jh6T4fKKHsqTd65X0ONUNUSoMA1a\njg2X73BzkfVImdeZkYpdJDG3kJQkKLCNLGehYpP0yhsJvjmRbNTYQ3MMKSomqmps\n9X0iYW0aChubCYHt7T2PR/v4D9Z6Na5jPBkid+O5x2xVppGKDCsJEVsXNXKgdS1k\njo7JFmKVMH2Cm+pVqCjA8QXvmuULxNBi87yXnoRBmozHsS4h1s5vazdXseuJonvS\n6N0MrHGm3pUfRN5Wt/iiyeuiEFfkPyoYGChyMW9MgQKBgQDtLRYtE76VoLSec5Ai\nupty6GWv/3ha5CsTqsxlYlGO8Mwlui8FKZLazXJg1xAP3HhMn9nP65wJqH1y0fYZ\nJ+cmccm9h4kX/Y3ukFZgzKzEwLaoE0qahgEJsSkr/HwBRhVdA7zpERxQ3seYELA1\nbtXTN1DxbwG3z1Q3zLf9nN1u3wKBgQDM6ohG+O4qslnkyBLaSs8RTRkFurWlDwpD\npXosqfJr0/Tf1HlkapY84JTjC/MZh3QwBbF0UN/xI53iPZk6NOrqawDVrnMAQnmL\nAoC3BQ2V8w4/QAk4C2FQg3Ou3S944ihStarFle384D6HAUB+kgdc813raQHFVTRy\nxak+FHkJwQKBgQCZMcUgKp+wkBP6QNS5yeS8bOW5r36y3qwAURMi7UWW2WxTdhYG\n9Jp5n7ggWulyBUri22FaDmpERsN41atrBj4ks9zGAfSIPWtey3YvoiR6Fawllghb\nFPE4rGjWk4gZXoZQBSkRNc8fYTZ0v1rBuKx+eD1dJQFsE4vnWuEA/EB+6wKBgB+W\n3DFMuLJ+UhtRuI5MUAWTxBK9CLmMSwHIpb/y5vs2bp5+y8PuJoD2Ah3KPsyltASf\nLA8JVKyA2BsDcfamJ7zBiBxoyzO0C7ahSSRts/10vbKEdaddIcBes1u2n1XcT2kI\ntm3FQi3kh98aE04vxtDOd6ENzAcWroIu9HssfshBAoGAYNDCsVEt7eCoZss1g73i\ntCzNXFEhKwNnV6vedKCMre4r/8zA4e2WZldUimCmk4X/b2741JGDTr2hqiJaIKTV\nUoZHaK4bSPNBLduaXtgYsPRQ4Yhx1L24NJ/eMXoRLGY7KTrZgGsiSQmY4vlTTKzP\ne0kgrVLIOwRCg/3B6tgNgSc=\n-----END PRIVATE KEY-----\n",
+    "client_email": "salon-576@steam-mantis-426021-d1.iam.gserviceaccount.com",
+    "client_id": "104798573034967463784",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/salon-576%40steam-mantis-426021-d1.iam.gserviceaccount.com",
+    "universe_domain": "googleapis.com"
+  }
+  

@@ -2,8 +2,7 @@ import SalonModel from "../Models/Salon.js";
 import ArtistModel from "../Models/Artist.js";
 import UserModel from "../Models/User.js";
 import Service from "../Models/Services.js";
-
-
+import ServiceArtist from "../Models/ServiceArtist.js";
 /**
  * @desc Create an artist with all services
  * @method POST
@@ -90,6 +89,16 @@ const CreateArtistWithAllServices = async (req, res) => {
 
             await artist.save();
             createdArtists.push(artist);
+
+            for (const service of services) {
+                const serviceArtist = new ServiceArtist({
+                    Artist: artist._id,
+                    Service: service._id,
+                    Price: service.ServiceCost,
+                });
+
+                await serviceArtist.save();
+            }
         }
 
         salon.Artists.push(...createdArtists);
@@ -195,6 +204,18 @@ const createArtists = async (req, res) => {
       await artist.save();
       // Add created artist to the array
       createdArtists.push(artist);
+
+      // Create a new serviceArtist for each service
+      for (const serviceId of services) {
+        const service = await Service.findById(serviceId);
+        const serviceArtist = new ServiceArtist({
+          Artist: artist._id,
+          Service: serviceId,
+          Price: service.ServiceCost,
+        });
+        await serviceArtist.save();
+      }
+
     }else{
         return res.status(400).json({
             success: false,
@@ -358,31 +379,72 @@ const getArtistsBySalon = async (req, res) => {
  * @requestParams { salonid: String }
  */
 
-  const GetArtistbyService = async (req, res) => {
-    try {
+const GetArtistbyService = async (req, res) => {
+  try {
       const { serviceIds } = req.body;
-      const {salonid} = req.params;
+      console.log('Service IDs:', serviceIds);
+
+      const { salonid } = req.params;
+      console.log('Salon ID:', salonid);
 
       const salon = await SalonModel.findById(salonid);
-        if (!salon) {
-            return res.status(404).json({ 
+      if (!salon) {
+          return res.status(404).json({ 
               success: false,
               message: "Salon not found" 
-            });
-        }
-        
-        const artists = await ArtistModel.find({ services: { $in: serviceIds }, salon: salonid });
+          });
+      }
 
-        
+      // Use the $all operator to find artists who offer all of the specified services
+      const artists = await ArtistModel.find({ 
+          services: { $all: serviceIds },
+          salon: salonid
+      });
+
       return res.status(200).json({ artists });
-    } catch (error) {
+  } catch (error) {
       console.error(error);
       return res.status(500).json({ 
+          success: false,
+          message: "Error in fetching artists" 
+      });
+  }
+};
+
+const updateArtistServicePrice = async (req,res) => {
+    try {
+      const { serviceId } = req.params;
+      const { price } = req.body;
+      const id = req.user._id;
+      const artist = await ArtistModel.findOne({ userId: id });
+      if (!artist) {
+        return res.status(404).json({ 
+          success: false,
+          message: "Artist not found",
+         });
+      }
+      const service = await ServiceArtist.findOne({ Artist: artist._id, Service: serviceId });
+      if (!service) {
+        return res.status(404).json({ 
+          success: false,
+          message: "Service not found",
+         });
+      }
+      service.Price = price;
+      await service.save();
+
+      return res.status(200).json({ 
+        success: true,
+        data:service,
+        message: "Service price updated successfully",
+      });
+    } catch (error) {
+      return res.status(500).json({ 
         success: false,
-        message: "Error in fetching artists" 
+        message: "Error in updating service price",
       });
     }
-  };
+}
 
   const getSalonArtistsSchedule = async (req, res) => {
     try {
@@ -414,4 +476,4 @@ const getArtistsBySalon = async (req, res) => {
     }
   }
 
-export { createArtists, getArtistsBySalon, GetArtistbyService ,CreateArtistWithAllServices ,updateArtist,deleteArtist };
+export { createArtists, getArtistsBySalon, GetArtistbyService ,CreateArtistWithAllServices ,updateArtist,deleteArtist,updateArtistServicePrice };

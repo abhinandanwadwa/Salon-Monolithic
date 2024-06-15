@@ -44,6 +44,9 @@ const appointmentSchema = new mongoose.Schema({
     lockExpires: {
         type: Date,
     }, 
+    gender: {
+        type: String,
+    }
 },{timestamps: true})
 
 const AppointmentModel = mongoose.model('Appointment', appointmentSchema);
