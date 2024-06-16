@@ -395,20 +395,20 @@ const GetArtistbyService = async (req, res) => {
           });
       }
 
-      const artistService = await ServiceArtist.find({ Service: { $in: serviceIds } }).populate("Artist");
+      // const artistService = await ServiceArtist.find({ Service: { $all: serviceIds } }).populate("Artist");
 
-      if (!artistService.length) {
-          return res.status(404).json({ 
-              success: false,
-              message: "No artists found" 
-          });
-      }
-      const artists = artistService.map((service) => service.Artist);
+      // if (!artistService.length) {
+      //     return res.status(404).json({ 
+      //         success: false,
+      //         message: "No artists found" 
+      //     });
+      // }
+      // const artists = artistService.map((service) => service.Artist);
       // // Use the $all operator to find artists who offer all of the specified services
-      // const artists = await ArtistModel.find({ 
-      //     services: { $all: serviceIds },
-      //     salon: salonid
-      // });
+      const artists = await ArtistModel.find({ 
+          services: { $all: serviceIds },
+          salon: salonid
+      });
 
       return res.status(200).json({ artists });
   } catch (error) {
@@ -489,7 +489,7 @@ const updateArtistServicePrice = async (req,res) => {
     try {
       const artistId = req.user._id;
 
-      const artist = await ArtistModel.findById(artistId).populate("services").populate("appointments").populate("salon");
+      const artist = await ArtistModel.find({userId:artistId}).populate("services").populate("appointments").populate("salon");
 
       if (!artist) {
         return res.status(404).json({ 
