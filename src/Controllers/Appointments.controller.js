@@ -168,6 +168,9 @@ const createAppointmentByOwner = async (req, res) => {
 
     for(let i = 0; i < services.length; i++){
         const serviceArtist = await ServiceArtist.findOne({Artist: artistId, Service: services[i]});
+
+        console.log(serviceArtist)
+
         if(!serviceArtist){
             return res.status(404).json({
                 success: false,

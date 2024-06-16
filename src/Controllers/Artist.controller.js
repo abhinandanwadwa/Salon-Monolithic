@@ -485,4 +485,33 @@ const updateArtistServicePrice = async (req,res) => {
     }
   }
 
-export { createArtists, getArtistsBySalon, GetArtistbyService ,CreateArtistWithAllServices ,updateArtist,deleteArtist,updateArtistServicePrice };
+  const getArtistData = async (req, res) => {
+    try {
+      const artistId = req.user._id;
+
+      const artist = await ArtistModel.findById(artistId).populate("services").populate("appointments").populate("salon");
+
+      if (!artist) {
+        return res.status(404).json({ 
+          success: false,
+          message: "Artist not found",
+         });
+      }
+
+      return res.status(200).json({ 
+        success: true,
+        data:artist,
+        message: "Artist fetched successfully",
+      });
+
+    }
+    catch (error) {
+      return res.status(500).json({ 
+        success: false,
+        message: "Error in fetching artist",
+      });
+    }
+  }
+
+
+export { createArtists, getArtistsBySalon, GetArtistbyService ,CreateArtistWithAllServices ,updateArtist,deleteArtist,updateArtistServicePrice, getArtistData };
