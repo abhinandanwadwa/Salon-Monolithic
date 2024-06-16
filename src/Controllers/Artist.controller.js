@@ -500,25 +500,29 @@ const updateArtistServicePrice = async (req,res) => {
       }).populate({
         path:"salon",
         select: "-address -location -StorePhotos -OwnerId -salonType -Services -Artists -createdAt -updatedAt -appointments -workingDays -startTime -endTime -__v -CoverImage -Brochure"
-      }).populate("services");
+      });
 
-    //   const services = await ServiceArtist.find({
-    //     Artist: artistId
-    // });
+      const Artistt = await ArtistModel.findOne({userId:artistId});
 
-    // if (!services) {
-    //     return res.status(404).json({
-    //         success: false,
-    //         message: "Services not found for the artist"
-    //     });
-    // }
+      console.log(Artistt._id)
 
-    // console.log("Services fetched successfully:", services);
+      const services = await ServiceArtist.find({
+        Artist: Artistt._id
+    }).populate("Service");
 
-    //   const data = {
-    //     artist,
-    //     services,
-    //   };
+    if (!services) {
+        return res.status(404).json({
+            success: false,
+            message: "Services not found for the artist"
+        });
+    }
+
+    console.log("Services fetched successfully:", services);
+
+      const data = {
+        artist,
+        services,
+      };
 
       if (!artist) {
         return res.status(404).json({ 
@@ -529,7 +533,7 @@ const updateArtistServicePrice = async (req,res) => {
 
       return res.status(200).json({ 
         success: true,
-        data:artist,
+        data,
         message: "Artist fetched successfully",
       });
 
@@ -539,6 +543,37 @@ const updateArtistServicePrice = async (req,res) => {
       return res.status(500).json({ 
         success: false,
         message: "Error in fetching artist",
+      });
+    }
+  }
+
+  const GetArtistService = async (req, res) => {
+    try {
+      const userId = req.user._id;
+      
+      const services = await ServiceArtist.find({ Artist: userId }).populate("Service");
+
+      if (!services) {
+        return res.status(404).json({
+          success: false,
+          message: "Services not found for the artist"
+        });
+      }
+
+      console.log("Services fetched successfully:", services);
+
+      return res.status(200).json({
+        success: true,
+        data: services,
+        message: "Services fetched successfully",
+      });
+
+    }
+    catch (error) {
+      console.log(error)
+      return res.status(500).json({
+        success: false,
+        message: "Error in fetching services",
       });
     }
   }
