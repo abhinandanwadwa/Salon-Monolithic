@@ -4,6 +4,8 @@ import generateToken from "../utils/generatetoken.js";
 import otpGenerator from "otp-generator";
 import bycrypt from "bcryptjs";
 import { UserDetail } from "otpless-node-js-auth-sdk";
+import SalonModel from "../Models/Salon.js";
+import ArtistModel from "../Models/Artist.js";
 
 
 const verifyToken = async (req, res) => {
@@ -284,6 +286,7 @@ const verifyUser = async (req, res) => {
 const ChangeRole = async (req, res) => {
   try {
     const { artists } = req.body;
+    console.log(artists)
     const user = req.user._id;
     const salon = await SalonModel.findOne({ userId: user });
     if (!salon) {
@@ -293,8 +296,8 @@ const ChangeRole = async (req, res) => {
       });
     }
 
-    for (let artistid of artists) {
-      const artist = await ArtistModel.findById(artistid);
+    for (let i = 0; i < artists.length; i++) {  
+      const artist = await ArtistModel.findById(artists[i]);
       if (!artist) {
         return res.status(404).json({
           success: false,
@@ -302,12 +305,27 @@ const ChangeRole = async (req, res) => {
         });
       }
 
-      const user = await UserModel.findOneAndUpdate(
-        { _id: artist.userId },
-        { role: "subAdmin" }
-      );
+      console.log("hi")
+
+      const user = await UserModel.findById(artist.userId);
+
+      console.log("hi")
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      user.role = "subAdmin";
 
       await user.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Role changed successfully",
+      });
     }
   } catch (error) {
     console.error(error);
