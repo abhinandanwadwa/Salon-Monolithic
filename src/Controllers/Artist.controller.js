@@ -433,6 +433,8 @@ const updateArtistServicePrice = async (req,res) => {
          });
       }
       const service = await ServiceArtist.findOne({ Artist: artist._id, Service: serviceId });
+
+      
       if (!service) {
         return res.status(404).json({ 
           success: false,

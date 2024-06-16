@@ -12,7 +12,7 @@ Artistrouter.get("/get-artist-by-salon",verify,
 roleAuthorization(['Owner','subAdmin']),getArtistsBySalon);
 Artistrouter.put("/update-artist/:artistId",verify,roleAuthorization(['Owner','subAdmin']),updateArtist);
 Artistrouter.delete("/delete-artist/:artistId",verify,roleAuthorization(['Owner']),deleteArtist);
-Artistrouter.put("/update-artist-service-price/:artistId",verify,roleAuthorization(['Artist']),updateArtistServicePrice);
+Artistrouter.put("/update-artist-service-price/:serviceId",verify,roleAuthorization(['Artist']),updateArtistServicePrice);
 Artistrouter.get("/get-artist-data",verify,roleAuthorization(['Artist']),getArtistData);
 
 export default Artistrouter;
