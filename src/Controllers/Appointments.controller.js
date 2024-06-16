@@ -12,122 +12,97 @@ import ServiceArtist from "../Models/ServiceArtist.js";
 moment.suppressDeprecationWarnings = true;
 
 
-function convertTo24Hour(time) {
-    let [hours, period] = time.split(' ');
-
-    if (period.toUpperCase() === 'PM' && hours !== '12') {
-        hours = Number(hours) + 12;
-    } else if (period.toUpperCase() === 'AM' && hours === '12') {
-        hours = '00';
-    }
-
-    hours = hours.toString().padStart(2, '0');
-
-    return `${hours}:00`;
-}
-/**
- * @desc Get Time Slots
- * @route POST /api/appointments/get-time-slots
- * @access Public
- * @request { artistId, timePeriod }
- * @response { slots }
- * @errors Artist not found
- */
-
 const getTimeSlots = async (req, res) => {
-    const { artistId, timePeriod,services } = req.body;
+    const { artistId, timePeriod, services } = req.body;
+
+    // Fetch artist data including appointments
     const artist = await ArtistModel.findById(artistId).populate('appointments');
-
-    let timeDuration = timePeriod || 0;
-
-    console.log(artistId)
-
-    if (!timePeriod) {
-        for (let i = 0; i < services.length; i++) {
-            const service = await Service.findById(services[i]);
-            if (service) {
-                timeDuration += service.ServiceTime; // Accumulate durations
-            }
-        }
-    }
-    
-    console.log(timeDuration); // timeDuration is now the sum of all service durations
-    
-
-
     if (!artist) {
         return res.status(404).json({ 
             success: false,
             message: "Artist not found"
-         });
+        });
     }
 
-    const { workingDays, startTime, endTime } = artist;
-
-    //start time and end time are like this 6 AM
-
-    // convert the start and end time to 24 hour format
-
-   
-
-    // const startTime24 = convertTo24Hour(startTime);
-    // const endTime24 = convertTo24Hour(endTime);
-
-    const startTime24 = startTime;
-    const endTime24 = endTime;
-
-
-    const date = moment();
-    const startTimeDate = moment(`${date.format('YYYY-MM-DD')}T${startTime24}:00.000+00:00`);
-    const endDate = moment().add(10, 'days');
-    const endTimeDate = moment(`${endDate.format('YYYY-MM-DD')}T${endTime24}:00.000+00:00`);
-
-    const WorkingDaysInNumber = workingDays.map((day) => {
-        switch (day) {
-            case 'Sunday': return 0;
-            case 'Monday': return 1;
-            case 'Tuesday': return 2;
-            case 'Wednesday': return 3;
-            case 'Thursday': return 4;
-            case 'Friday': return 5;
-            case 'Saturday': return 6;
+    // Calculate the total duration if timePeriod is not provided
+    let timeDuration = timePeriod || 0;
+    if (!timePeriod) {
+        for (let serviceId of services) {
+            const service = await Service.findById(serviceId);
+            if (service) {
+                timeDuration += service.ServiceTime;
+            }
         }
-    });
+    }
 
+    console.log(artist.startTime, artist.endTime, timeDuration)
+
+    // change the time to 15:00 format
+
+    //currently the format is ISO
+
+    const startTime24 = artist.startTime.split(':').slice(0, 2).join(':');
+    const endTime24 = artist.endTime.split(':').slice(0, 2).join(':');
+
+    //2024-06-16T05:00 2024-06-16T19:00
+    //just want after T 
+
+    const startTime = startTime24.split('T')[1];
+    const endTime = endTime24.split('T')[1];
     
 
+    console.log(startTime24, endTime24)
+
+
+    // Define the start and end time as moment objects
+    const date = moment();
+    const startTimeDate = moment(`${date.format('YYYY-MM-DD')}T${startTime}:00.000+00:00`);
+    const endDate = moment().add(10, 'days');
+    const endTimeDate = moment(`${endDate.format('YYYY-MM-DD')}T${endTime}:00.000+00:00`);
+
+    console.log(startTimeDate, endTimeDate)
+
+    // Convert working days to numbers (0 = Sunday, 6 = Saturday)
+    const workingDaysMap = {
+        'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 
+        'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6
+    };
+    const workingDaysInNumber = artist.workingDays.map(day => workingDaysMap[day]);
+
+    // Parameters for the time slot generator
     const params = {
         start: startTimeDate.toISOString(),
         step: timeDuration,
         end: endTimeDate.toISOString(),
         period: 'm',
-        daysInWeek: WorkingDaysInNumber,
+        daysInWeek: workingDaysInNumber,
         gap: 0
     };
 
+    // Generate slots
     let slots = generator(params);
 
-    const conflictingSlots = artist.appointments.map((appointment) => {
-        return {
-            start: moment(appointment.appointmentStartTime),
-            end: moment(appointment.appointmentEndTime)
-        };
-    });
-
-    slots = slots.filter((slot) => {
+    // Filter out slots that conflict with existing appointments
+    const conflictingSlots = artist.appointments.map(appointment => ({
+        start: moment(appointment.appointmentStartTime),
+        end: moment(appointment.appointmentEndTime)
+    }));
+    slots = slots.filter(slot => {
         const slotMoment = moment(slot);
-        return !conflictingSlots.some((conflict) => {
-            return slotMoment.isBetween(conflict.start, conflict.end, null, '[)');
-        });
+        return !conflictingSlots.some(conflict =>
+            slotMoment.isBetween(conflict.start, conflict.end, null, '[)')
+        );
     });
 
+    // Return the available slots
     return res.status(200).json({
         success: true,
         data: slots,
         duration: timeDuration,
         message: "Time slots generated successfully"
     });
-}
+};
+
 
 /**
  * @desc Create Appointment By Owner
@@ -139,9 +114,10 @@ const getTimeSlots = async (req, res) => {
 const createAppointmentByOwner = async (req, res) => {
     try {
     const { artistId,services ,appointmentStartTime, duration, name, phoneNumber,gender } = req.body;
-    // const { appointmentId, artistId ,appointmentStartTime, duration, services, cost } = req.body;
-    const artist = await ArtistModel.findById(artistId);
 
+  
+    const artist = await ArtistModel.findById(artistId);
+    
     const owner = req.user._id;
     const salon = await SalonModel.findOne({ userId: owner });
     const user = await UserModel.findOne({ phoneNumber });
@@ -156,7 +132,6 @@ const createAppointmentByOwner = async (req, res) => {
         await newCustomer.save();
     }
 
-
     if (!artist) {
         return res.status(404).json({
             success: false,
@@ -167,6 +142,7 @@ const createAppointmentByOwner = async (req, res) => {
     let cost = 0;
 
     for(let i = 0; i < services.length; i++){
+
         const serviceArtist = await ServiceArtist.findOne({Artist: artistId, Service: services[i]});
 
         console.log(serviceArtist)
@@ -184,6 +160,8 @@ const createAppointmentByOwner = async (req, res) => {
 
 
     const customer = await CustomerModel.findOne({ phoneNumber });
+
+
 
     const appointmentEndTime = moment(appointmentStartTime).add(duration, 'minutes').toISOString();
     console.log(appointmentEndTime)
