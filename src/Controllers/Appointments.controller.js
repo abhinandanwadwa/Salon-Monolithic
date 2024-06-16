@@ -70,11 +70,11 @@ const getTimeSlots = async (req, res) => {
 
    
 
-    const startTime24 = convertTo24Hour(startTime);
-    const endTime24 = convertTo24Hour(endTime);
+    // const startTime24 = convertTo24Hour(startTime);
+    // const endTime24 = convertTo24Hour(endTime);
 
-    // const startTime24 = startTime;
-    // const endTime24 = endTime;
+    const startTime24 = startTime;
+    const endTime24 = endTime;
 
 
     const date = moment();

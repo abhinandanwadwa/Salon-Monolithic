@@ -489,7 +489,14 @@ const updateArtistServicePrice = async (req,res) => {
     try {
       const artistId = req.user._id;
 
-      const artist = await ArtistModel.find({userId:artistId}).populate("services").populate("appointments").populate("salon");
+      const artist = await ArtistModel.find({userId:artistId}).populate("appointments").populate("salon").populate("userId","phoneNumber");
+
+      const services = await ServiceArtist.find({ Artist: artistId }).populate("Service");
+
+      const data = {
+        artist,
+        services,
+      };
 
       if (!artist) {
         return res.status(404).json({ 
@@ -500,7 +507,7 @@ const updateArtistServicePrice = async (req,res) => {
 
       return res.status(200).json({ 
         success: true,
-        data:artist,
+        data,
         message: "Artist fetched successfully",
       });
 
