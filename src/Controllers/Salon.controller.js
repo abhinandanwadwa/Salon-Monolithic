@@ -6,6 +6,9 @@ import NodeGeocoder from "node-geocoder";
 import bycrypt from "bcryptjs";
 import otpGenerator from "otp-generator";
 import google from "googleapis";
+import sheets,{spreadsheetId} from "./sheetClient.js";
+
+
 
 
 
@@ -115,8 +118,18 @@ const createSalon = async (req, res) => {
     });
 
     // Write the salon name , phoneNumber , OWner name and password to google sheet
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+       range: "Sheet1!A1:D1",
+       valueInputOption: "USER_ENTERED",
+        insertDataOption: "INSERT_ROWS",
 
-   
+        resource: {
+          values: [
+            [SalonName, user.phoneNumber, OwnerName, password],
+          ],
+        },
+    });
 
     const salt = await bycrypt.genSalt(10);
     user.password = await bycrypt.hash(password, salt);

@@ -1,4 +1,4 @@
-import { createAppointmentByOwner,getTimeSlots,cancelAppointment,rescheduleAppointment,editAppointment,CompleteAppointment } from "../Controllers/Appointments.controller.js";
+import { createAppointmentByOwner,getTimeSlots,cancelAppointment,rescheduleAppointment,editAppointment,CompleteAppointment,getCost } from "../Controllers/Appointments.controller.js";
 import { verify,roleAuthorization } from "../middlewares/authenticated.js";
 
 import express, { application } from "express";
@@ -12,5 +12,6 @@ Appointmentrouter.post("/cancelAppointment/:appointmentId",verify, cancelAppoint
 Appointmentrouter.post("/rescheduleAppointment",verify,rescheduleAppointment);
 Appointmentrouter.post("/CompleteAppointment",verify,roleAuthorization(['Owner']),CompleteAppointment);
 Appointmentrouter.post("/editAppointment",verify,roleAuthorization(['Owner']),editAppointment);
+Appointmentrouter.post("/getCost",verify,getCost);
 
 export default Appointmentrouter;

@@ -12,6 +12,51 @@ import ServiceArtist from "../Models/ServiceArtist.js";
 moment.suppressDeprecationWarnings = true;
 
 
+const getCost = async (req,res) => {
+    try {
+        const { artistId, services,salonid } = req.body;
+
+        console.log(artistId, services)
+
+        let cost = 0;
+
+        for(let i = 0; i < services.length; i++){
+            const serviceArtist = await ServiceArtist.findOne({Artist: artistId, Service: services[i]});
+            if(!serviceArtist){
+                return res.status(404).json({
+                    success: false,
+                    message: "Service not found"
+                });
+            }
+            cost += serviceArtist.Price;
+        }
+
+        const allServices = await ServiceArtist.find({Artist: artistId, Service: services}).populate('Service');
+
+        const salon = await SalonModel.findById(salonid).select('-Artists -Services -StorePhotos -appointments');
+
+        const data = {
+            cost,
+            services: allServices,
+            salon
+        }
+        
+        return res.status(200).json({
+            success: true,
+            data: data,
+            message: "data fetched successfully"
+        });
+    } catch (error) {
+        return res.status(500).json({ 
+            success: false, 
+            message: "Internal server error",
+            
+        });
+    }
+}
+
+
+
 /**
  * @desc Get Time Slots
  * @route POST /api/appointments/get-time-slots
@@ -524,7 +569,7 @@ const CreateAppointment = async (req, res) => {
 
 
 
-export {getTimeSlots,createAppointmentByOwner,cancelAppointment,rescheduleAppointment,editAppointment,CompleteAppointment};
+export {getTimeSlots,createAppointmentByOwner,cancelAppointment,rescheduleAppointment,editAppointment,CompleteAppointment,getCost};
 
 
 // /**
