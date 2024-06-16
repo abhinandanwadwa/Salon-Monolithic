@@ -12,6 +12,14 @@ import ServiceArtist from "../Models/ServiceArtist.js";
 moment.suppressDeprecationWarnings = true;
 
 
+/**
+ * @desc Get Time Slots
+ * @route POST /api/appointments/get-time-slots
+ * @access Public
+ * @request { artistId, timePeriod, services }
+ * @response { data, duration, message }
+ */
+
 const getTimeSlots = async (req, res) => {
     const { artistId, timePeriod, services } = req.body;
 
