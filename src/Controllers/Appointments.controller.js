@@ -248,12 +248,12 @@ const editAppointment = async (req, res) => {
 
         const newArtist = await ArtistModel.findById(artistId);
 
-        const Duration = moment.duration(duration).asMinutes();
+        const appointmentStart = appointmentStartTime.slice(0, -1);
 
-        const appointmentEndTime = moment(appointmentStartTime).add(Duration, 'minutes').toISOString();
+    const appointmentEndTime = moment(appointmentStart).add(duration, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS');
 
         appointment.appointmentDate = appointmentDate || appointment.appointmentDate;
-        appointment.appointmentStartTime = appointmentStartTime || appointment.appointmentStartTime;
+        appointment.appointmentStartTime = appointmentStart || appointment.appointmentStartTime;
         appointment.appointmentEndTime = appointmentEndTime || appointment.appointmentEndTime;
         appointment.Duration = duration || appointment.Duration;
         appointment.services = services || appointment.services;
@@ -312,10 +312,12 @@ const rescheduleAppointment = async (req, res) => {
         }
 
         const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
-        const appointmentEndTime = moment(appointmentStartTime).add(duration, 'minutes').toISOString();
+        const appointmentStart = appointmentStartTime.slice(0, -1);
+
+        const appointmentEndTime = moment(appointmentStart).add(duration, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS');
 
         appointment.appointmentDate = appointmentDate;
-        appointment.appointmentStartTime = appointmentStartTime;
+        appointment.appointmentStartTime = appointmentStart;
         appointment.appointmentEndTime = appointmentEndTime;
         appointment.Duration = moment.duration(appointmentEndTime).asMinutes() - moment.duration(appointmentStartTime).asMinutes();
 
