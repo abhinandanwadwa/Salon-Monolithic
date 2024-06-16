@@ -169,16 +169,18 @@ const createAppointmentByOwner = async (req, res) => {
 
     const customer = await CustomerModel.findOne({ phoneNumber });
 
+    //remove z from the end of the date
 
+    const appointmentStart = appointmentStartTime.slice(0, -1);
 
-    const appointmentEndTime = moment(appointmentStartTime).add(duration, 'minutes').toISOString();
+    const appointmentEndTime = moment(appointmentStart).add(duration, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS');
     console.log(appointmentEndTime)
 
 
     const appointment = new AppointmentModel({
         user: customer,
         appointmentDate,
-        appointmentStartTime,
+        appointmentStartTime: appointmentStart,
         appointmentEndTime,
         services : services,
         Duration: duration,
