@@ -49,6 +49,12 @@ const Artist = new mongoose.Schema({
             ref: 'Appointment'
         }
     ],
+    reviews : [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Review'
+        }   
+    ],
 })
 
 const ArtistModel = mongoose.model('Artist', Artist);

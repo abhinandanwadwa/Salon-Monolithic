@@ -7,6 +7,7 @@ import SalonModel from "../Models/Salon.js";
 import CustomerModel from "../Models/Customer.js";
 import Service from "../Models/Services.js";
 import ServiceArtist from "../Models/ServiceArtist.js";
+import ReviewModel from "../Models/review.js";
 
 
 moment.suppressDeprecationWarnings = true;
@@ -88,32 +89,13 @@ const getTimeSlots = async (req, res) => {
         }
     }
 
-    console.log(artist.startTime, artist.endTime, timeDuration)
+    // Define the start and end time as moment objects for the artist's working hours
+    const startDate = moment().startOf('day');
+    const endDate = moment().add(10, 'days').endOf('day');
 
-    // change the time to 15:00 format
-
-    //currently the format is ISO
-
-    const startTime24 = artist.startTime.split(':').slice(0, 2).join(':');
-    const endTime24 = artist.endTime.split(':').slice(0, 2).join(':');
-
-    //2024-06-16T05:00 2024-06-16T19:00
-    //just want after T 
-
-    const startTime = startTime24.split('T')[1];
-    const endTime = endTime24.split('T')[1];
-    
-
-    console.log(startTime24, endTime24)
-
-
-    // Define the start and end time as moment objects
-    const date = moment();
-    const startTimeDate = moment(`${date.format('YYYY-MM-DD')}T${startTime}:00.000+00:00`);
-    const endDate = moment().add(10, 'days');
-    const endTimeDate = moment(`${endDate.format('YYYY-MM-DD')}T${endTime}:00.000+00:00`);
-
-    console.log(startTimeDate, endTimeDate)
+    // Extract the working hours (assuming they are provided as HH:mm)
+    const startTime24 = artist.startTime.split('T')[1].split(':').slice(0, 2).join(':');
+    const endTime24 = artist.endTime.split('T')[1].split(':').slice(0, 2).join(':');
 
     // Convert working days to numbers (0 = Sunday, 6 = Saturday)
     const workingDaysMap = {
@@ -122,24 +104,27 @@ const getTimeSlots = async (req, res) => {
     };
     const workingDaysInNumber = artist.workingDays.map(day => workingDaysMap[day]);
 
-    // Parameters for the time slot generator
-    const params = {
-        start: startTimeDate.toISOString(),
-        step: timeDuration,
-        end: endTimeDate.toISOString(),
-        period: 'm',
-        daysInWeek: workingDaysInNumber,
-        gap: 0
-    };
+    // Generate slots for each day within the date range
+    let slots = [];
+    for (let m = moment(startDate); m.isBefore(endDate); m.add(1, 'days')) {
+        if (workingDaysInNumber.includes(m.day())) {
+            const dayStart = moment(m).set({ hour: startTime24.split(':')[0], minute: startTime24.split(':')[1], second: 0, millisecond: 0 });
+            const dayEnd = moment(m).set({ hour: endTime24.split(':')[0], minute: endTime24.split(':')[1], second: 0, millisecond: 0 });
 
-    // Generate slots
-    let slots = generator(params);
+            let slot = moment(dayStart);
+            while (slot.isBefore(dayEnd)) {
+                slots.push(slot.clone().format('YYYY-MM-DDTHH:mm:ss.SSS'));
+                slot.add(timeDuration, 'minutes');
+            }
+        }
+    }
 
     // Filter out slots that conflict with existing appointments
     const conflictingSlots = artist.appointments.map(appointment => ({
         start: moment(appointment.appointmentStartTime),
         end: moment(appointment.appointmentEndTime)
     }));
+
     slots = slots.filter(slot => {
         const slotMoment = moment(slot);
         return !conflictingSlots.some(conflict =>
@@ -222,9 +207,28 @@ const createAppointmentByOwner = async (req, res) => {
     console.log(appointmentEndTime)
 
 
+    const overlappingAppointments = await AppointmentModel.find({
+        artist: artistId,
+        appointmentDate,
+        $or: [
+            { appointmentStartTime: { $lt: appointmentEndTime, $gte: appointmentStart } },
+            { appointmentEndTime: { $gt: appointmentStart, $lte: appointmentEndTime } },
+            { appointmentStartTime: { $lte: appointmentStart }, appointmentEndTime: { $gte: appointmentEndTime } }
+        ]
+    });
+
+    if (overlappingAppointments.length > 0) {
+        return res.status(400).json({ 
+            success: false,
+            message: "Appointment time slot already booked"
+        });
+    }
+
+
     const appointment = new AppointmentModel({
         user: customer,
         appointmentDate,
+        salon: salon,
         appointmentStartTime: appointmentStart,
         appointmentEndTime,
         services : services,
@@ -383,6 +387,12 @@ const rescheduleAppointment = async (req, res) => {
         });
     }
 
+    const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
+    const appointmentStart = appointmentStartTime.slice(0, -1);
+
+    const appointmentEndTime = moment(appointmentStart).add(duration, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS');
+
+
     appointment.appointmentDate = appointmentDate;
     appointment.appointmentStartTime = appointmentStartTime;
     appointment.appointmentEndTime = appointmentEndTime;
@@ -503,10 +513,18 @@ const cancelAppointment = async (req, res) => {
 
 const CreateAppointment = async (req, res) => {
     try {
-        const { artistId, appointmentStartTime, duration, services, cost } = req.body;
+        const { artistId,appointmentDate ,appointmentStartTime, duration, services, cost } = req.body;
         const userId = req.user._id;
         const customer = await CustomerModel.findOne({ userId: userId });
         const artist = await ArtistModel.findById(artistId);
+        const salon = await SalonModel.findOne({ Artists: artistId });
+
+        //appointment start time is in 9:00 format
+        //appointment date is in 2024-06-16 format
+
+        console.log( appointmentStartTime)
+
+      
 
         if (!artist) {
             return res.status(404).json({ 
@@ -515,8 +533,7 @@ const CreateAppointment = async (req, res) => {
             });
         }
 
-        const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
-        const appointmentEndTime = moment(appointmentStartTime).add(duration, 'minutes').toISOString();
+         const appointmentEndTime = moment(appointmentStartTime).add(duration, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS');
 
         const overlappingAppointments = await AppointmentModel.find({
             artist: artistId,
@@ -540,26 +557,34 @@ const CreateAppointment = async (req, res) => {
             artist: artistId,
             appointmentDate,
             appointmentStartTime,
+            salon: salon,
             appointmentEndTime,
-            duration,
+            Duration: duration,
             services,
             appointmentCost: cost,
             Status: 'Booked'
         });
 
+
+
         await appointment.save();
-           artist.appointments.push(appointment);
+
+        salon.appointments.push(appointment);
+        await salon.save();
+        artist.appointments.push(appointment);
         await artist.save();
         customer.appointments.push(appointment);
         await customer.save();
 
         return res.status(201).json({ 
             success: true,
+            data: appointment._id,
             message: "Appointment created successfully"
         });
 
     }
     catch (error) {
+        console.log(error)
         return res.status(500).json({ 
             success: false, 
             message: "Internal server error",
@@ -567,9 +592,93 @@ const CreateAppointment = async (req, res) => {
     }
 }
 
+const getAppointments = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const user = await UserModel.findById(userId);
+        const customer = await CustomerModel.findOne({ userId: user });
 
+        if (!customer) {
+            return res.status(404).json({ 
+                success: false,
+                message: "Customer not found" 
+            });
+        }
 
-export {getTimeSlots,createAppointmentByOwner,cancelAppointment,rescheduleAppointment,editAppointment,CompleteAppointment,getCost};
+        const appointments = await AppointmentModel.find({ user: customer })
+            .populate('services').populate({
+                path:'salon',
+                select: '-Artists -Services -StorePhotos -appointments'
+            }).populate('Review');
+
+        if (!appointments.length) {
+            return res.status(200).json({ 
+                success: true,
+                data: [],
+                message: "No appointments found"
+            });
+        }
+
+      
+
+        return res.status(200).json({ 
+            success: true,
+            data: appointments,
+            message: "Appointments fetched successfully"
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ 
+            success: false, 
+            message: "Internal server error",
+        });
+    }
+};
+
+const getAppointmentsById = async (req, res) => {
+    try {
+        const { appointmentId } = req.params;
+        const userId = req.user._id;
+        const user = await UserModel.findById(userId);
+        const customer = await CustomerModel.findOne({ userId: user });
+
+        if (!customer) {
+            return res.status(404).json({ 
+                success: false,
+                message: "Customer not found" 
+            });
+        }
+
+        const appointment = await AppointmentModel.findOne({ _id: appointmentId, user: customer }).populate('services').populate({
+            path:'salon',
+            populate: {
+                path: 'Reviews',
+            },
+            select: '-Artists -Services -StorePhotos -appointments'
+        })
+
+        if (!appointment) {
+            return res.status(404).json({ 
+                success: false,
+                message: "Appointment not found" 
+            }); 
+        }
+
+        return res.status(200).json({ 
+            success: true,
+            data: appointment,
+            message: "Appointment fetched successfully"
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ 
+            success: false, 
+            message: "Internal server error",
+        });
+    }
+};
+
+export {getTimeSlots,createAppointmentByOwner,cancelAppointment,rescheduleAppointment,editAppointment,CompleteAppointment,getCost ,CreateAppointment ,getAppointments,getAppointmentsById};
 
 
 // /**

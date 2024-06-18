@@ -1,5 +1,6 @@
 import OfferModel from "../Models/Offer.js";
 import SalonModel from "../Models/Salon.js";
+import CustomerModel from "../Models/Customer.js";
 
 /**
  * @desc Create Offer
@@ -25,7 +26,6 @@ const createOffer = async (req, res) => {
       OfferName,
       OfferStartDate,
       OfferEndDate,
-      OfferDiscountinRuppees,
       OfferDiscountinPercentage,
       OfferDescription,
       OfferDays,
@@ -43,7 +43,6 @@ const createOffer = async (req, res) => {
       OfferName,
       OfferStartDate,
       OfferEndDate,
-      OfferDiscountinRuppees,
       OfferDiscountinPercentage,
       OfferDescription,
       OfferDays,
@@ -146,8 +145,15 @@ const deleteOffer = async (req, res) => {
 const validateOffer = async (req, res) => {
   try {
     const { offerName,salonId } = req.body;
+    console.log(offerName);
+
+    const user = req.user._id;
+    console.log(user)
+    const Costumer = await CustomerModel.findOne({ userId: user });
     
     const offer = await OfferModel.findOne({ OfferName: offerName, salon: salonId });
+
+    console.log(offer)
 
     if (!offer) {
       return res.status(404).json({ 
@@ -156,30 +162,56 @@ const validateOffer = async (req, res) => {
       });
     }
 
-    if(offer.OfferStartDate > new Date() || offer.OfferEndDate < new Date()){
+    //offerStartdate is in iso format
+
+    const offerStartDate = new Date(offer.OfferStartDate);
+    const offerEndDate = new Date(offer.OfferEndDate);
+
+    if(offerStartDate > new Date() || offerEndDate < new Date()){
       return res.status(400).json({
         success: false,
         message: "Offer expired"
       });
     }
 
-    if(offer.OfferDays.length > 0 && !offer.OfferDays.includes(new Date().toLocaleDateString())){
+    console.log(Costumer)
+
+    if(Costumer.offers.includes(offer)){
+      return res.status(400).json({
+        success: false,
+        message: "Offer already Used"
+      });
+    }
+
+
+
+    const todayDay = new Date().getDay();
+
+    const Days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+    const today = Days[todayDay];
+
+    if(offer.OfferDays.length > 0 && !offer.OfferDays.includes(today)){
       return res.status(400).json({
         success: false,
         message: "Offer not valid today"
       });
     }
 
-    if(!offer.OfferDiscountinPercentage && !offer.OfferDiscountinRuppees){
+    if(!offer.OfferDiscountinPercentage ){
       return res.status(400).json({
         success: false,
         message: "Invalid offer"
       });
     }
 
+    Costumer.offers.push(offer);
+    await Costumer.save();
+
     return res.status(200).json({
       success: true,
-      data: offer.OfferDiscountinPercentage || offer.OfferDiscountinRuppees,
+      data: offer.OfferDiscountinPercentage ,
+      message: "Offer applied successfully",
     });
 
   } catch (error) {

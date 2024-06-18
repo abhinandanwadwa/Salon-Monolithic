@@ -22,6 +22,12 @@ const customerSchema = new mongoose.Schema({
             ref: 'Appointment'
         }
     ],
+    offers : [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Offer'
+        }
+    ],
 })
 
 const CustomerModel = mongoose.model('Customer', customerSchema);

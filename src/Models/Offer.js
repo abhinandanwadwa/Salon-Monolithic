@@ -10,9 +10,6 @@ const Offer = new mongoose.Schema({
     OfferEndDate: {
         type: String,
     },
-    OfferDiscountinRuppees: {
-        type: Number,
-    },
     OfferDiscountinPercentage: {
         type: Number,
     },

@@ -12,6 +12,7 @@ import Servicerouter from './Routes/Services.routes.js';
 import Appointmentrouter from './Routes/appointment.routes.js';
 import Salonrouter from './Routes/Salon.routes.js';
 import Offerrouter from './Routes/Offer.routes.js';
+import Reviewrouter from './Routes/Review.routes.js';
 
 
 
@@ -43,6 +44,7 @@ app.use('/api/service', Servicerouter);
 app.use('/api/appointment', Appointmentrouter);
 app.use('/api/salon', Salonrouter);
 app.use('/api/offer', Offerrouter);
+app.use('/api/review', Reviewrouter);
 
 
 app.use(notfound);

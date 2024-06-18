@@ -22,6 +22,11 @@ const verifyToken = async (req, res) => {
         if (!user) {
           const newUser = new UserModel({ phoneNumber , role});
           await newUser.save();
+
+          if(role === "Customer"){
+            const newCustomer = new CustomerModel({ userId: newUser._id, phoneNumber });
+            await newCustomer.save();
+          }
     
           generateToken(res, newUser);
           return res.status(201).json({
@@ -34,6 +39,24 @@ const verifyToken = async (req, res) => {
             }
           });
         }
+
+        if(role === "Customer"){
+          const customer = await CustomerModel.findOne({ userId: user._id });
+          
+          generateToken(res, user);
+          return res.status(201).json({
+            success: true,
+            user:{
+              _id: user._id,
+              name: customer.name,
+              phoneNumber: user.phoneNumber,
+              role: user.role,
+              isSalon: user.isSalon,
+            }
+          });
+
+        }
+
         
         generateToken(res, user);
         return res.status(201).json({

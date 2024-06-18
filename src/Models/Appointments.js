@@ -17,6 +17,11 @@ const appointmentSchema = new mongoose.Schema({
             ref: 'Service'
         }
     ],
+    salon : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Salon',
+        required: true
+    },
     appointmentDate: {
         type: Date,
         required: true
@@ -46,7 +51,11 @@ const appointmentSchema = new mongoose.Schema({
     }, 
     gender: {
         type: String,
-    }
+    },
+    Review: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Review'
+    },
 },{timestamps: true})
 
 const AppointmentModel = mongoose.model('Appointment', appointmentSchema);

@@ -107,6 +107,7 @@ const createSalon = async (req, res) => {
       endTime,
       CoverImage,
       StorePhotos,
+      salonPhoneNumber: user.phoneNumber,
       Brochure,
       location: locationDetails || location,
     });
