@@ -16,6 +16,9 @@ const customerSchema = new mongoose.Schema({
     email: {
         type: String,
     },
+    gender: {
+        type: String,
+    },
     appointments: [
         {
             type: mongoose.Schema.Types.ObjectId,

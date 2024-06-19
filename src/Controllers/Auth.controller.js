@@ -378,10 +378,10 @@ const ChangeRole = async (req, res) => {
 
 const addName = async (req, res) => {
   try {
-    const { name,phoneNumber } = req.body;
+    const { name ,gender } = req.body;
     const user = req.user._id;
     const customer = await CustomerModel.findOne({ userId: user });
-    const user1 = await UserModel.findOne({ phoneNumber });
+    const user1 = await UserModel.findById(user);
     if (!customer) {
       return res.status(404).json({
         success: false,
@@ -389,11 +389,9 @@ const addName = async (req, res) => {
       });
     }
 
-    user1.phoneNumber = phoneNumber || user1.phoneNumber;
-    customer.phoneNumber = phoneNumber || customer.phoneNumber;
     customer.name = name || customer.name;
+    customer.gender = gender || customer.gender;
 
-    await user1.save();
     await customer.save();
 
     return res.status(200).json({

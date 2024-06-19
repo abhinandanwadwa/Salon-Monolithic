@@ -204,9 +204,8 @@ const createAppointmentByOwner = async (req, res) => {
 
     //remove z from the end of the date
 
-    const appointmentStart = appointmentStartTime.slice(0, -1);
 
-    const appointmentEndTime = moment(appointmentStart).add(duration, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS');
+    const appointmentEndTime = moment(appointmentStartTime).add(duration, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS');
     console.log(appointmentEndTime)
 
 
@@ -214,9 +213,9 @@ const createAppointmentByOwner = async (req, res) => {
         artist: artistId,
         appointmentDate,
         $or: [
-            { appointmentStartTime: { $lt: appointmentEndTime, $gte: appointmentStart } },
-            { appointmentEndTime: { $gt: appointmentStart, $lte: appointmentEndTime } },
-            { appointmentStartTime: { $lte: appointmentStart }, appointmentEndTime: { $gte: appointmentEndTime } }
+            { appointmentStartTime: { $lt: appointmentEndTime, $gte: appointmentStartTime } },
+            { appointmentEndTime: { $gt: appointmentStartTime, $lte: appointmentEndTime } },
+            { appointmentStartTime: { $lte: appointmentStartTime }, appointmentEndTime: { $gte: appointmentEndTime } }
         ]
     });
 
@@ -365,9 +364,8 @@ const   rescheduleAppointment = async (req, res) => {
         }
 
         const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
-        const appointmentStart = appointmentStartTime.slice(0, -1);
 
-        const appointmentEndTime = moment(appointmentStart).add(duration, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS');
+        const appointmentEndTime = moment(appointmentStartTime).add(duration, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS');
 
         appointment.appointmentDate = appointmentDate;
         appointment.appointmentStartTime = appointmentStart;

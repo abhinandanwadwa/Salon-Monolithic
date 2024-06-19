@@ -369,15 +369,15 @@ const searchSalons = async (req, res) => {
 
       locations = {
         type: "Point",
-        coordinates: [response[0].longitude, response[0].latitude], // Corrected order to [longitude, latitude]
+        coordinates: [response[0].latitude, response[0].longitude], // Corrected order to [longitude, latitude]
       };
     }
 
     // Handle provided coordinates directly
-    if (location) {
+    if (!address && location) {
       locations = {
         type: "Point",
-        coordinates: [location.longitude, location.latitude], // Corrected order to [longitude, latitude]
+        coordinates: [location.latitude, location.longitude], // Corrected order to [longitude, latitude]
       };
     }
 
@@ -397,6 +397,8 @@ const searchSalons = async (req, res) => {
       });
     }
 
+
+
     // Add $match stage to filter by salon IDs
     if (salonIds.length > 0) {
       aggregationPipeline.push({
@@ -406,13 +408,39 @@ const searchSalons = async (req, res) => {
       });
     }
 
-    console.log(aggregationPipeline);
+
+    aggregationPipeline.push(
+      {
+        $lookup: {
+          from: "offers", // The collection name in the database
+          localField: "_id",
+          foreignField: "salon",
+          as: "offers",
+        },
+      },
+      {
+        $lookup: {
+          from: "reviews", // The collection name in the database
+          localField: "Reviews",
+          foreignField: "_id",
+          as: "reviews",
+        },
+      }
+    );
 
     // Execute aggregation pipeline
     salons = await SalonModel.aggregate(aggregationPipeline);
-    console.log(salons);
 
-    return res.status(200).json(salons);
+    if(!salons.length) return res.status(404).json({ 
+      success: false,
+      message: "No salons found" 
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: salons,
+      message: "Salons found",
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Error in fetching salons" });
