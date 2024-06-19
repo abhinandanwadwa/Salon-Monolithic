@@ -168,7 +168,7 @@ const createArtists = async (req, res) => {
 
       let user = await UserModel.findOne({ phoneNumber:PhoneNumber  });
 
-      if(user.role === "Owner"){
+      if(user && user.role === "Owner"){
         const artist = new ArtistModel({
           userId: user._id,
           ArtistName,
