@@ -346,16 +346,23 @@ const ChangeRole = async (req, res) => {
         });
       }
 
-      console.log("hi")
+  
 
       const user = await UserModel.findById(artist.userId);
 
-      console.log("hi")
+      
 
       if (!user) {
         return res.status(404).json({
           success: false,
           message: "User not found",
+        });
+      }
+
+      if(user.role === "Owner" || user.role === "subAdmin"){
+        return res.status(400).json({
+          success: false,
+          message: "You can't change role of owner or subAdmin",
         });
       }
 
