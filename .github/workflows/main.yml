@@ -23,4 +23,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          script: mkdir yay
+          script: |
+            cd Salon-Monolithic
+            git pull
+            pm2 restart all
