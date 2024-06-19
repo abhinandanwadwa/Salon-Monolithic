@@ -22,5 +22,5 @@ jobs:
           host: 3.110.185.2
           username: ubuntu
           password: admin@123
-          script: |
-            mkdir yay
+          port: 22
+          script: mkdir yay
