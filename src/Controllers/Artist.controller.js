@@ -408,7 +408,7 @@ const GetArtistbyService = async (req, res) => {
       const artists = await ArtistModel.find({ 
           services: { $all: serviceIds },
           salon: salonid
-      });
+      }).populate("reviews");
 
       return res.status(200).json({ artists });
   } catch (error) {

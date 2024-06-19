@@ -176,7 +176,7 @@ const validateOffer = async (req, res) => {
 
     console.log(Costumer)
 
-    if(Costumer.offers.includes(offer)){
+    if(Costumer.offers.includes(offer._id)){
       return res.status(400).json({
         success: false,
         message: "Offer already Used"
@@ -205,8 +205,7 @@ const validateOffer = async (req, res) => {
       });
     }
 
-    Costumer.offers.push(offer);
-    await Costumer.save();
+   
 
     return res.status(200).json({
       success: true,

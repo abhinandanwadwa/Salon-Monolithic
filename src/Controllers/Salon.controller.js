@@ -231,7 +231,25 @@ const getSalonByLocation = async (req, res) => {
           spherical: true,
         },
       },
+      {
+        $lookup: {
+          from: 'offers', // The collection name in the database
+          localField: '_id',
+          foreignField: 'salon',
+          as: 'offers',
+        },
+      },
+      {
+        $lookup: {
+          from: 'reviews', // The collection name in the database
+          localField: 'Reviews',
+          foreignField: '_id',
+          as: 'reviews',
+        },
+      },
     ]);
+
+
     return res.status(200).json(salons);
   } catch (error) {
     console.error(error);
@@ -255,9 +273,14 @@ const getSalonById = async (req, res) => {
     const { id } = req.params;
     const salon = await SalonModel.findById(id)
       .populate("Services")
-      .populate("Artists")
+      .populate({
+        path: "Artists",
+        populate: {
+          path: "reviews",
+        },
+      })
       .populate("offers")
-      // .populate("Reviews");
+      .populate("Reviews");
     return res.status(200).json(salon);
   } catch (error) {
     console.error(error);

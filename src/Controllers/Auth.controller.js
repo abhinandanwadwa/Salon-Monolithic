@@ -26,6 +26,18 @@ const verifyToken = async (req, res) => {
           if(role === "Customer"){
             const newCustomer = new CustomerModel({ userId: newUser._id, phoneNumber });
             await newCustomer.save();
+
+            generateToken(res, newUser);
+            return res.status(201).json({
+              success: true,
+              user:{
+                _id: newUser._id,
+                phoneNumber: newUser.phoneNumber,
+                role: newUser.role,
+                isSalon: newUser.isSalon,
+                isNewUser: true
+              }
+            });
           }
     
           generateToken(res, newUser);
@@ -273,6 +285,11 @@ const verifyUser = async (req, res) => {
       const newUser = new UserModel({ phoneNumber , role});
       await newUser.save();
 
+      if(role === "Customer"){
+        const newCustomer = new CustomerModel({ userId: newUser._id, phoneNumber });
+        await newCustomer.save();
+      }
+
       generateToken(res, newUser);
       return res.status(201).json({
         _id: newUser._id,
@@ -359,6 +376,47 @@ const ChangeRole = async (req, res) => {
   }
 };
 
+const addName = async (req, res) => {
+  try {
+    const { name,phoneNumber } = req.body;
+    const user = req.user._id;
+    const customer = await CustomerModel.findOne({ userId: user });
+    const user1 = await UserModel.findOne({ phoneNumber });
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
+    }
+
+    user1.phoneNumber = phoneNumber || user1.phoneNumber;
+    customer.phoneNumber = phoneNumber || customer.phoneNumber;
+    customer.name = name || customer.name;
+
+    await user1.save();
+    await customer.save();
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        _id: user1._id,
+        name: customer.name,
+        phoneNumber: user1.phoneNumber,
+        role: user1.role,
+        isSalon: user1.isSalon,
+      },
+      message: "Profile updated successfully",
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in adding name",
+    });
+  }
+}
+
 /**
  * @desc Logout
  * @route POST /api/auth/logout
@@ -376,4 +434,4 @@ const logout = async (req, res) => {
   });
 };
 
-export { verifyUser, ChangeRole, logout ,verifyOwner,sendOTP,verifyOTP,verifyToken };
+export { verifyUser, ChangeRole, logout ,verifyOwner,sendOTP,verifyOTP,verifyToken,addName };

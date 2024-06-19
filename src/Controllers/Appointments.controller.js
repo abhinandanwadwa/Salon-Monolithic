@@ -7,6 +7,7 @@ import SalonModel from "../Models/Salon.js";
 import CustomerModel from "../Models/Customer.js";
 import Service from "../Models/Services.js";
 import ServiceArtist from "../Models/ServiceArtist.js";
+import OfferModel from "../Models/Offer.js";
 import ReviewModel from "../Models/review.js";
 
 
@@ -34,7 +35,7 @@ const getCost = async (req,res) => {
 
         const allServices = await ServiceArtist.find({Artist: artistId, Service: services}).populate('Service');
 
-        const salon = await SalonModel.findById(salonid).select('-Artists -Services -StorePhotos -appointments');
+        const salon = await SalonModel.findById(salonid).select('-Artists -Services -StorePhotos -appointments').populate('Reviews');
 
         const data = {
             cost,
@@ -68,6 +69,8 @@ const getCost = async (req,res) => {
 
 const getTimeSlots = async (req, res) => {
     const { artistId, timePeriod, services } = req.body;
+
+    console.log(artistId, timePeriod, services)
 
     // Fetch artist data including appointments
     const artist = await ArtistModel.findById(artistId).populate('appointments');
@@ -343,9 +346,10 @@ const editAppointment = async (req, res) => {
  * @response { message }
  */
 
-const rescheduleAppointment = async (req, res) => {
+const   rescheduleAppointment = async (req, res) => {
     try {
-        const { appointmentId, appointmentStartTime, duration } = req.body;
+    const { appointmentId, appointmentStartTime, duration } = req.body;
+    console.log(appointmentId, appointmentStartTime, duration)
     const userId = req.user._id;
     const user = await UserModel.findById(userId);
 
@@ -378,7 +382,7 @@ const rescheduleAppointment = async (req, res) => {
         });
     }
 
-    const appointment = await AppointmentModel.findOne({ _id: appointmentId, user: user });
+    const appointment = await AppointmentModel.findOne({ _id: appointmentId});
 
     if (!appointment) {
         return res.status(404).json({
@@ -388,10 +392,9 @@ const rescheduleAppointment = async (req, res) => {
     }
 
     const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
-    const appointmentStart = appointmentStartTime.slice(0, -1);
 
-    const appointmentEndTime = moment(appointmentStart).add(duration, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS');
-
+    const appointmentEndTime = moment(appointmentStartTime).add(duration, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS');
+    
 
     appointment.appointmentDate = appointmentDate;
     appointment.appointmentStartTime = appointmentStartTime;
@@ -405,6 +408,7 @@ const rescheduleAppointment = async (req, res) => {
         message: "Appointment rescheduled successfully"
     });
     } catch (error) {
+        console.log(error)
         return res.status(500).json({ 
             success: false, 
             message: "Internal server error",
@@ -513,11 +517,12 @@ const cancelAppointment = async (req, res) => {
 
 const CreateAppointment = async (req, res) => {
     try {
-        const { artistId,appointmentDate ,appointmentStartTime, duration, services, cost } = req.body;
+        const { artistId,appointmentDate ,appointmentStartTime, duration, services, cost ,offer } = req.body;
         const userId = req.user._id;
         const customer = await CustomerModel.findOne({ userId: userId });
         const artist = await ArtistModel.findById(artistId);
         const salon = await SalonModel.findOne({ Artists: artistId });
+        const offerId = await OfferModel.findOne({OfferName: offer})
 
         //appointment start time is in 9:00 format
         //appointment date is in 2024-06-16 format
@@ -574,7 +579,11 @@ const CreateAppointment = async (req, res) => {
         artist.appointments.push(appointment);
         await artist.save();
         customer.appointments.push(appointment);
+        if(offerId){
+        customer.offers.push(offerId._id);
+        }
         await customer.save();
+
 
         return res.status(201).json({ 
             success: true,
