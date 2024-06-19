@@ -177,7 +177,7 @@ const deleteService = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ 
             success: false,
-            message: "Error in deleting service"
+            message: "Error in deleting service"+error,
          });
     }
     }
