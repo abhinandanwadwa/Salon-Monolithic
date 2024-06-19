@@ -258,6 +258,7 @@ const verifyOwner = async (req, res) => {
       _id: user._id,
       phoneNumber: user.phoneNumber,
       role: user.role,
+      isSalon: user.isSalon,
     });
 
   } catch (error) {

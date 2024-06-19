@@ -1,4 +1,4 @@
-import { verifyUser,ChangeRole,logout ,sendOTP,verifyOTP,verifyToken,addName} from "../Controllers/Auth.controller.js";
+import { verifyUser,ChangeRole,logout ,sendOTP,verifyOTP,verifyToken,addName,verifyOwner} from "../Controllers/Auth.controller.js";
 
 import express from "express";
 import { roleAuthorization, verify } from "../middlewares/authenticated.js";
@@ -13,5 +13,6 @@ Authrouter.post("/changeRole",verify,roleAuthorization(['Owner']) ,ChangeRole);
 Authrouter.post("/logout",verify,logout);
 Authrouter.post("/verifyToken",verifyToken);
 Authrouter.post("/updateUser",verify,addName);
+Authrouter.post("/verifyOwner",verify,verifyOwner);
 
 export default Authrouter;
