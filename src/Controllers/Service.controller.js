@@ -1,5 +1,6 @@
 import Service from "../Models/Services.js";
 import SalonModel from "../Models/Salon.js";
+import ArtistModel from "../Models/Artist.js";
 
 /**
  * @desc Create services
@@ -150,12 +151,24 @@ const deleteService = async (req, res) => {
     try {
         const { serviceId } = req.params;
         const service = await Service.findById(serviceId);
+        const artist = await ArtistModel.findOne({ services: serviceId });
+        const salon = await SalonModel.findOne({ services: serviceId });
         if (!service) {
         return res.status(404).json({ 
           success: false,
           message: "Service not found" 
         });
         }
+        if(artist){
+          artist.services.pull(serviceId);
+        }
+        if(salon){
+          salon.Services.pull(serviceId);
+        }
+
+        await artist.save();
+        await salon.save();
+
         await service.deleteOne();
         return res.status(200).json({ 
             success: true,
