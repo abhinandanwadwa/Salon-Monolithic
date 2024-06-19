@@ -159,17 +159,19 @@ const deleteService = async (req, res) => {
           message: "Service not found" 
         });
         }
+
+        
         if(artist){
           artist.services.pull(serviceId);
+          await artist.save();
         }
         if(salon){
           salon.Services.pull(serviceId);
+          await salon.save();
         }
 
-        await artist.save();
-        await salon.save();
-
         await service.deleteOne();
+
         return res.status(200).json({ 
             success: true,
             message: "Service deleted successfully" 
