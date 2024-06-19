@@ -19,8 +19,8 @@ jobs:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.8
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          password: ${{ secrets.EC2_PASSWORD }}
+          host: 3.110.185.2
+          username: ubuntu
+          password: admin@123
           script: |
             mkdir yay
