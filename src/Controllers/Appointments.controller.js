@@ -289,7 +289,7 @@ const createAppointmentByOwner = async (req, res) => {
       user: customer,
       appointmentDate,
       salon: salon,
-      appointmentStartTime: appointmentStart,
+      appointmentStartTime,
       appointmentEndTime,
       services: services,
       Duration: duration,
