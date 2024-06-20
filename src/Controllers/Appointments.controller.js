@@ -666,6 +666,7 @@ const CreateAppointment = async (req, res) => {
       appointmentEndTime,
       Duration: duration,
       services,
+      gender:customer.gender,
       appointmentCost: cost,
       Status: "Booked",
     });
