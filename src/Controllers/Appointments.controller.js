@@ -422,6 +422,8 @@ const rescheduleAppointment = async (req, res) => {
     const userId = req.user._id;
     const user = await UserModel.findById(userId);
 
+    const appointment = await AppointmentModel.findById(appointmentId);
+
     const appointmentDate = moment(appointmentStartTime).format("YYYY-MM-DD");
 
     const appointmentEndTime = moment(appointmentStartTime)
