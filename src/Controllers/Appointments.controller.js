@@ -341,7 +341,7 @@ const editAppointment = async (req, res) => {
     );
 
     const appointment = await AppointmentModel.findById(appointmentId);
-    const artist = await ArtistModel.findById(artistId);
+    const artist = await ArtistModel.findById(appointment.artist);
 
     if (!appointment) {
       return res.status(404).json({
@@ -372,16 +372,16 @@ const editAppointment = async (req, res) => {
 
     const newArtist = await ArtistModel.findById(artistId);
 
-    const appointmentStart = appointmentStartTime.slice(0, -1);
+    // const appointmentStart = appointmentStartTime.slice(0, -1);
 
-    const appointmentEndTime = moment(appointmentStart)
+    const appointmentEndTime = moment(appointmentStartTime)
       .add(duration, "minutes")
       .format("YYYY-MM-DDTHH:mm:ss.SSS");
 
     appointment.appointmentDate =
       appointmentDate || appointment.appointmentDate;
     appointment.appointmentStartTime =
-      appointmentStart || appointment.appointmentStartTime;
+      appointmentStartTime || appointment.appointmentStartTime;
     appointment.appointmentEndTime =
       appointmentEndTime || appointment.appointmentEndTime;
     appointment.Duration = duration || appointment.Duration;
