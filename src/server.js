@@ -22,13 +22,13 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-    origin: 'https://salon-frontend-gamma.vercel.app',
+    origin: 'https://www.salondekho.in',
     credentials: true,
 }));
 app.use(bodyParser.json());
 
 app.use(function(req, res, next) {
-    res.header('Access-Control-Allow-Origin', 'https://salon-frontend-gamma.vercel.app');
+    res.header('Access-Control-Allow-Origin', 'https://www.salondekho.in');
     res.header('Access-Control-Allow-Credentials', true);
     res.header(
         'Access-Control-Allow-Headers',
