@@ -423,6 +423,81 @@ const addName = async (req, res) => {
   }
 }
 
+
+const LoginAdmin = async (req, res) => {
+  try {
+    const { phoneNumber, password } = req.body;
+
+    const user = await UserModel.findOne({ phoneNumber });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    const isMatch = bycrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid password",
+      });
+    }
+
+    generateToken(res, user);
+    return res.status(201).json({
+      _id: user._id,
+      phoneNumber: user.phoneNumber,
+      role: user.role,
+      isSalon: user.isSalon,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to verify Owner",
+    });
+  }
+} 
+
+const RegisterAdmin = async (req, res) => {
+  try {
+    const { phoneNumber, password,role } = req.body;
+
+    let user = await UserModel.findOne({ phoneNumber,role:"Admin" });
+
+    if (user) {
+      return res.status(400).json({
+        success: false,
+        message: "User already exists",
+      });
+    }
+
+    const salt = await bycrypt.genSalt(10);
+    const hashedPassword = await bycrypt.hash(password, salt);
+
+    user = new UserModel({ phoneNumber, password:hashedPassword, role });
+
+    await user.save();
+
+    generateToken(res, user);
+    return res.status(201).json({
+      _id: user._id,
+      phoneNumber: user.phoneNumber,
+      role: user.role,
+      isSalon: user.isSalon,
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to register",
+    });
+  }
+}
+
 /**
  * @desc Logout
  * @route POST /api/auth/logout
@@ -440,4 +515,4 @@ const logout = async (req, res) => {
   });
 };
 
-export { verifyUser, ChangeRole, logout ,verifyOwner,sendOTP,verifyOTP,verifyToken,addName };
+export { verifyUser, ChangeRole, logout ,verifyOwner,sendOTP,verifyOTP,verifyToken,addName,LoginAdmin,RegisterAdmin };

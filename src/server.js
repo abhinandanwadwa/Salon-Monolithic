@@ -22,17 +22,17 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-    origin: 'https://www.salondekho.in',
+    origin: ['https://www.salondekho.in','https://salon-admin-three.vercel.app'],
     credentials: true,
 }));
 app.use(bodyParser.json());
 
-app.use(function(req, res, next) {
-    res.header('Access-Control-Allow-Origin', 'https://www.salondekho.in');
-    res.header('Access-Control-Allow-Credentials', true);
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    next();
-});
+// app.use(function(req, res, next) {
+//     res.header('Access-Control-Allow-Origin', ['https://www.salondekho.in','http://localhost:5173']);
+//     res.header('Access-Control-Allow-Credentials', true);
+//     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+//     next();
+// });
 
 
 app.use('/api/auth', Authrouter);

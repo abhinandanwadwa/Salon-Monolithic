@@ -7,7 +7,7 @@ import bycrypt from "bcryptjs";
 import otpGenerator from "otp-generator";
 import google from "googleapis";
 import sheets,{spreadsheetId} from "./sheetClient.js";
-
+import AppointmentModel from "../Models/Appointments.js";
 
 
 
@@ -105,9 +105,9 @@ const createSalon = async (req, res) => {
       workingDays,
       startTime,
       endTime,
+      salonPhoneNumber: user.phoneNumber,
       CoverImage,
       StorePhotos,
-      salonPhoneNumber: user.phoneNumber,
       Brochure,
       location: locationDetails || location,
     });
@@ -615,6 +615,78 @@ const getSalonsAppointments = async (req, res) => {
   }
 };
 
+const getAllSalons = async (req, res) => {
+  try {
+    const salons = await SalonModel.find()
+      .populate("Services")
+      .populate("Artists")
+      .populate("userId", "phoneNumber")
+      .populate("Reviews")
+      .populate("offers");
+
+    if (!salons.length) {
+      return res.status(404).json({
+        success: false,
+        message: "No salons found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: salons,
+      message: "Salons found",
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching salons",
+    });
+  }
+};
+
+
+
+const SalonsStats = async (req, res) => {
+   try {
+    //total bookings , no of user sign up this week , total salons registered,
+
+    const totalSalons = await SalonModel.countDocuments();
+    const totalUsers = await UserModel.countDocuments();
+    const totalAppointments = await AppointmentModel.countDocuments();
+
+    const today = new Date();
+    //weekly bookings and user registration
+
+    const weekStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
+    const weekEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + (6 - today.getDay()));
+
+    const weeklyUsers = await UserModel.find({ createdAt: { $gte: weekStart, $lte: weekEnd } }).countDocuments();
+
+    const weeklyAppointments = await AppointmentModel.find({ createdAt: { $gte: weekStart, $lte: weekEnd } }).countDocuments();
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalSalons,
+        totalUsers,
+        totalAppointments,
+        weeklyUsers,
+        weeklyAppointments,
+      },
+    });
+
+   } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: "Error in fetching stats",
+      });
+   }
+};
+
+
 export {
   createSalon,
   getSalonById,
@@ -626,4 +698,6 @@ export {
   UpdateSalon,
   getSalonsAppointments,
   AddPhotos,
+  getAllSalons,
+  SalonsStats,
 };

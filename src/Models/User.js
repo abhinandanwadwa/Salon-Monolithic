@@ -7,7 +7,7 @@ const User = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['Customer','Artist','Owner','subAdmin'],
+        enum: ['Customer','Artist','Owner','subAdmin','Admin'],
         required: true
     },
     isSalon : {
