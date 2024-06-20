@@ -318,7 +318,7 @@ const createAppointmentByOwner = async (req, res) => {
     console.log(error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Internal server error"+error ,
     });
   }
 };
@@ -402,7 +402,7 @@ const editAppointment = async (req, res) => {
     console.log(error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Internal server error"+error,
     });
   }
 };
@@ -488,7 +488,7 @@ const rescheduleAppointment = async (req, res) => {
     console.log(error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Internal server error"+error,
     });
   }
 };
@@ -517,7 +517,7 @@ const CompleteAppointment = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Internal server error" + error,
     });
   }
 };
@@ -589,7 +589,7 @@ const cancelAppointment = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Internal server error" + error,
     });
   }
 };
@@ -692,7 +692,7 @@ const CreateAppointment = async (req, res) => {
     console.log(error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Internal server error" + error,
     });
   }
 };
