@@ -422,49 +422,6 @@ const rescheduleAppointment = async (req, res) => {
     const userId = req.user._id;
     const user = await UserModel.findById(userId);
 
-    if (user.role === "Owner") {
-      const appointment = await AppointmentModel.findOne({
-        _id: appointmentId,
-      });
-      const artist = await ArtistModel.findById(appointment.artist);
-
-      if (!appointment) {
-        return res.status(404).json({
-          success: false,
-          message: "Appointment not found",
-        });
-      }
-
-      const appointmentDate = moment(appointmentStartTime).format("YYYY-MM-DD");
-
-      const appointmentEndTime = moment(appointmentStartTime)
-        .add(duration, "minutes")
-        .format("YYYY-MM-DDTHH:mm:ss.SSS");
-
-      appointment.appointmentDate = appointmentDate;
-      appointment.appointmentStartTime = appointmentStart;
-      appointment.appointmentEndTime = appointmentEndTime;
-      appointment.Duration =
-        moment.duration(appointmentEndTime).asMinutes() -
-        moment.duration(appointmentStartTime).asMinutes();
-
-      await appointment.save();
-
-      return res.status(200).json({
-        success: true,
-        message: "Appointment rescheduled successfully",
-      });
-    }
-
-    const appointment = await AppointmentModel.findOne({ _id: appointmentId });
-
-    if (!appointment) {
-      return res.status(404).json({
-        success: false,
-        message: "Appointment not found",
-      });
-    }
-
     const appointmentDate = moment(appointmentStartTime).format("YYYY-MM-DD");
 
     const appointmentEndTime = moment(appointmentStartTime)
