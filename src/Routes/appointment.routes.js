@@ -10,7 +10,7 @@ Appointmentrouter.post("/createAppointmentByOwner",verify,roleAuthorization(['Ow
 Appointmentrouter.post("/getTimeSlots", getTimeSlots);
 Appointmentrouter.post("/cancelAppointment/:appointmentId",verify, cancelAppointment);
 Appointmentrouter.post("/rescheduleAppointment",verify,rescheduleAppointment);
-Appointmentrouter.post("/CompleteAppointment",verify,roleAuthorization(['Owner']),CompleteAppointment);
+Appointmentrouter.post("/CompleteAppointment/:appointmentId",verify,roleAuthorization(['Owner']),CompleteAppointment);
 Appointmentrouter.post("/editAppointment",verify,roleAuthorization(['Owner']),editAppointment);
 Appointmentrouter.post("/getCost",verify,getCost);
 Appointmentrouter.post("/CreateAppointment",verify,CreateAppointment);
