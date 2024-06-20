@@ -280,7 +280,12 @@ const getSalonById = async (req, res) => {
         },
       })
       .populate("offers")
-      .populate("Reviews");
+      .populate({
+          path:"Reviews",
+          populate:{
+            path:"userId",
+          },
+      });
     return res.status(200).json(salon);
   } catch (error) {
     console.error(error);
@@ -374,7 +379,7 @@ const searchSalons = async (req, res) => {
     }
 
     // Handle provided coordinates directly
-    if (!address && location) {
+    if (!address && !service && location) {
       locations = {
         type: "Point",
         coordinates: [location.latitude, location.longitude], // Corrected order to [longitude, latitude]
@@ -391,7 +396,7 @@ const searchSalons = async (req, res) => {
         $geoNear: {
           near: locations,
           distanceField: "distance",
-          maxDistance: 20000, // 20 kilometers
+          maxDistance: 200000, // 20 kilometers
           spherical: true,
         }
       });
