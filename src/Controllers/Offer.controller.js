@@ -229,6 +229,7 @@ const testApi = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "User found",
+      user: user,
     });
   }
   return res.status(404).json({
