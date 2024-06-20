@@ -356,8 +356,8 @@ const editAppointment = async (req, res) => {
 
     for (let i = 0; i < services.length; i++) {
       const serviceArtist = await ServiceArtist.findOne({
-        artist: artistId,
-        service: services[i],
+        Artist: artistId,
+        Service: services[i],
       });
       if (!serviceArtist) {
         return res.status(404).json({
