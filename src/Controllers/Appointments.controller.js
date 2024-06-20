@@ -433,9 +433,7 @@ const rescheduleAppointment = async (req, res) => {
     appointment.appointmentDate = appointmentDate;
     appointment.appointmentStartTime = appointmentStartTime;
     appointment.appointmentEndTime = appointmentEndTime;
-    appointment.Duration =
-      moment.duration(appointmentEndTime).asMinutes() -
-      moment.duration(appointmentStartTime).asMinutes();
+    appointment.Duration = duration;
 
     await appointment.save();
 
