@@ -352,6 +352,8 @@ const editAppointment = async (req, res) => {
 
     artist.appointments.pull(appointment);
 
+    await artist.save();
+
     let cost = 0;
 
     for (let i = 0; i < services.length; i++) {
@@ -387,6 +389,7 @@ const editAppointment = async (req, res) => {
     appointment.Duration = duration || appointment.Duration;
     appointment.services = services || appointment.services;
     appointment.appointmentCost = cost || appointment.appointmentCost;
+    appointment.artist = artistId || appointment.artist;
 
     await appointment.save();
 
