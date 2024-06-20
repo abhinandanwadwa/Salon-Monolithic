@@ -231,7 +231,7 @@ const verifyOTP = async (req, res) => {
  * @response { _id, phoneNumber, role }
  */
 
-const verifyOwner = async (req, res) => {
+const   verifyOwner = async (req, res) => {
   try {
     const { phoneNumber, password } = req.body;
 

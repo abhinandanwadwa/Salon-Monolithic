@@ -13,6 +13,6 @@ Authrouter.post("/changeRole",verify,roleAuthorization(['Owner']) ,ChangeRole);
 Authrouter.post("/logout",verify,logout);
 Authrouter.post("/verifyToken",verifyToken);
 Authrouter.post("/updateUser",verify,addName);
-Authrouter.post("/verifyOwner",verify,verifyOwner);
+Authrouter.post("/verifyOwner",verifyOwner);
 
 export default Authrouter;
