@@ -1,7 +1,7 @@
 import ArtistModel from "../Models/Artist.js";
 import moment from "moment";
 import AppointmentModel from "../Models/Appointments.js";
-import generator from 'slot-generator';
+import generator from "slot-generator";
 import UserModel from "../Models/User.js";
 import SalonModel from "../Models/Salon.js";
 import CustomerModel from "../Models/Customer.js";
@@ -10,54 +10,57 @@ import ServiceArtist from "../Models/ServiceArtist.js";
 import OfferModel from "../Models/Offer.js";
 import ReviewModel from "../Models/review.js";
 
-
 moment.suppressDeprecationWarnings = true;
 
+const getCost = async (req, res) => {
+  try {
+    const { artistId, services, salonid } = req.body;
 
-const getCost = async (req,res) => {
-    try {
-        const { artistId, services,salonid } = req.body;
+    console.log(artistId, services);
 
-        console.log(artistId, services)
+    let cost = 0;
 
-        let cost = 0;
-
-        for(let i = 0; i < services.length; i++){
-            const serviceArtist = await ServiceArtist.findOne({Artist: artistId, Service: services[i]});
-            if(!serviceArtist){
-                return res.status(404).json({
-                    success: false,
-                    message: "Service not found"
-                });
-            }
-            cost += serviceArtist.Price;
-        }
-
-        const allServices = await ServiceArtist.find({Artist: artistId, Service: services}).populate('Service');
-
-        const salon = await SalonModel.findById(salonid).select('-Artists -Services -StorePhotos -appointments').populate('Reviews');
-
-        const data = {
-            cost,
-            services: allServices,
-            salon
-        }
-        
-        return res.status(200).json({
-            success: true,
-            data: data,
-            message: "data fetched successfully"
+    for (let i = 0; i < services.length; i++) {
+      const serviceArtist = await ServiceArtist.findOne({
+        Artist: artistId,
+        Service: services[i],
+      });
+      if (!serviceArtist) {
+        return res.status(404).json({
+          success: false,
+          message: "Service not found",
         });
-    } catch (error) {
-        return res.status(500).json({ 
-            success: false, 
-            message: "Internal server error",
-            
-        });
+      }
+      cost += serviceArtist.Price;
     }
-}
 
+    const allServices = await ServiceArtist.find({
+      Artist: artistId,
+      Service: services,
+    }).populate("Service");
 
+    const salon = await SalonModel.findById(salonid)
+      .select("-Artists -Services -StorePhotos -appointments")
+      .populate("Reviews");
+
+    const data = {
+      cost,
+      services: allServices,
+      salon,
+    };
+
+    return res.status(200).json({
+      success: true,
+      data: data,
+      message: "data fetched successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 
 /**
  * @desc Get Time Slots
@@ -68,82 +71,115 @@ const getCost = async (req,res) => {
  */
 
 const getTimeSlots = async (req, res) => {
+  try {
     const { artistId, timePeriod, services } = req.body;
 
-    console.log(artistId, timePeriod, services)
+    console.log(artistId, timePeriod, services);
 
     // Fetch artist data including appointments
-    const artist = await ArtistModel.findById(artistId).populate('appointments');
+    const artist = await ArtistModel.findById(artistId).populate(
+      "appointments"
+    );
     if (!artist) {
-        return res.status(404).json({ 
-            success: false,
-            message: "Artist not found"
-        });
+      return res.status(404).json({
+        success: false,
+        message: "Artist not found",
+      });
     }
 
     // Calculate the total duration if timePeriod is not provided
     let timeDuration = timePeriod || 0;
     if (!timePeriod) {
-        for (let serviceId of services) {
-            const service = await Service.findById(serviceId);
-            if (service) {
-                timeDuration += service.ServiceTime;
-            }
+      for (let serviceId of services) {
+        const service = await Service.findById(serviceId);
+        if (service) {
+          timeDuration += service.ServiceTime;
         }
+      }
     }
 
     // Define the start and end time as moment objects for the artist's working hours
-    const startDate = moment().startOf('day');
-    const endDate = moment().add(10, 'days').endOf('day');
+    const startDate = moment().startOf("day");
+    const endDate = moment().add(10, "days").endOf("day");
 
     // Extract the working hours (assuming they are provided as HH:mm)
-    const startTime24 = artist.startTime.split('T')[1].split(':').slice(0, 2).join(':');
-    const endTime24 = artist.endTime.split('T')[1].split(':').slice(0, 2).join(':');
+    const startTime24 = artist.startTime
+      .split("T")[1]
+      .split(":")
+      .slice(0, 2)
+      .join(":");
+    const endTime24 = artist.endTime
+      .split("T")[1]
+      .split(":")
+      .slice(0, 2)
+      .join(":");
 
     // Convert working days to numbers (0 = Sunday, 6 = Saturday)
     const workingDaysMap = {
-        'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 
-        'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6
+      Sunday: 0,
+      Monday: 1,
+      Tuesday: 2,
+      Wednesday: 3,
+      Thursday: 4,
+      Friday: 5,
+      Saturday: 6,
     };
-    const workingDaysInNumber = artist.workingDays.map(day => workingDaysMap[day]);
+    const workingDaysInNumber = artist.workingDays.map(
+      (day) => workingDaysMap[day]
+    );
 
     // Generate slots for each day within the date range
     let slots = [];
-    for (let m = moment(startDate); m.isBefore(endDate); m.add(1, 'days')) {
-        if (workingDaysInNumber.includes(m.day())) {
-            const dayStart = moment(m).set({ hour: startTime24.split(':')[0], minute: startTime24.split(':')[1], second: 0, millisecond: 0 });
-            const dayEnd = moment(m).set({ hour: endTime24.split(':')[0], minute: endTime24.split(':')[1], second: 0, millisecond: 0 });
+    for (let m = moment(startDate); m.isBefore(endDate); m.add(1, "days")) {
+      if (workingDaysInNumber.includes(m.day())) {
+        const dayStart = moment(m).set({
+          hour: startTime24.split(":")[0],
+          minute: startTime24.split(":")[1],
+          second: 0,
+          millisecond: 0,
+        });
+        const dayEnd = moment(m).set({
+          hour: endTime24.split(":")[0],
+          minute: endTime24.split(":")[1],
+          second: 0,
+          millisecond: 0,
+        });
 
-            let slot = moment(dayStart);
-            while (slot.isBefore(dayEnd)) {
-                slots.push(slot.clone().format('YYYY-MM-DDTHH:mm:ss.SSS'));
-                slot.add(timeDuration, 'minutes');
-            }
+        let slot = moment(dayStart);
+        while (slot.isBefore(dayEnd)) {
+          slots.push(slot.clone().format("YYYY-MM-DDTHH:mm:ss.SSS"));
+          slot.add(timeDuration, "minutes");
         }
+      }
     }
 
     // Filter out slots that conflict with existing appointments
-    const conflictingSlots = artist.appointments.map(appointment => ({
-        start: moment(appointment.appointmentStartTime),
-        end: moment(appointment.appointmentEndTime)
+    const conflictingSlots = artist.appointments.map((appointment) => ({
+      start: moment(appointment.appointmentStartTime),
+      end: moment(appointment.appointmentEndTime),
     }));
 
-    slots = slots.filter(slot => {
-        const slotMoment = moment(slot);
-        return !conflictingSlots.some(conflict =>
-            slotMoment.isBetween(conflict.start, conflict.end, null, '[)')
-        );
+    slots = slots.filter((slot) => {
+      const slotMoment = moment(slot);
+      return !conflictingSlots.some((conflict) =>
+        slotMoment.isBetween(conflict.start, conflict.end, null, "[)")
+      );
     });
 
     // Return the available slots
     return res.status(200).json({
-        success: true,
-        data: slots,
-        duration: timeDuration,
-        message: "Time slots generated successfully"
+      success: true,
+      data: slots,
+      duration: timeDuration,
+      message: "Time slots generated successfully",
     });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error" + error,
+    });
+  }
 };
-
 
 /**
  * @desc Create Appointment By Owner
@@ -153,92 +189,114 @@ const getTimeSlots = async (req, res) => {
  */
 
 const createAppointmentByOwner = async (req, res) => {
-    try {
-    const { artistId,services ,appointmentStartTime, duration, name, phoneNumber,gender } = req.body;
+  try {
+    const {
+      artistId,
+      services,
+      appointmentStartTime,
+      duration,
+      name,
+      phoneNumber,
+      gender,
+    } = req.body;
 
-  
     const artist = await ArtistModel.findById(artistId);
-    
+
     const owner = req.user._id;
     const salon = await SalonModel.findOne({ userId: owner });
     const user = await UserModel.findOne({ phoneNumber });
 
-
     if (!user) {
+      const newUser = new UserModel({ name, phoneNumber, role: "Customer" });
+      await newUser.save();
 
-        const newUser = new UserModel({ name, phoneNumber, role: 'Customer' });
-        await newUser.save();
-
-        const newCustomer = new CustomerModel({ userId: newUser._id,name,phoneNumber});
-        await newCustomer.save();
+      const newCustomer = new CustomerModel({
+        userId: newUser._id,
+        name,
+        phoneNumber,
+      });
+      await newCustomer.save();
     }
 
     if (!artist) {
-        return res.status(404).json({
-            success: false,
-            message: "Artist not found"
-         });
+      return res.status(404).json({
+        success: false,
+        message: "Artist not found",
+      });
     }
 
     let cost = 0;
 
-    for(let i = 0; i < services.length; i++){
+    for (let i = 0; i < services.length; i++) {
+      const serviceArtist = await ServiceArtist.findOne({
+        Artist: artistId,
+        Service: services[i],
+      });
 
-        const serviceArtist = await ServiceArtist.findOne({Artist: artistId, Service: services[i]});
+      console.log(serviceArtist);
 
-        console.log(serviceArtist)
-
-        if(!serviceArtist){
-            return res.status(404).json({
-                success: false,
-                message: "Service not found"
-            });
-        }
-        cost += serviceArtist.Price;
+      if (!serviceArtist) {
+        return res.status(404).json({
+          success: false,
+          message: "Service not found",
+        });
+      }
+      cost += serviceArtist.Price;
     }
-        
-    const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
 
+    const appointmentDate = moment(appointmentStartTime).format("YYYY-MM-DD");
 
     const customer = await CustomerModel.findOne({ phoneNumber });
 
     //remove z from the end of the date
 
-
-    const appointmentEndTime = moment(appointmentStartTime).add(duration, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS');
-    console.log(appointmentEndTime)
-
+    const appointmentEndTime = moment(appointmentStartTime)
+      .add(duration, "minutes")
+      .format("YYYY-MM-DDTHH:mm:ss.SSS");
+    console.log(appointmentEndTime);
 
     const overlappingAppointments = await AppointmentModel.find({
-        artist: artistId,
-        appointmentDate,
-        $or: [
-            { appointmentStartTime: { $lt: appointmentEndTime, $gte: appointmentStartTime } },
-            { appointmentEndTime: { $gt: appointmentStartTime, $lte: appointmentEndTime } },
-            { appointmentStartTime: { $lte: appointmentStartTime }, appointmentEndTime: { $gte: appointmentEndTime } }
-        ]
+      artist: artistId,
+      appointmentDate,
+      $or: [
+        {
+          appointmentStartTime: {
+            $lt: appointmentEndTime,
+            $gte: appointmentStartTime,
+          },
+        },
+        {
+          appointmentEndTime: {
+            $gt: appointmentStartTime,
+            $lte: appointmentEndTime,
+          },
+        },
+        {
+          appointmentStartTime: { $lte: appointmentStartTime },
+          appointmentEndTime: { $gte: appointmentEndTime },
+        },
+      ],
     });
 
     if (overlappingAppointments.length > 0) {
-        return res.status(400).json({ 
-            success: false,
-            message: "Appointment time slot already booked"
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Appointment time slot already booked",
+      });
     }
 
-
     const appointment = new AppointmentModel({
-        user: customer,
-        appointmentDate,
-        salon: salon,
-        appointmentStartTime: appointmentStart,
-        appointmentEndTime,
-        services : services,
-        Duration: duration,
-        artist : artistId,
-        appointmentCost : cost,
-        Status: 'Booked',
-        gender,
+      user: customer,
+      appointmentDate,
+      salon: salon,
+      appointmentStartTime: appointmentStart,
+      appointmentEndTime,
+      services: services,
+      Duration: duration,
+      artist: artistId,
+      appointmentCost: cost,
+      Status: "Booked",
+      gender,
     });
 
     await appointment.save();
@@ -248,94 +306,106 @@ const createAppointmentByOwner = async (req, res) => {
 
     customer.appointments.push(appointment);
     await customer.save();
-    
+
     salon.appointments.push(appointment);
     await salon.save();
 
-    return res.status(201).json({ 
-        success: true,
-        message: "Appointment created successfully" 
+    return res.status(201).json({
+      success: true,
+      message: "Appointment created successfully",
     });
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({ 
-            success: false, 
-            message: "Internal server error",
-        });
-    }
-}
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 
 const editAppointment = async (req, res) => {
-    try {
-        const { appointmentId, artistId ,appointmentStartTime, duration, services } = req.body;
-        console.log(appointmentId, artistId, appointmentStartTime, duration, services)
+  try {
+    const {
+      appointmentId,
+      artistId,
+      appointmentStartTime,
+      duration,
+      services,
+    } = req.body;
+    console.log(
+      appointmentId,
+      artistId,
+      appointmentStartTime,
+      duration,
+      services
+    );
 
-        const appointment = await AppointmentModel.findById(appointmentId);
-        const artist = await ArtistModel.findById(artistId);
-        
-        if (!appointment) {
-            return res.status(404).json({
-                success: false,
-                message: "Appointment not found"
-            });
-        }
+    const appointment = await AppointmentModel.findById(appointmentId);
+    const artist = await ArtistModel.findById(artistId);
 
-        artist.appointments.pull(appointment);
-
-        let cost = 0;
-
-        for(let i = 0; i < services.length; i++){
-            const serviceArtist = await ServiceArtist.findOne({artist: artistId, service: services[i]});
-            if(!serviceArtist){
-                return res.status(404).json({
-                    success: false,
-                    message: "Service not found"
-                });
-            }
-            cost += serviceArtist.Price;
-        }
-
-        const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
-
-        const newArtist = await ArtistModel.findById(artistId);
-
-        const appointmentStart = appointmentStartTime.slice(0, -1);
-
-    const appointmentEndTime = moment(appointmentStart).add(duration, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS');
-
-        appointment.appointmentDate = appointmentDate || appointment.appointmentDate;
-        appointment.appointmentStartTime = appointmentStart || appointment.appointmentStartTime;
-        appointment.appointmentEndTime = appointmentEndTime || appointment.appointmentEndTime;
-        appointment.Duration = duration || appointment.Duration;
-        appointment.services = services || appointment.services;
-        appointment.appointmentCost = cost || appointment.appointmentCost;
-
-        await appointment.save();
-
-        newArtist.appointments.push(appointment);
-
-        await newArtist.save();
-
-
-
-        return res.status(200).json({
-            success: true,
-            message: "Appointment updated successfully"
-        });
-
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({ 
-            success: false, 
-            message: "Internal server error",
-        });
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: "Appointment not found",
+      });
     }
-}
-        
 
+    artist.appointments.pull(appointment);
 
+    let cost = 0;
 
+    for (let i = 0; i < services.length; i++) {
+      const serviceArtist = await ServiceArtist.findOne({
+        artist: artistId,
+        service: services[i],
+      });
+      if (!serviceArtist) {
+        return res.status(404).json({
+          success: false,
+          message: "Service not found",
+        });
+      }
+      cost += serviceArtist.Price;
+    }
 
+    const appointmentDate = moment(appointmentStartTime).format("YYYY-MM-DD");
+
+    const newArtist = await ArtistModel.findById(artistId);
+
+    const appointmentStart = appointmentStartTime.slice(0, -1);
+
+    const appointmentEndTime = moment(appointmentStart)
+      .add(duration, "minutes")
+      .format("YYYY-MM-DDTHH:mm:ss.SSS");
+
+    appointment.appointmentDate =
+      appointmentDate || appointment.appointmentDate;
+    appointment.appointmentStartTime =
+      appointmentStart || appointment.appointmentStartTime;
+    appointment.appointmentEndTime =
+      appointmentEndTime || appointment.appointmentEndTime;
+    appointment.Duration = duration || appointment.Duration;
+    appointment.services = services || appointment.services;
+    appointment.appointmentCost = cost || appointment.appointmentCost;
+
+    await appointment.save();
+
+    newArtist.appointments.push(appointment);
+
+    await newArtist.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Appointment updated successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 
 /**
  * @desc Reschedule Appointment
@@ -345,105 +415,112 @@ const editAppointment = async (req, res) => {
  * @response { message }
  */
 
-const   rescheduleAppointment = async (req, res) => {
-    try {
+const rescheduleAppointment = async (req, res) => {
+  try {
     const { appointmentId, appointmentStartTime, duration } = req.body;
-    console.log(appointmentId, appointmentStartTime, duration)
+    console.log(appointmentId, appointmentStartTime, duration);
     const userId = req.user._id;
     const user = await UserModel.findById(userId);
 
-    if(user.role === 'Owner'){
-        const appointment = await AppointmentModel.findOne({ _id: appointmentId });
-        const artist = await ArtistModel.findById(appointment.artist);
+    if (user.role === "Owner") {
+      const appointment = await AppointmentModel.findOne({
+        _id: appointmentId,
+      });
+      const artist = await ArtistModel.findById(appointment.artist);
 
-        if (!appointment) {
-            return res.status(404).json({
-                success: false,
-                message: "Appointment not found"
-            });
-        }
-
-        const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
-
-        const appointmentEndTime = moment(appointmentStartTime).add(duration, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS');
-
-        appointment.appointmentDate = appointmentDate;
-        appointment.appointmentStartTime = appointmentStart;
-        appointment.appointmentEndTime = appointmentEndTime;
-        appointment.Duration = moment.duration(appointmentEndTime).asMinutes() - moment.duration(appointmentStartTime).asMinutes();
-
-        await appointment.save();   
-
-        return res.status(200).json({
-            success: true,
-            message: "Appointment rescheduled successfully"
+      if (!appointment) {
+        return res.status(404).json({
+          success: false,
+          message: "Appointment not found",
         });
+      }
+
+      const appointmentDate = moment(appointmentStartTime).format("YYYY-MM-DD");
+
+      const appointmentEndTime = moment(appointmentStartTime)
+        .add(duration, "minutes")
+        .format("YYYY-MM-DDTHH:mm:ss.SSS");
+
+      appointment.appointmentDate = appointmentDate;
+      appointment.appointmentStartTime = appointmentStart;
+      appointment.appointmentEndTime = appointmentEndTime;
+      appointment.Duration =
+        moment.duration(appointmentEndTime).asMinutes() -
+        moment.duration(appointmentStartTime).asMinutes();
+
+      await appointment.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Appointment rescheduled successfully",
+      });
     }
 
-    const appointment = await AppointmentModel.findOne({ _id: appointmentId});
+    const appointment = await AppointmentModel.findOne({ _id: appointmentId });
 
     if (!appointment) {
-        return res.status(404).json({
-            success: false,
-            message: "Appointment not found"
-        });
+      return res.status(404).json({
+        success: false,
+        message: "Appointment not found",
+      });
     }
 
-    const appointmentDate = moment(appointmentStartTime).format('YYYY-MM-DD');
+    const appointmentDate = moment(appointmentStartTime).format("YYYY-MM-DD");
 
-    const appointmentEndTime = moment(appointmentStartTime).add(duration, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS');
-    
+    const appointmentEndTime = moment(appointmentStartTime)
+      .add(duration, "minutes")
+      .format("YYYY-MM-DDTHH:mm:ss.SSS");
 
     appointment.appointmentDate = appointmentDate;
     appointment.appointmentStartTime = appointmentStartTime;
     appointment.appointmentEndTime = appointmentEndTime;
-    appointment.Duration = moment.duration(appointmentEndTime).asMinutes() - moment.duration(appointmentStartTime).asMinutes();
+    appointment.Duration =
+      moment.duration(appointmentEndTime).asMinutes() -
+      moment.duration(appointmentStartTime).asMinutes();
 
     await appointment.save();
 
     return res.status(200).json({
-        success: true,
-        message: "Appointment rescheduled successfully"
+      success: true,
+      message: "Appointment rescheduled successfully",
     });
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({ 
-            success: false, 
-            message: "Internal server error",
-        });
-    }
-}
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 
 const CompleteAppointment = async (req, res) => {
-    try {
-        const { appointmentId } = req.params;
+  try {
+    const { appointmentId } = req.params;
 
-        const appointment = await AppointmentModel.findById(appointmentId);
-        
-        if(!appointmentId){
-            return res.status(400).json({
-                success: false,
-                message: "Appointment Id is required"
-            });
-        }
+    const appointment = await AppointmentModel.findById(appointmentId);
 
-        
-        appointment.Status = 'Completed';
-
-        await appointment.save();
-
-        return res.status(200).json({
-            success: true,
-            message: "Appointment Completed successfully"
-        });
-    } catch (error) {
-        return res.status(500).json({ 
-            success: false, 
-            message: "Internal server error",
-        });
+    if (!appointmentId) {
+      return res.status(400).json({
+        success: false,
+        message: "Appointment Id is required",
+      });
     }
-}
 
+    appointment.Status = "Completed";
+
+    await appointment.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Appointment Completed successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 
 /**
  * @desc Cancel Appointment
@@ -459,234 +536,269 @@ const cancelAppointment = async (req, res) => {
     const userId = req.user._id;
     const user = await UserModel.findById(userId);
 
-    if(user.role === 'Owner'){
-        const appointment = await AppointmentModel.findOne({ _id: appointmentId });
-        const artist = await ArtistModel.findById(appointment.artist);
+    if (user.role === "Owner") {
+      const appointment = await AppointmentModel.findOne({
+        _id: appointmentId,
+      });
+      const artist = await ArtistModel.findById(appointment.artist);
 
-        if (!appointment) {
-            return res.status(404).json({
-                success: false,
-                message: "Appointment not found"
-            });
-        }
-
-        if(appointment.Status === 'Cancelled'){
-            return res.status(400).json({
-                success: false,
-                message: "Appointment already cancelled"
-            });
-        }
-
-        appointment.Status = 'Cancelled';
-
-        await appointment.save();
-
-        return res.status(200).json({
-            success: true,
-            message: "Appointment cancelled successfully"
+      if (!appointment) {
+        return res.status(404).json({
+          success: false,
+          message: "Appointment not found",
         });
+      }
+
+      if (appointment.Status === "Cancelled") {
+        return res.status(400).json({
+          success: false,
+          message: "Appointment already cancelled",
+        });
+      }
+
+      appointment.Status = "Cancelled";
+
+      await appointment.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Appointment cancelled successfully",
+      });
     }
 
-    const appointment = await AppointmentModel.findOne({ _id: appointmentId, user: user });
+    const appointment = await AppointmentModel.findOne({
+      _id: appointmentId,
+      user: user,
+    });
 
     if (!appointment) {
-        return res.status(404).json({
-            success: false,
-            message: "Appointment not found"
-        });
+      return res.status(404).json({
+        success: false,
+        message: "Appointment not found",
+      });
     }
 
-    appointment.Status = 'Cancelled';
+    appointment.Status = "Cancelled";
 
     await appointment.save();
-    
 
     return res.status(200).json({
-        success: true,
-        message: "Appointment Cancelled successfully"
+      success: true,
+      message: "Appointment Cancelled successfully",
     });
   } catch (error) {
-    return res.status(500).json({ 
-        success: false, 
-        message: "Internal server error",
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
     });
   }
-}
+};
 
 const CreateAppointment = async (req, res) => {
-    try {
-        const { artistId,appointmentDate ,appointmentStartTime, duration, services, cost ,offer } = req.body;
-        const userId = req.user._id;
-        const customer = await CustomerModel.findOne({ userId: userId });
-        const artist = await ArtistModel.findById(artistId);
-        const salon = await SalonModel.findOne({ Artists: artistId });
-        const offerId = await OfferModel.findOne({OfferName: offer})
+  try {
+    const {
+      artistId,
+      appointmentDate,
+      appointmentStartTime,
+      duration,
+      services,
+      cost,
+      offer,
+    } = req.body;
+    const userId = req.user._id;
+    const customer = await CustomerModel.findOne({ userId: userId });
+    const artist = await ArtistModel.findById(artistId);
+    const salon = await SalonModel.findOne({ Artists: artistId });
+    const offerId = await OfferModel.findOne({ OfferName: offer });
 
-        //appointment start time is in 9:00 format
-        //appointment date is in 2024-06-16 format
+    //appointment start time is in 9:00 format
+    //appointment date is in 2024-06-16 format
 
-        console.log( appointmentStartTime)
+    console.log(appointmentStartTime);
 
-      
-
-        if (!artist) {
-            return res.status(404).json({ 
-                success: false,
-                message: "Artist not found" 
-            });
-        }
-
-         const appointmentEndTime = moment(appointmentStartTime).add(duration, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS');
-
-        const overlappingAppointments = await AppointmentModel.find({
-            artist: artistId,
-            appointmentDate,
-            $or: [
-                { appointmentStartTime: { $lt: appointmentEndTime, $gte: appointmentStartTime } },
-                { appointmentEndTime: { $gt: appointmentStartTime, $lte: appointmentEndTime } },
-                { appointmentStartTime: { $lte: appointmentStartTime }, appointmentEndTime: { $gte: appointmentEndTime } }
-            ]
-        });
-
-        if (overlappingAppointments.length > 0) {
-            return res.status(400).json({ 
-                success: false,
-                message: "Appointment time slot already booked" 
-            });
-        }
-
-        const appointment = new AppointmentModel({
-            user: customer,
-            artist: artistId,
-            appointmentDate,
-            appointmentStartTime,
-            salon: salon,
-            appointmentEndTime,
-            Duration: duration,
-            services,
-            appointmentCost: cost,
-            Status: 'Booked'
-        });
-
-
-
-        await appointment.save();
-
-        salon.appointments.push(appointment);
-        await salon.save();
-        artist.appointments.push(appointment);
-        await artist.save();
-        customer.appointments.push(appointment);
-        if(offerId){
-        customer.offers.push(offerId._id);
-        }
-        await customer.save();
-
-
-        return res.status(201).json({ 
-            success: true,
-            data: appointment._id,
-            message: "Appointment created successfully"
-        });
-
+    if (!artist) {
+      return res.status(404).json({
+        success: false,
+        message: "Artist not found",
+      });
     }
-    catch (error) {
-        console.log(error)
-        return res.status(500).json({ 
-            success: false, 
-            message: "Internal server error",
-        });
+
+    const appointmentEndTime = moment(appointmentStartTime)
+      .add(duration, "minutes")
+      .format("YYYY-MM-DDTHH:mm:ss.SSS");
+
+    const overlappingAppointments = await AppointmentModel.find({
+      artist: artistId,
+      appointmentDate,
+      $or: [
+        {
+          appointmentStartTime: {
+            $lt: appointmentEndTime,
+            $gte: appointmentStartTime,
+          },
+        },
+        {
+          appointmentEndTime: {
+            $gt: appointmentStartTime,
+            $lte: appointmentEndTime,
+          },
+        },
+        {
+          appointmentStartTime: { $lte: appointmentStartTime },
+          appointmentEndTime: { $gte: appointmentEndTime },
+        },
+      ],
+    });
+
+    if (overlappingAppointments.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Appointment time slot already booked",
+      });
     }
-}
+
+    const appointment = new AppointmentModel({
+      user: customer,
+      artist: artistId,
+      appointmentDate,
+      appointmentStartTime,
+      salon: salon,
+      appointmentEndTime,
+      Duration: duration,
+      services,
+      appointmentCost: cost,
+      Status: "Booked",
+    });
+
+    await appointment.save();
+
+    salon.appointments.push(appointment);
+    await salon.save();
+    artist.appointments.push(appointment);
+    await artist.save();
+    customer.appointments.push(appointment);
+    if (offerId) {
+      customer.offers.push(offerId._id);
+    }
+    await customer.save();
+
+    return res.status(201).json({
+      success: true,
+      data: appointment._id,
+      message: "Appointment created successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 
 const getAppointments = async (req, res) => {
-    try {
-        const userId = req.user._id;
-        const user = await UserModel.findById(userId);
-        const customer = await CustomerModel.findOne({ userId: user });
+  try {
+    const userId = req.user._id;
+    const user = await UserModel.findById(userId);
+    const customer = await CustomerModel.findOne({ userId: user });
 
-        if (!customer) {
-            return res.status(404).json({ 
-                success: false,
-                message: "Customer not found" 
-            });
-        }
-
-        const appointments = await AppointmentModel.find({ user: customer })
-            .populate('services').populate({
-                path:'salon',
-                select: '-Artists -Services -StorePhotos -appointments'
-            }).populate('Review');
-
-        if (!appointments.length) {
-            return res.status(200).json({ 
-                success: true,
-                data: [],
-                message: "No appointments found"
-            });
-        }
-
-      
-
-        return res.status(200).json({ 
-            success: true,
-            data: appointments,
-            message: "Appointments fetched successfully"
-        });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ 
-            success: false, 
-            message: "Internal server error",
-        });
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
     }
+
+    const appointments = await AppointmentModel.find({ user: customer })
+      .populate("services")
+      .populate({
+        path: "salon",
+        select: "-Artists -Services -StorePhotos -appointments",
+      })
+      .populate("Review");
+
+    if (!appointments.length) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+        message: "No appointments found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: appointments,
+      message: "Appointments fetched successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
 };
 
 const getAppointmentsById = async (req, res) => {
-    try {
-        const { appointmentId } = req.params;
-        const userId = req.user._id;
-        const user = await UserModel.findById(userId);
-        const customer = await CustomerModel.findOne({ userId: user });
+  try {
+    const { appointmentId } = req.params;
+    const userId = req.user._id;
+    const user = await UserModel.findById(userId);
+    const customer = await CustomerModel.findOne({ userId: user });
 
-        if (!customer) {
-            return res.status(404).json({ 
-                success: false,
-                message: "Customer not found" 
-            });
-        }
-
-        const appointment = await AppointmentModel.findOne({ _id: appointmentId, user: customer }).populate('services').populate({
-            path:'salon',
-            populate: {
-                path: 'Reviews',
-            },
-            select: '-Artists -Services -StorePhotos -appointments'
-        })
-
-        if (!appointment) {
-            return res.status(404).json({ 
-                success: false,
-                message: "Appointment not found" 
-            }); 
-        }
-
-        return res.status(200).json({ 
-            success: true,
-            data: appointment,
-            message: "Appointment fetched successfully"
-        });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ 
-            success: false, 
-            message: "Internal server error",
-        });
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
     }
+
+    const appointment = await AppointmentModel.findOne({
+      _id: appointmentId,
+      user: customer,
+    })
+      .populate("services")
+      .populate({
+        path: "salon",
+        populate: {
+          path: "Reviews",
+        },
+        select: "-Artists -Services -StorePhotos -appointments",
+      });
+
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: "Appointment not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: appointment,
+      message: "Appointment fetched successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
 };
 
-export {getTimeSlots,createAppointmentByOwner,cancelAppointment,rescheduleAppointment,editAppointment,CompleteAppointment,getCost ,CreateAppointment ,getAppointments,getAppointmentsById};
-
+export {
+  getTimeSlots,
+  createAppointmentByOwner,
+  cancelAppointment,
+  rescheduleAppointment,
+  editAppointment,
+  CompleteAppointment,
+  getCost,
+  CreateAppointment,
+  getAppointments,
+  getAppointmentsById,
+};
 
 // /**
 //  * @desc Create Appointment Lock
@@ -702,9 +814,9 @@ export {getTimeSlots,createAppointmentByOwner,cancelAppointment,rescheduleAppoin
 //     const artist = await ArtistModel.findById(artistId);
 
 //     if (!artist) {
-//         return res.status(404).json({ 
+//         return res.status(404).json({
 //             success: false,
-//             message: "Artist not found" 
+//             message: "Artist not found"
 //         });
 //     }
 
@@ -727,7 +839,7 @@ export {getTimeSlots,createAppointmentByOwner,cancelAppointment,rescheduleAppoin
 //     artist.appointments.push(appointment);
 //     await artist.save();
 
-//     return res.status(201).json({ 
+//     return res.status(201).json({
 //         success: true,
 //         message: "Appointment created successfully" });
 // }
@@ -757,16 +869,16 @@ export {getTimeSlots,createAppointmentByOwner,cancelAppointment,rescheduleAppoin
 //     if (!appointment) {
 //         return res.status(404).json({
 //             success: false,
-//             message: "Appointment not found or Session Expired" 
+//             message: "Appointment not found or Session Expired"
 //         });
 //     }
 
 //     if(appointment.lockExpires < moment()){
 //         await appointment.remove();
 //         await artist.appointments.pull(appointment);
-//         return res.status(400).json({ 
+//         return res.status(400).json({
 //             success: false,
-//             message: "Session Expired" 
+//             message: "Session Expired"
 //         });
 //     }
 
@@ -780,13 +892,11 @@ export {getTimeSlots,createAppointmentByOwner,cancelAppointment,rescheduleAppoin
 //     customer.appointments.push(appointment);
 //     await customer.save();
 
-//     return res.status(200).json({ 
+//     return res.status(200).json({
 //         success: true,
-//         message: "Appointment Booked Successfully" 
+//         message: "Appointment Booked Successfully"
 //     });
 // }
-
-
 
 // const releaseExpiredLocks = async () => {
 //     try {
