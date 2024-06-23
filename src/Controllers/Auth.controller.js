@@ -52,7 +52,7 @@ const verifyToken = async (req, res) => {
           });
         }
 
-        if(role === "Customer"){
+        if(user.role === "Customer"){
           const customer = await CustomerModel.findOne({ userId: user._id });
           
           generateToken(res, user);
