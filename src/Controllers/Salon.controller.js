@@ -510,6 +510,11 @@ const deleteSalon = async (req, res) => {
       });
     }
 
+    const user = await UserModel.findById(user);
+
+    user.isSalon = false;
+    await user.save();
+
     return res.status(200).json({
       success: true,
       message: "Salon deleted successfully",

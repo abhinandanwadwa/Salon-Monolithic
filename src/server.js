@@ -22,7 +22,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-    origin: ['https://www.salondekho.in','https://salon-admin-three.vercel.app'],
+    origin: ['https://www.salondekho.in','https://salon-admin-three.vercel.app','http://localhost:5173'],
     credentials: true,
 }));
 app.use(bodyParser.json());

@@ -332,14 +332,7 @@ const editAppointment = async (req, res) => {
       duration,
       services,
     } = req.body;
-    console.log(
-      appointmentId,
-      artistId,
-      appointmentStartTime,
-      duration,
-      services
-    );
-
+ 
     const appointment = await AppointmentModel.findById(appointmentId);
     const artist = await ArtistModel.findById(appointment.artist);
 
