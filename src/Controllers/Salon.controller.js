@@ -510,10 +510,10 @@ const deleteSalon = async (req, res) => {
       });
     }
 
-    const user = await UserModel.findById(user);
+    const newuser = await UserModel.findById(user);
 
-    user.isSalon = false;
-    await user.save();
+    newuseruser.isSalon = false;
+    await newuser.save();
 
     return res.status(200).json({
       success: true,
