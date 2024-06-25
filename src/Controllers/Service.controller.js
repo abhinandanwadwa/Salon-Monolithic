@@ -1,6 +1,7 @@
 import Service from "../Models/Services.js";
 import SalonModel from "../Models/Salon.js";
 import ArtistModel from "../Models/Artist.js";
+import ServiceArtist from "../Models/ServiceArtist.js";
 
 /**
  * @desc Create services
@@ -207,5 +208,46 @@ const getServices = async (req, res) => {
 };
 
 
+const deleteCategory = async (req, res) => {
+  try {
+    const { categoryName } = req.body;
+    const services = await Service.find({ ServiceType: categoryName });
+    if (!services) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Category not found" 
+      });
+    }
 
-export { createServices, getServices ,updateService,deleteService };
+    const servicesIds = services.map((service) => service._id);
+
+    const serviceArtist = await ServiceArtist.find({ Service: { $in: servicesIds } });
+
+    for (const service of serviceArtist) {
+      await service.deleteOne();
+    }
+
+
+    for (const service of services) {
+      await service.deleteOne();
+    }
+
+
+
+    return res.status(200).json({ 
+        success: true,
+        message: "Category deleted successfully" 
+    });
+  }
+  catch (error) {
+    return res.status(500).json({ 
+        success: false,
+        message: "Error in deleting category" 
+    });
+  }
+}
+
+    
+
+
+export { createServices, getServices ,updateService,deleteService ,deleteCategory};

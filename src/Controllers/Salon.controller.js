@@ -691,6 +691,7 @@ const SalonsStats = async (req, res) => {
 };
 
 
+
 export {
   createSalon,
   getSalonById,

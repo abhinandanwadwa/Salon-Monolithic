@@ -14,8 +14,6 @@ const verifyToken = async (req, res) => {
 
       const userDetailUsingToken = await UserDetail.verifyToken(token,process.env.CLIENT_ID,process.env.CLIENT_SECRET);
 
-      
-      console.log(token)
       const phoneNumber = userDetailUsingToken.national_phone_number;
       const user = await UserModel.findOne({ phoneNumber });
       if(userDetailUsingToken.success){
@@ -51,6 +49,28 @@ const verifyToken = async (req, res) => {
             }
           });
         }
+
+        if(user.role === "Customer" && role === "Owner"){
+          const customer = await CustomerModel.findOne({ userId: user._id });
+          await CustomerModel.findByIdAndDelete(customer._id);
+
+          user.role = role;
+          await user.save();
+
+          generateToken(res, user);
+          return res.status(201).json({
+            success: true,
+            user:{
+              _id: user._id,
+              phoneNumber: user.phoneNumber,
+              role: user.role,
+              isSalon: user.isSalon,
+            }
+          });
+        }
+
+
+
 
         if(user.role === "Customer"){
           const customer = await CustomerModel.findOne({ userId: user._id });
