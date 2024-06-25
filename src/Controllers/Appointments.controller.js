@@ -491,7 +491,7 @@ const cancelAppointment = async (req, res) => {
     const userId = req.user._id;
     const user = await UserModel.findById(userId);
 
-    if (user.role === "Owner") {
+    if (user.role === "Owner" || user.role === "subAdmin" || user.role === "Artist") {
       const appointment = await AppointmentModel.findOne({
         _id: appointmentId,
       });
