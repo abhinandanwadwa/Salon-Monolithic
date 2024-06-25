@@ -8,9 +8,10 @@ import otpGenerator from "otp-generator";
 import google from "googleapis";
 import sheets,{spreadsheetId} from "./sheetClient.js";
 import AppointmentModel from "../Models/Appointments.js";
-
-
-
+import ServiceArtist from "../Models/ServiceArtist.js";
+import ArtistModel from "../Models/Artist.js";
+import ReviewModel from "../Models/review.js";
+import OfferModel from "../Models/Offer.js";
 
 /**
  * @desc Create a new salon
@@ -307,16 +308,13 @@ const getSalonById = async (req, res) => {
 const getOwnerSalon = async (req, res) => {
   try {
     const OwnerId = req.user._id;
-    const salons = await SalonModel.find({ userId: OwnerId })
-      .populate("Services")
-      .populate({
-        path: "Artists",
-        populate: {
-          path: "appointments",
-        },
-      })
+    const salon = await SalonModel.find({ userId: OwnerId })
       .populate("appointments")
       .populate("userId", "phoneNumber");
+
+    const services = await Service.find({ salon: salon[0]._id });
+    
+
     if (!salons.length) {
       return res.status(404).json({
         success: false,
@@ -502,7 +500,47 @@ const uploadBrochure = async (req, res) => {
 const deleteSalon = async (req, res) => {
   try {
     const user = req.user._id;
-    const salon = await SalonModel.findOneAndDelete({ userId: user });
+
+    const salon = await SalonModel.findOne({ userId: user });
+
+    const services = await Service.find({ salon: salon._id });
+
+    const serviceArtist = await ServiceArtist.find({ Service: { $in: services.map(service => service._id) }})
+
+    if (serviceArtist.length) {
+      await ServiceArtist.deleteMany({ Service: { $in: services.map(service => service._id) } });
+    }
+
+    if (services.length) {
+      await Service.deleteMany({ salon: salon._id });
+    }
+
+    const artists = await ArtistModel.find({ salon: salon._id });
+    const users = await UserModel.find({ _id: { $in: artists.map(artist => artist.userId) } });
+
+    if (users.length) {
+      await UserModel.deleteMany({ _id: { $in: artists.map(artist => artist.userId) } });
+    }
+
+    if (artists.length) {
+      await ArtistModel.deleteMany({ salon: salon._id });
+    }
+
+    if (salon.appointments.length) {
+      await AppointmentModel.deleteMany({ _id: { $in: salon.appointments } });
+    }
+
+    if (salon.Reviews.length) {
+      await ReviewModel.deleteMany({ _id: { $in: salon.Reviews } });
+    }
+
+    if (salon.offers.length) {
+      await OfferModel.deleteMany({ _id: { $in: salon.offers } });
+    }
+
+    await SalonModel.findOneAndDelete({ userId: user });
+    
+
     if (!salon) {
       return res.status(404).json({
         success: false,
