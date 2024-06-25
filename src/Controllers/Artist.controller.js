@@ -108,7 +108,6 @@ const CreateArtistWithAllServices = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "Artists created successfully",
-            data: createdArtists,
         });
     }
     catch (error) {

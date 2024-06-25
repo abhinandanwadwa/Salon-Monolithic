@@ -114,6 +114,8 @@ const getTimeSlots = async (req, res) => {
       .slice(0, 2)
       .join(":");
 
+
+
     // Convert working days to numbers (0 = Sunday, 6 = Saturday)
     const workingDaysMap = {
       Sunday: 0,
@@ -176,7 +178,7 @@ const getTimeSlots = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Internal server error" + error,
+      message: "Internal server error" + error ,
     });
   }
 };
