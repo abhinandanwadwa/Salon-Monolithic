@@ -6,7 +6,7 @@ import NodeGeocoder from "node-geocoder";
 import bycrypt from "bcryptjs";
 import otpGenerator from "otp-generator";
 import google from "googleapis";
-import sheets,{spreadsheetId} from "./sheetClient.js";
+import sheets, { spreadsheetId } from "./sheetClient.js";
 import AppointmentModel from "../Models/Appointments.js";
 import ServiceArtist from "../Models/ServiceArtist.js";
 import ArtistModel from "../Models/Artist.js";
@@ -52,7 +52,7 @@ const createSalon = async (req, res) => {
         message: "User is already a salon owner",
       });
     }
-    
+
     if (!Address1 || !City || !State || !Country || !Pincode) {
       return res.status(400).json({
         success: false,
@@ -122,15 +122,13 @@ const createSalon = async (req, res) => {
     // Write the salon name , phoneNumber , OWner name and password to google sheet
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-       range: "Sheet1!A1:D1",
-       valueInputOption: "USER_ENTERED",
-        insertDataOption: "INSERT_ROWS",
+      range: "Sheet1!A1:D1",
+      valueInputOption: "USER_ENTERED",
+      insertDataOption: "INSERT_ROWS",
 
-        resource: {
-          values: [
-            [SalonName, user.phoneNumber, OwnerName, password],
-          ],
-        },
+      resource: {
+        values: [[SalonName, user.phoneNumber, OwnerName, password]],
+      },
     });
 
     const salt = await bycrypt.genSalt(10);
@@ -234,22 +232,21 @@ const getSalonByLocation = async (req, res) => {
       },
       {
         $lookup: {
-          from: 'offers', // The collection name in the database
-          localField: '_id',
-          foreignField: 'salon',
-          as: 'offers',
+          from: "offers", // The collection name in the database
+          localField: "_id",
+          foreignField: "salon",
+          as: "offers",
         },
       },
       {
         $lookup: {
-          from: 'reviews', // The collection name in the database
-          localField: 'Reviews',
-          foreignField: '_id',
-          as: 'reviews',
+          from: "reviews", // The collection name in the database
+          localField: "Reviews",
+          foreignField: "_id",
+          as: "reviews",
         },
       },
     ]);
-
 
     return res.status(200).json(salons);
   } catch (error) {
@@ -282,11 +279,19 @@ const getSalonById = async (req, res) => {
       })
       .populate("offers")
       .populate({
-          path:"Reviews",
-          populate:{
-            path:"userId",
-          },
+        path: "Reviews",
       });
+
+    const customerReviews = await ReviewModel.find({
+      _id: { $in: salon.Reviews },
+    }).populate({
+      path: "userId", // Assuming this is the field in Review that references the Customer
+      model: "Customer", // Specify the model if it's not the default
+      select: "name", // Selecting only the name field from the Customer model
+    });
+
+    salon._doc.customerReviews = customerReviews; // Append the populated reviews to the salon object
+
     return res.status(200).json(salon);
   } catch (error) {
     console.error(error);
@@ -304,7 +309,6 @@ const getSalonById = async (req, res) => {
  * @access Private
  * @request None
  */
-
 
 const getOwnerSalon = async (req, res) => {
   try {
@@ -339,7 +343,6 @@ const getOwnerSalon = async (req, res) => {
   }
 };
 
-
 /**
  * @desc Search salons
  * @method POST
@@ -352,13 +355,25 @@ const getOwnerSalon = async (req, res) => {
 const searchSalons = async (req, res) => {
   try {
     const { service, address, location } = req.body;
-    let regex, matchingServices, salonIds = [], locations, salons;
+    let regex,
+      matchingServices,
+      salonIds = [],
+      locations,
+      salons;
 
     // Handle service search
     if (service) {
-      regex = new RegExp(service, 'i'); // 'i' makes it case-insensitive
-      matchingServices = await Service.find({ ServiceName: { $regex: regex } }).populate('salon', '_id');
-      salonIds = [...new Set(matchingServices.map(service => service.salon && service.salon._id.toString()))];
+      regex = new RegExp(service, "i"); // 'i' makes it case-insensitive
+      matchingServices = await Service.find({
+        ServiceName: { $regex: regex },
+      }).populate("salon", "_id");
+      salonIds = [
+        ...new Set(
+          matchingServices.map(
+            (service) => service.salon && service.salon._id.toString()
+          )
+        ),
+      ];
     }
 
     console.log(salonIds);
@@ -366,7 +381,7 @@ const searchSalons = async (req, res) => {
     // Handle address geocoding
     if (address) {
       const options = {
-        provider: 'google',
+        provider: "google",
         apiKey: process.env.GOOGLE_MAPS_API_KEY, // Make sure to set your Google Maps API key in the environment variables
       };
       const geocoder = NodeGeocoder(options);
@@ -401,21 +416,18 @@ const searchSalons = async (req, res) => {
           distanceField: "distance",
           maxDistance: 200000, // 20 kilometers
           spherical: true,
-        }
+        },
       });
     }
-
-
 
     // Add $match stage to filter by salon IDs
     if (salonIds.length > 0) {
       aggregationPipeline.push({
         $match: {
-          _id: { $in: salonIds.map(id => new mongoose.Types.ObjectId(id)) }
-        }
+          _id: { $in: salonIds.map((id) => new mongoose.Types.ObjectId(id)) },
+        },
       });
     }
-
 
     aggregationPipeline.push(
       {
@@ -439,10 +451,11 @@ const searchSalons = async (req, res) => {
     // Execute aggregation pipeline
     salons = await SalonModel.aggregate(aggregationPipeline);
 
-    if(!salons.length) return res.status(404).json({ 
-      success: false,
-      message: "No salons found" 
-    });
+    if (!salons.length)
+      return res.status(404).json({
+        success: false,
+        message: "No salons found",
+      });
 
     return res.status(200).json({
       success: true,
@@ -454,9 +467,6 @@ const searchSalons = async (req, res) => {
     return res.status(500).json({ error: "Error in fetching salons" });
   }
 };
-
-
-
 
 /**
  * @desc Upload salon brochure
@@ -510,10 +520,14 @@ const deleteSalon = async (req, res) => {
 
     const services = await Service.find({ salon: salon._id });
 
-    const serviceArtist = await ServiceArtist.find({ Service: { $in: services.map(service => service._id) }})
+    const serviceArtist = await ServiceArtist.find({
+      Service: { $in: services.map((service) => service._id) },
+    });
 
     if (serviceArtist.length) {
-      await ServiceArtist.deleteMany({ Service: { $in: services.map(service => service._id) } });
+      await ServiceArtist.deleteMany({
+        Service: { $in: services.map((service) => service._id) },
+      });
     }
 
     if (services.length) {
@@ -521,10 +535,14 @@ const deleteSalon = async (req, res) => {
     }
 
     const artists = await ArtistModel.find({ salon: salon._id });
-    const users = await UserModel.find({ _id: { $in: artists.map(artist => artist.userId) } });
+    const users = await UserModel.find({
+      _id: { $in: artists.map((artist) => artist.userId) },
+    });
 
     if (users.length) {
-      await UserModel.deleteMany({ _id: { $in: artists.map(artist => artist.userId) } });
+      await UserModel.deleteMany({
+        _id: { $in: artists.map((artist) => artist.userId) },
+      });
     }
 
     if (artists.length) {
@@ -544,7 +562,6 @@ const deleteSalon = async (req, res) => {
     }
 
     await SalonModel.findOneAndDelete({ userId: user });
-    
 
     if (!salon) {
       return res.status(404).json({
@@ -554,8 +571,6 @@ const deleteSalon = async (req, res) => {
     }
 
     await UserModel.findOneAndDelete({ _id: user });
-    
-
 
     return res.status(200).json({
       success: true,
@@ -683,7 +698,6 @@ const getAllSalons = async (req, res) => {
       data: salons,
       message: "Salons found",
     });
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -693,10 +707,8 @@ const getAllSalons = async (req, res) => {
   }
 };
 
-
-
 const SalonsStats = async (req, res) => {
-   try {
+  try {
     //total bookings , no of user sign up this week , total salons registered,
 
     const totalSalons = await SalonModel.countDocuments();
@@ -706,12 +718,24 @@ const SalonsStats = async (req, res) => {
     const today = new Date();
     //weekly bookings and user registration
 
-    const weekStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
-    const weekEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + (6 - today.getDay()));
+    const weekStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() - today.getDay()
+    );
+    const weekEnd = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + (6 - today.getDay())
+    );
 
-    const weeklyUsers = await UserModel.find({ createdAt: { $gte: weekStart, $lte: weekEnd } }).countDocuments();
+    const weeklyUsers = await UserModel.find({
+      createdAt: { $gte: weekStart, $lte: weekEnd },
+    }).countDocuments();
 
-    const weeklyAppointments = await AppointmentModel.find({ createdAt: { $gte: weekStart, $lte: weekEnd } }).countDocuments();
+    const weeklyAppointments = await AppointmentModel.find({
+      createdAt: { $gte: weekStart, $lte: weekEnd },
+    }).countDocuments();
 
     return res.status(200).json({
       success: true,
@@ -723,17 +747,14 @@ const SalonsStats = async (req, res) => {
         weeklyAppointments,
       },
     });
-
-   } catch (error) {
-      console.error(error);
-      return res.status(500).json({
-        success: false,
-        message: "Error in fetching stats",
-      });
-   }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching stats",
+    });
+  }
 };
-
-
 
 export {
   createSalon,
