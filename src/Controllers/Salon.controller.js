@@ -305,16 +305,20 @@ const getSalonById = async (req, res) => {
  * @request None
  */
 
+
 const getOwnerSalon = async (req, res) => {
   try {
     const OwnerId = req.user._id;
-    const salon = await SalonModel.find({ userId: OwnerId })
+    const salons = await SalonModel.find({ userId: OwnerId })
+      .populate("Services")
+      .populate({
+        path: "Artists",
+        populate: {
+          path: "appointments",
+        },
+      })
       .populate("appointments")
       .populate("userId", "phoneNumber");
-
-    const services = await Service.find({ salon: salon[0]._id });
-    
-
     if (!salons.length) {
       return res.status(404).json({
         success: false,
@@ -334,6 +338,7 @@ const getOwnerSalon = async (req, res) => {
     });
   }
 };
+
 
 /**
  * @desc Search salons
