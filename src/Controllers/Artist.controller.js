@@ -321,6 +321,21 @@ const updateArtist = async (req, res) => {
             await user.save();
         }
 
+        for (const serviceId of services) {
+            const service = await Service.findById(serviceId);
+            const serviceArtist = await ServiceArtist.findOne({ Artist: artist._id, Service: serviceId });
+
+            if (!serviceArtist) {
+                const newServiceArtist = new ServiceArtist({
+                    Artist: artist._id,
+                    Service: serviceId,
+                    Price: service.ServiceCost,
+                });
+
+                await newServiceArtist.save();
+            }
+        }
+
         artist.ArtistName = name || artist.ArtistName;
         artist.PhoneNumber = phoneNumber || artist.PhoneNumber;
         artist.workingDays = workingDays || artist.workingDays;
