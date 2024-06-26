@@ -162,9 +162,12 @@ const validateOffer = async (req, res) => {
       });
     }
 
-   
+    const offerStartDate = new Date(offer.OfferStartDate);
+    const offerEndDate = new Date(offer.OfferEndDate);
+    const currentDate = new Date();
+    
 
-    if(offer.OfferStartDate > new Date() || offer.OfferEndDate < new Date()){
+    if(offerStartDate > currentDate || offerEndDate < currentDate){
       return res.status(400).json({
         success: false,
         message: "Offer expired"
@@ -214,7 +217,7 @@ const validateOffer = async (req, res) => {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: "Error in validating offer",
+      message: "Error in validating offer" + error,
     });
   }
 }
