@@ -286,7 +286,7 @@ const getSalonById = async (req, res) => {
         },
       });
     // Fetch customer reviews and populate userId field
-    
+
     return res.status(200).json(salon);
   } catch (error) {
     console.error(error);
@@ -308,12 +308,19 @@ const getSalonById = async (req, res) => {
 const getOwnerSalon = async (req, res) => {
   try {
     const OwnerId = req.user._id;
-    if(req.user.role === 'subAdmin'){
-      const salon = await SalonModel.find({ Artists: OwnerId }).populate("Services")
-      .populate({ path: "Artists", populate: { path: "appointments" } })
-      .populate("appointments")
-      .populate("userId", "phoneNumber")
-      .populate("Reviews")
+    if (req.user.role === "subAdmin") {
+      const salon = await SalonModel.find({ Artists: OwnerId })
+        .populate("Services")
+        .populate({ 
+          path: "Artists", 
+          populate: { 
+            path: "appointments",
+            path: "reviews", 
+          } 
+        })
+        .populate("appointments")
+        .populate("userId", "phoneNumber")
+        .populate("Reviews");
 
       if (!salon.length) {
         return res.status(404).json({
@@ -327,31 +334,31 @@ const getOwnerSalon = async (req, res) => {
         data: salon,
         message: "Salon found",
       });
-    }else{
-    const salons = await SalonModel.find({ userId: OwnerId })
-      .populate("Services")
-      .populate({
-        path: "Artists",
-        populate: {
-          path: "appointments",
-        },
-      })
-      .populate("appointments")
-      .populate("userId", "phoneNumber")
-      .populate("Reviews");
-      
-    if (!salons.length) {
-      return res.status(404).json({
-        success: false,
-        message: "No salon found",
+    } else {
+      const salons = await SalonModel.find({ userId: OwnerId })
+        .populate("Services")
+        .populate({
+          path: "Artists",
+          populate: {
+            path: "appointments",
+          },
+        })
+        .populate("appointments")
+        .populate("userId", "phoneNumber")
+        .populate("Reviews");
+
+      if (!salons.length) {
+        return res.status(404).json({
+          success: false,
+          message: "No salon found",
+        });
+      }
+      return res.status(200).json({
+        success: true,
+        data: salons,
+        message: "Salon found",
       });
     }
-    return res.status(200).json({
-      success: true,
-      data: salons,
-      message: "Salon found",
-    });
-  }
   } catch (error) {
     console.error(error);
     return res.status(500).json({

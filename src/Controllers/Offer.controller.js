@@ -162,12 +162,9 @@ const validateOffer = async (req, res) => {
       });
     }
 
-    //offerStartdate is in iso format
+   
 
-    const offerStartDate = new Date(offer.OfferStartDate);
-    const offerEndDate = new Date(offer.OfferEndDate);
-
-    if(offerStartDate > new Date() || offerEndDate < new Date()){
+    if(offer.OfferStartDate > new Date() || offer.OfferEndDate < new Date()){
       return res.status(400).json({
         success: false,
         message: "Offer expired"

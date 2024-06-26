@@ -150,7 +150,7 @@ const getTimeSlots = async (req, res) => {
         let slot = moment(dayStart);
         while (slot.isBefore(dayEnd)) {
           slots.push(slot.clone().format("YYYY-MM-DDTHH:mm:ss.SSS"));
-          slot.add(timeDuration, "minutes");
+          slot.add(15, "minutes");
         }
       }
     }
