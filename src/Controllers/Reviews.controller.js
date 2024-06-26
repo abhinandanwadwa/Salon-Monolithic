@@ -2,6 +2,7 @@ import ReviewModel from "../Models/review.js";
 import ArtistModel from "../Models/Artist.js";
 import SalonModel from "../Models/Salon.js";
 import AppointmentModel from "../Models/Appointments.js";
+import CustomerModel from "../Models/Customer.js";
 
 const createReview = async (req, res) => {
     try {
@@ -27,8 +28,10 @@ const createReview = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
+        const customer = await CustomerModel.findById({ userId: user });
+
         const ReviewRating = new ReviewModel({
-            userId: user,
+            customerId: customer._id,
             Rating: rating,
             Review: review,
         });

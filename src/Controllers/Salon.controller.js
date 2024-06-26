@@ -280,25 +280,13 @@ const getSalonById = async (req, res) => {
       .populate("offers")
       .populate({
         path: "Reviews",
+        populate: {
+          path: "customerId",
+          select: "name",
+        },
       });
     // Fetch customer reviews and populate userId field
-    const customerReviews = await ReviewModel.find({
-      _id: { $in: salon.Reviews },
-    }).populate({
-      path: "userId",
-      model: "Customer",
-      select: "name",
-    });
-
-    // Map reviews to include customer name
-    const reviewsWithCustomerName = customerReviews.map((review) => ({
-      ...review._doc,
-      userName: review.userId.name,
-    }));
-
-    // Add the reviews with customer names to the salon document
-    salon._doc.customerReviews = reviewsWithCustomerName;
-
+    
     return res.status(200).json(salon);
   } catch (error) {
     console.error(error);
