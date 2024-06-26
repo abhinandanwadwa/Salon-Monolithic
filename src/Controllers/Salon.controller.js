@@ -281,16 +281,23 @@ const getSalonById = async (req, res) => {
       .populate({
         path: "Reviews",
       });
-
+    // Fetch customer reviews and populate userId field
     const customerReviews = await ReviewModel.find({
       _id: { $in: salon.Reviews },
     }).populate({
-      path: "userId", // Assuming this is the field in Review that references the Customer
-      model: "Customer", // Specify the model if it's not the default
-      select: "name", // Selecting only the name field from the Customer model
+      path: "userId",
+      model: "Customer",
+      select: "name",
     });
 
-    salon._doc.customerReviews = customerReviews; // Append the populated reviews to the salon object
+    // Map reviews to include customer name
+    const reviewsWithCustomerName = customerReviews.map((review) => ({
+      ...review._doc,
+      userName: review.userId.name,
+    }));
+
+    // Add the reviews with customer names to the salon document
+    salon._doc.customerReviews = reviewsWithCustomerName;
 
     return res.status(200).json(salon);
   } catch (error) {
