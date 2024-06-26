@@ -557,7 +557,7 @@ const updateArtistServicePrice = async (req,res) => {
       }).populate({
         path:"salon",
         select: " -location -StorePhotos -OwnerId -salonType -Services -Artists -createdAt -updatedAt -appointments -workingDays -startTime -endTime -__v -CoverImage -Brochure"
-      });
+      }).populate("reviews");
 
       const Artistt = await ArtistModel.findOne({userId:artistId});
 
