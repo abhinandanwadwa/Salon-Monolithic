@@ -1,6 +1,7 @@
 import OfferModel from "../Models/Offer.js";
 import SalonModel from "../Models/Salon.js";
 import CustomerModel from "../Models/Customer.js";
+import moment from "moment";
 
 /**
  * @desc Create Offer
@@ -164,7 +165,7 @@ const validateOffer = async (req, res) => {
 
     const offerStartDate = new Date(offer.OfferStartDate);
     const offerEndDate = new Date(offer.OfferEndDate);
-    const currentDate = new Date();
+    const currentDate = moment().toISOString();
     
 
     if(offerStartDate > currentDate || offerEndDate < currentDate){
