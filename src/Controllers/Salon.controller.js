@@ -304,7 +304,7 @@ const getSalonById = async (req, res) => {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: "Error in fetching salon",
+      message: "Error in fetching salon" + error,
     });
   }
 };
