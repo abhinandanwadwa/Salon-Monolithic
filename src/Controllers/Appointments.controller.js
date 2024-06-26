@@ -215,6 +215,7 @@ const createAppointmentByOwner = async (req, res) => {
       const newCustomer = new CustomerModel({
         userId: newUser._id,
         name,
+        gender,
         phoneNumber,
       });
       await newCustomer.save();
