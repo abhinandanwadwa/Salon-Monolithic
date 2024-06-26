@@ -53,10 +53,9 @@ const createReview = async (req, res) => {
             message: "Review Created" 
         });
     } catch (error) {
-        console.log(error);
         return res.status(500).json({ 
             success: false,
-            message: "Internal Server Error" 
+            message: "Internal Server Error"+ error
         });
     }
 }
