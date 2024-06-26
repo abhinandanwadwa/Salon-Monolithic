@@ -28,7 +28,7 @@ const createReview = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        const customer = await CustomerModel.findById({ userId: user });
+        const customer = await CustomerModel.findOne({ userId: user });
 
         const ReviewRating = new ReviewModel({
             customerId: customer._id,
@@ -55,7 +55,7 @@ const createReview = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ 
             success: false,
-            message: "Internal Server Error"+ error
+            message: "Internal Server Error"+ error 
         });
     }
 }
