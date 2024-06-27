@@ -56,7 +56,22 @@ const CreateArtistWithAllServices = async (req, res) => {
 
             let user = await UserModel.findOne({ phoneNumber:PhoneNumber });
 
+            if(user && user.role === "Artist"){
+              return res.status(400).json({
+                success: false,
+                message: 'User already exists with this phone number: '+ PhoneNumber
+            });
+            }
+
             if(user && user.role === "Owner"){
+
+              if(salon.userId !== user._id){
+                return res.status(400).json({
+                  success: false,
+                  message: 'User already exists with this phone number: '+ PhoneNumber
+              });
+              }
+
               const artist = new ArtistModel({
                 userId: user._id,
                 ArtistName,
@@ -240,7 +255,22 @@ const createArtists = async (req, res) => {
 
       let user = await UserModel.findOne({ phoneNumber:PhoneNumber  });
 
+      if(user && user.role === "Artist"){
+        return res.status(400).json({
+          success: false,
+          message: 'User already exists with this phone number: '+ PhoneNumber
+      });
+      }
+
       if(user && user.role === "Owner"){
+
+        if(salon.userId !== user._id){
+          return res.status(400).json({
+            success: false,
+            message: 'User already exists with this phone number: '+ PhoneNumber
+        });
+        }
+
         const artist = new ArtistModel({
           userId: user._id,
           ArtistName,
