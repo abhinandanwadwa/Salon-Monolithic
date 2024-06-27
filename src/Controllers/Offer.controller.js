@@ -145,7 +145,7 @@ const deleteOffer = async (req, res) => {
 
 const validateOffer = async (req, res) => {
   try {
-    const { offerName,salonId } = req.body;
+    const { offerName,salonId, TodayDate } = req.body;
     console.log(offerName);
 
     const user = req.user._id;
@@ -165,8 +165,7 @@ const validateOffer = async (req, res) => {
 
     const offerStartDate = new Date(offer.OfferStartDate);
     const offerEndDate = new Date(offer.OfferEndDate);
-    const currentDate = moment().toISOString();
-    
+    const currentDate = new Date(TodayDate);
 
     if(offerStartDate > currentDate || offerEndDate < currentDate){
       return res.status(400).json({
@@ -186,7 +185,8 @@ const validateOffer = async (req, res) => {
 
 
 
-    const todayDay = new Date().getDay();
+    const todayDay = moment(todayDate).day();
+
 
     const Days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
