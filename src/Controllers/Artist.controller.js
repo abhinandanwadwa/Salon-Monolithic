@@ -570,7 +570,7 @@ const GetArtistbyService = async (req, res) => {
       console.error(error);
       return res.status(500).json({ 
           success: false,
-          message: "Error in fetching artists" 
+          message: "Error in fetching artists" + error,
       });
   }
 };
