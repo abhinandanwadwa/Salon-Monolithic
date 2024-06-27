@@ -113,7 +113,7 @@ import ArtistModel from "../Models/Artist.js";
 const verifyToken = async (req, res) => {
   try {
       const {token,role} = req.body;
-      
+
       const userDetailUsingToken = await UserDetail.verifyToken(token,process.env.CLIENT_ID,process.env.CLIENT_SECRET);
 
       const phoneNumber = userDetailUsingToken.national_phone_number;
@@ -135,6 +135,7 @@ const verifyToken = async (req, res) => {
                 phoneNumber: newUser.phoneNumber,
                 role: newUser.role,
                 isSalon: newUser.isSalon,
+                isNewUser: true
               }
             });
           }
