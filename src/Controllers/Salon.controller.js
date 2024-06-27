@@ -34,9 +34,6 @@ const createSalon = async (req, res) => {
       startTime,
       endTime,
       location,
-      CoverImage,
-      StorePhotos,
-      Brochure,
     } = req.body;
 
     let locationDetails = null;
@@ -96,6 +93,14 @@ const createSalon = async (req, res) => {
         coordinates: [response[0].latitude, response[0].longitude],
       };
     }
+
+    const files = req.files || {};
+
+    const CoverImage = files['CoverImage'] ? files['CoverImage'][0].location : null;
+    const StorePhotos = files['StorePhotos'] ? files['StorePhotos'].map(file => file.location) : [];
+    const Brochure = files['Brochure'] ? files['Brochure'][0].location : null;
+
+    console.log(CoverImage, StorePhotos, Brochure)
 
     const salon = new SalonModel({
       userId,
@@ -504,7 +509,15 @@ const searchSalons = async (req, res) => {
 
 const uploadBrochure = async (req, res) => {
   try {
-    const { Brochure } = req.body;
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded",
+      });
+    }
+
+    const brochureUrl = req.file.location;
+
 
     const user = req.user._id;
     const salon = await SalonModel.findOne({ userId: user });
@@ -515,7 +528,7 @@ const uploadBrochure = async (req, res) => {
       });
     }
 
-    salon.Brochure = Brochure || salon.Brochure || null;
+    salon.Brochure = brochureUrl || salon.Brochure || null;
     await salon.save();
     return res.status(200).json({
       success: true,
@@ -618,11 +631,8 @@ const deleteSalon = async (req, res) => {
  * @access Private
  * @requestBody { coverPhoto: String, ProfilePhotos: [String] }
  */
-
 const AddPhotos = async (req, res) => {
   try {
-    const { coverPhoto, ProfilePhotos } = req.body;
-
     const user = req.user._id;
     const salon = await SalonModel.findOne({ userId: user });
     if (!salon) {
@@ -632,17 +642,17 @@ const AddPhotos = async (req, res) => {
       });
     }
 
-    if (ProfilePhotos.length > 0) {
-      if (!Array.isArray(ProfilePhotos)) {
-        return res.status(400).json({
-          success: false,
-          message: "Artists data should be an array of objects",
-        });
-      }
+    // Handle cover photo if provided
+    if (req.files.CoverImage && req.files.CoverImage.length > 0) {
+      const coverPhotoUrl = req.files.CoverImage[0].location;
+      salon.CoverImage = coverPhotoUrl;
     }
 
-    salon.CoverImage = coverPhoto || salon.CoverImage;
-    salon.StorePhotos = ProfilePhotos || salon.StorePhotos || null;
+    // Handle profile photos if provided
+    if (req.files.StorePhotos && req.files.StorePhotos.length > 0) {
+      const profilePhotoUrls = req.files.StorePhotos.map(file => file.location);
+      salon.StorePhotos = profilePhotoUrls;
+    }
 
     await salon.save();
 
@@ -658,6 +668,7 @@ const AddPhotos = async (req, res) => {
     });
   }
 };
+
 
 const getSalonsAppointments = async (req, res) => {
   try {

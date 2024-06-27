@@ -42,7 +42,7 @@ const CreateArtistWithAllServices = async (req, res) => {
 
         const createdArtists = [];
 
-        for (const artists of artistData) {
+        for (let i = 0; i < artistData.length; i++) {
 
             const {
                 ArtistName,
@@ -52,11 +52,20 @@ const CreateArtistWithAllServices = async (req, res) => {
                 startTime,
                 endTime,
                 ArtistPhoto,
-            } = artists;
+            } = artistData[i];
+            const artistPhotoUrl = req.files[i] ? req.files[i].location : null;
 
             let user = await UserModel.findOne({ phoneNumber:PhoneNumber });
 
             if(user && user.role === "Owner"){
+
+              if(salon.userId !== user._id){
+                return res.status(400).json({
+                  success: false,
+                  message: 'User is a Owner at other Salon with this Number '+ PhoneNumber
+                });
+              }
+
               const artist = new ArtistModel({
                 userId: user._id,
                 ArtistName,
@@ -66,7 +75,7 @@ const CreateArtistWithAllServices = async (req, res) => {
                 startTime,
                 endTime,
                 salon: salon._id,
-                ArtistPhoto,
+                ArtistPhoto : artistPhotoUrl,
                 services,
               });
       
@@ -100,7 +109,7 @@ const CreateArtistWithAllServices = async (req, res) => {
                 startTime,
                 endTime,
                 salon: salon._id,
-                ArtistPhoto,
+                ArtistPhoto : artistPhotoUrl,
                 services,
               });
       
@@ -121,6 +130,14 @@ const CreateArtistWithAllServices = async (req, res) => {
       
               continue; // Skip the rest of the loop and continue with the next iteration
             }
+
+            if(user && user.role === "Artist"){
+              return res.status(400).json({
+                success: false,
+                message: 'User already exists with this phone number: '+ PhoneNumber
+              });
+            }
+
       
 
             if (!user) {
@@ -150,7 +167,7 @@ const CreateArtistWithAllServices = async (req, res) => {
                 startTime,
                 endTime,
                 salon: salon._id,
-                ArtistPhoto,
+                ArtistPhoto : artistPhotoUrl,
                 services,
             });
 
@@ -226,7 +243,7 @@ const createArtists = async (req, res) => {
 
     const createdArtists = [];
 
-    for (const artistData of artistsData) {
+    for (let i = 0; i < artistsData.length; i++) {
       const {
         ArtistName,
         PhoneNumber,
@@ -234,13 +251,23 @@ const createArtists = async (req, res) => {
         workingDays,
         startTime,
         endTime,
-        ArtistPhoto,
         services,
-      } = artistData;
+      } = artistsData[i];
+
+      const artistPhotoUrl = req.files[i] ? req.files[i].location : null;
 
       let user = await UserModel.findOne({ phoneNumber:PhoneNumber  });
 
       if(user && user.role === "Owner"){
+
+        if(salon.userId !== user._id){
+          return res.status(400).json({
+            success: false,
+            message: 'User is a Owner at other Salon with this Number '+ PhoneNumber
+          });
+        }
+
+
         const artist = new ArtistModel({
           userId: user._id,
           ArtistName,
@@ -250,7 +277,7 @@ const createArtists = async (req, res) => {
           startTime,
           endTime,
           salon: salon._id,
-          ArtistPhoto,
+          ArtistPhoto : artistPhotoUrl,
           services,
         });
 
@@ -284,7 +311,7 @@ const createArtists = async (req, res) => {
           startTime,
           endTime,
           salon: salon._id,
-          ArtistPhoto,
+          ArtistPhoto : artistPhotoUrl,
           services,
         });
 
@@ -304,6 +331,13 @@ const createArtists = async (req, res) => {
         }
 
         continue; // Skip the rest of the loop and continue with the next iteration
+      }
+
+      if(user && user.role === "Artist"){
+        return res.status(400).json({
+          success: false,
+          message: 'User already exists with this phone number: '+ PhoneNumber
+        });
       }
 
 
@@ -338,7 +372,7 @@ const createArtists = async (req, res) => {
         startTime,
         endTime,
         salon: salon._id, // Assuming SalonId is a reference to the salon
-        ArtistPhoto,
+        ArtistPhoto : artistPhotoUrl,
         services,
       });
       await artist.save();
