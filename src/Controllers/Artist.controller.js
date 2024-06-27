@@ -66,11 +66,11 @@ const CreateArtistWithAllServices = async (req, res) => {
 
             if(user && user.role === "Owner"){
 
-              if(salon.userId !== user._id){
+              if (!mongoose.Types.ObjectId(salon.userId).equals(user._id)) {
                 return res.status(400).json({
                   success: false,
                   message: 'User already exists with this phone number: 2 '+ PhoneNumber
-              });
+                });
               }
 
               const artist = new ArtistModel({
