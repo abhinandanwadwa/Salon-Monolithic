@@ -4,6 +4,7 @@ import UserModel from "../Models/User.js";
 import Service from "../Models/Services.js";
 import ServiceArtist from "../Models/ServiceArtist.js";
 import AppointmentModel from "../Models/Appointments.js";
+import mongoose from "mongoose";
 /**
  * @desc Create an artist with all services
  * @method POST
@@ -544,7 +545,7 @@ const deleteArtist = async (req, res) => {
         console.error(error);
         return res.status(500).json({
             success: false,
-            message: "Error in deleting artist",
+            message: "Error in deleting artist" + error,
         });
     }
 }
