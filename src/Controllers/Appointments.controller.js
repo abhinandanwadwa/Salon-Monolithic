@@ -77,9 +77,7 @@ const getTimeSlots = async (req, res) => {
     console.log(artistId, timePeriod, services);
 
     // Fetch artist data including appointments
-    const artist = await ArtistModel.findById(artistId).populate(
-      "appointments"
-    );
+    const artist = await ArtistModel.findById(artistId).populate("appointments");
     if (!artist) {
       return res.status(404).json({
         success: false,
@@ -99,22 +97,12 @@ const getTimeSlots = async (req, res) => {
     }
 
     // Define the start and end time as moment objects for the artist's working hours
-    const startDate = moment().startOf("day");
+    let startDate = moment().startOf("day");
     const endDate = moment().add(10, "days").endOf("day");
 
     // Extract the working hours (assuming they are provided as HH:mm)
-    const startTime24 = artist.startTime
-      .split("T")[1]
-      .split(":")
-      .slice(0, 2)
-      .join(":");
-    const endTime24 = artist.endTime
-      .split("T")[1]
-      .split(":")
-      .slice(0, 2)
-      .join(":");
-
-
+    const startTime24 = artist.startTime.split("T")[1].split(":").slice(0, 2).join(":");
+    const endTime24 = artist.endTime.split("T")[1].split(":").slice(0, 2).join(":");
 
     // Convert working days to numbers (0 = Sunday, 6 = Saturday)
     const workingDaysMap = {
@@ -126,9 +114,12 @@ const getTimeSlots = async (req, res) => {
       Friday: 5,
       Saturday: 6,
     };
-    const workingDaysInNumber = artist.workingDays.map(
-      (day) => workingDaysMap[day]
-    );
+    const workingDaysInNumber = artist.workingDays.map(day => workingDaysMap[day]);
+
+    const currentTime = moment();
+    if (currentTime.isAfter(moment().set({ hour: endTime24.split(":")[0], minute: endTime24.split(":")[1] }))) {
+      startDate = currentTime.add(1, 'days').startOf('day');
+    }
 
     // Generate slots for each day within the date range
     let slots = [];
@@ -178,10 +169,11 @@ const getTimeSlots = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Internal server error" + error ,
+      message: "Internal server error" + error,
     });
   }
 };
+
 
 /**
  * @desc Create Appointment By Owner
