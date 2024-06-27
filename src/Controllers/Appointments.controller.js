@@ -201,7 +201,8 @@ const createAppointmentByOwner = async (req, res) => {
     let salon = await SalonModel.findOne({ userId: owner });
 
     if(req.user.role == "subAdmin"){
-      salon = await SalonModel.findOne({ Artists: owner });
+      const artist = await ArtistModel.findOne({ userId: owner });
+      salon = await SalonModel.findOne({ Artists: artist._id });
     }
 
     const user = await UserModel.findOne({ phoneNumber });

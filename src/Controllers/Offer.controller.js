@@ -35,7 +35,8 @@ const createOffer = async (req, res) => {
     let salon = await SalonModel.findOne({ userId: user });
 
     if(req.user.role === 'subAdmin'){
-      salon = await SalonModel.findOne({ Artists: user });
+      const artist = await ArtistModel.findOne({ userId: user });
+      salon = await SalonModel.findOne({ Artists: artist._id });
     }
 
     if (!salon) {
@@ -88,7 +89,8 @@ const getOffers = async (req, res) => {
     let salon = await SalonModel.findOne({ userId: user });
 
     if(req.user.role === 'subAdmin'){
-      salon = await SalonModel.findOne({ Artists: user });
+      const artist = await ArtistModel.findOne({ userId: user });
+      salon = await SalonModel.findOne({ Artists: artist._id });
     }
     if (!salon) {
       return res.status(404).json({ 
@@ -122,7 +124,8 @@ const deleteOffer = async (req, res) => {
     let salon = await SalonModel.findOne({ userId: user });
 
     if(req.user.role === 'subAdmin'){
-      salon = await SalonModel.findOne({ Artists: user });
+      const artist = await ArtistModel.findOne({ userId: user });
+      salon = await SalonModel.findOne({ Artists: artist._id });
     }
     if (!salon) {
       return res.status(404).json({ 

@@ -28,7 +28,8 @@ const createServices = async (req, res) => {
     let salon = await SalonModel.findOne({ userId: user });
 
     if(req.user.role === 'subAdmin'){
-      salon = await SalonModel.findOne({ Artists: user });
+      const artist = await ArtistModel.findOne({ userId: user });
+      salon = await SalonModel.findOne({ Artists: artist._id });
     }
 
     if (!salon) {

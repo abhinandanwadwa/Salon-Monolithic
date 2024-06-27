@@ -560,7 +560,8 @@ const getArtistsBySalon = async (req, res) => {
       const user = req.user._id;
 
       if(req.user.role === "subAdmin"){
-        const salon = await SalonModel.findOne({ Artists: user });
+        const artist = await ArtistModel.findOne({ userId: user });
+        const salon = await SalonModel.findOne({ Artists: artist._id });
         if (!salon) {
           return res.status(404).json({ 
             success: false,

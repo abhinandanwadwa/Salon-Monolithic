@@ -310,7 +310,8 @@ const getOwnerSalon = async (req, res) => {
   try {
     const OwnerId = req.user._id;
     if (req.user.role === "subAdmin") {
-      const salon = await SalonModel.find({ Artists: OwnerId })
+      const artist = await ArtistModel.findOne({ userId: OwnerId });
+      const salon = await SalonModel.find({ Artists: artist._id })
         .populate("Services")
         .populate({ 
           path: "Artists", 
