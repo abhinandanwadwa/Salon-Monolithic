@@ -84,6 +84,23 @@ const createServices = async (req, res) => {
     salon.Services.push(...createdServices);
     await salon.save();
 
+    const artists = await ArtistModel.find({ salon: salon._id });
+    if(artists){
+      for (const artist of artists) {
+
+        for (const service of createdServices) {
+          const serviceArtist = new ServiceArtist({
+            Service: service._id,
+            Artist: artist._id,
+            ServiceCost: service.ServiceCost,
+          });
+          await serviceArtist.save();
+        }
+
+        artist.services.push(...createdServices);
+        await artist.save();
+      }
+    }
 
     return res
       .status(201)
