@@ -203,7 +203,7 @@ const CreateArtistWithAllServices = async (req, res) => {
         console.log(error);
         return res.status(500).json({
             success: false,
-            message: "Error in creating artists",
+            message: "Error in creating artists" + error,
         });
     }
 }
