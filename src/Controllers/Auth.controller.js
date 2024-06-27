@@ -805,6 +805,8 @@ const RegisterAdmin = async (req, res) => {
   }
 }
 
+
+
 /**
  * @desc Logout
  * @route POST /api/auth/logout

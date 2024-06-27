@@ -3,6 +3,7 @@ import ArtistModel from "../Models/Artist.js";
 import UserModel from "../Models/User.js";
 import Service from "../Models/Services.js";
 import ServiceArtist from "../Models/ServiceArtist.js";
+import AppointmentModel from "../Models/Appointments.js";
 /**
  * @desc Create an artist with all services
  * @method POST
@@ -479,7 +480,28 @@ const deleteArtist = async (req, res) => {
                 message: "Salon not found",
             });
         }
-    
+
+      const artist = await ArtistModel.findById(artistId);
+
+        if (!artist) {  
+            return res.status(404).json({
+                success: false,
+                message: "Artist not found",
+            });
+        }
+
+        const ServiceArtist = await ServiceArtist.find({ Artist: artistId });
+
+        await ServiceArtist.deleteMany();
+
+        const appointments = await AppointmentModel.find({ artist: artistId });
+        salon.appointments.pull(...appointments.map((appointment) => appointment._id));
+
+        await appointments.deleteMany();
+        salon.Artists.pull(artistId);
+
+        await salon.save();
+
         await ArtistModel.findByIdAndDelete(artistId);
 
         return res.status(200).json({
