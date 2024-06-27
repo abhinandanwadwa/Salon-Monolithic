@@ -185,7 +185,7 @@ const validateOffer = async (req, res) => {
 
 
 
-    const todayDay = moment(todayDate).day();
+    const todayDay = moment(TodayDate).day();
 
 
     const Days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -218,7 +218,7 @@ const validateOffer = async (req, res) => {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: "Error in validating offer" + error + req.body,
+      message: "Error in validating offer" + error + req.body.TodayDate,
     });
   }
 }
