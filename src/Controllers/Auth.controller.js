@@ -135,7 +135,6 @@ const verifyToken = async (req, res) => {
                 phoneNumber: newUser.phoneNumber,
                 role: newUser.role,
                 isSalon: newUser.isSalon,
-                isNewUser: true
               }
             });
           }
@@ -173,6 +172,7 @@ const verifyToken = async (req, res) => {
               userId: user._id, 
               phoneNumber,
               name: artist.ArtistName,
+  
             });
             await newCustomer.save();
           }
