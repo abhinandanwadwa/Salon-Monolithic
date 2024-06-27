@@ -2,7 +2,7 @@ import OfferModel from "../Models/Offer.js";
 import SalonModel from "../Models/Salon.js";
 import CustomerModel from "../Models/Customer.js";
 import moment from "moment";
-
+import ArtistModel from "../Models/Artist.js";
 /**
  * @desc Create Offer
  * @method POST
@@ -104,7 +104,7 @@ const getOffers = async (req, res) => {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: "Error in fetching offers",
+      message: "Error in fetching offers" + error,
     });
   }
 };
