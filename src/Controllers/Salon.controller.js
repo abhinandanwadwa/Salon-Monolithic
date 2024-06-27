@@ -663,25 +663,27 @@ const AddPhotos = async (req, res) => {
 const getSalonsAppointments = async (req, res) => {
   try {
     const id = req.user._id;
-    const salon = await SalonModel.findOne({ userId: id }).populate({
-      path: "appointments",
-      populate: [
-        {
-          path: "user",
-          select: "name phoneNumber _id",
-        },
-        {
-          path: "services",
-          select: "ServiceName  _id",
-        },
-        {
-          path: "artist",
-          select: "ArtistName PhoneNumber _id workingDays startTime endTime",
-        },
-      ],
-    });
 
-    // If salon not found or no appointments
+    if(req.user.role === 'subAdmin'){
+      const artist = await ArtistModel.findOne({ userId: id });
+      const salon = await SalonModel.findOne({ Artists: artist._id }).populate({
+        path: "appointments",
+        populate: [
+          {
+            path: "user",
+            select: "name phoneNumber _id",
+          },
+          {
+            path: "services",
+            select: "ServiceName  _id",
+          },
+          {
+            path: "artist",
+            select: "ArtistName PhoneNumber _id workingDays startTime endTime",
+          },
+        ],
+      });
+      // If salon not found or no appointments
     if (!salon || !salon.appointments) {
       return res.status(404).json({
         success: false,
@@ -692,9 +694,42 @@ const getSalonsAppointments = async (req, res) => {
     // Extract appointments from the salon object
     const appointments = salon.appointments;
 
-    console.log(appointments);
 
     return res.status(200).json(appointments);
+    }else{
+      const salon = await SalonModel.findOne({ userId: id }).populate({
+        path: "appointments",
+        populate: [
+          {
+            path: "user",
+            select: "name phoneNumber _id",
+          },
+          {
+            path: "services",
+            select: "ServiceName  _id",
+          },
+          {
+            path: "artist",
+            select: "ArtistName PhoneNumber _id workingDays startTime endTime",
+          },
+        ],
+      });
+      // If salon not found or no appointments
+    if (!salon || !salon.appointments) {
+      return res.status(404).json({
+        success: false,
+        message: "No appointments found for this salon",
+      });
+    }
+
+    // Extract appointments from the salon object
+    const appointments = salon.appointments;
+
+
+    return res.status(200).json(appointments);
+    }
+
+    
   } catch (error) {
     console.error(error);
     return res.status(500).json({
