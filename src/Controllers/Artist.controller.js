@@ -19,6 +19,7 @@ const CreateArtistWithAllServices = async (req, res) => {
         const { _id: userId } = req.user;
         const salon = await SalonModel.findOne({ userId: userId });
         console.log(artistData)
+
         if (!salon) {
             return res.status(404).json({
                 success: false,
@@ -59,7 +60,7 @@ const CreateArtistWithAllServices = async (req, res) => {
             if(user && user.role === "Artist"){
               return res.status(400).json({
                 success: false,
-                message: 'User already exists with this phone number: '+ PhoneNumber
+                message: 'User  already exists with this phone number: 1 '+ PhoneNumber
             });
             }
 
@@ -68,7 +69,7 @@ const CreateArtistWithAllServices = async (req, res) => {
               if(salon.userId !== user._id){
                 return res.status(400).json({
                   success: false,
-                  message: 'User already exists with this phone number: '+ PhoneNumber
+                  message: 'User already exists with this phone number: 2 '+ PhoneNumber
               });
               }
 
@@ -184,7 +185,7 @@ const CreateArtistWithAllServices = async (req, res) => {
         }else{
             return res.status(400).json({
                 success: false,
-                message: 'User already exists with this phone number: '+ PhoneNumber
+                message: 'User already exists with this phone number: 3 '+ PhoneNumber
             });
         }
       }
