@@ -15,225 +15,12 @@ import mongoose from "mongoose";
  */
 
 const CreateArtistWithAllServices = async (req, res) => {
-    try {
-        const { artistData } = req.body;
-        const { _id: userId } = req.user;
-        const salon = await SalonModel.findOne({ userId: userId });
-        console.log(artistData)
-
-        if (!salon) {
-            return res.status(404).json({
-                success: false,
-                message: "Salon not found",
-            });
-        }
-
-        const services = await Service.find({salon: salon._id});
-
-        if (!services.length) {
-            return res.status(404).json({ 
-                success: false,
-              message: "No services found" });
-        }
-        if (!Array.isArray(artistData)) {
-            return res.status(400).json({
-              success: false,
-              message: "Artists data should be an array of objects",
-            });
-        }
-
-        const createdArtists = [];
-
-        for (const artists of artistData) {
-
-            const {
-                ArtistName,
-                PhoneNumber,
-                ArtistType,
-                workingDays,
-                startTime,
-                endTime,
-                ArtistPhoto,
-            } = artists;
-
-            let user = await UserModel.findOne({ phoneNumber:PhoneNumber });
-
-            if(user && user.role === "Artist"){
-              return res.status(400).json({
-                success: false,
-                message: 'User  already exists with this phone number: 1 '+ PhoneNumber
-            });
-            }
-
-            if(user && user.role === "Owner"){
-
-              if (!mongoose.Types.ObjectId(salon.userId).equals(user._id)) {
-                return res.status(400).json({
-                  success: false,
-                  message: 'User already exists with this phone number: 2 '+ PhoneNumber
-                });
-              }
-
-              const artist = new ArtistModel({
-                userId: user._id,
-                ArtistName,
-                PhoneNumber,
-                ArtistType,
-                workingDays,
-                startTime,
-                endTime,
-                salon: salon._id,
-                ArtistPhoto,
-                services,
-              });
-      
-              await artist.save();
-              createdArtists.push(artist);
-      
-              for (const serviceId of services) {
-                const service = await Service.findById(serviceId);
-                const serviceArtist = new ServiceArtist({
-                  Artist: artist._id,
-                  Service: serviceId,
-                  Price: service.ServiceCost,
-                });
-      
-                await serviceArtist.save();
-              }
-      
-              continue; // Skip the rest of the loop and continue with the next iteration
-            }
-
-            if(user && user.role === "Customer"){
-              user.role = "Artist";
-              await user.save();
-      
-              const artist = new ArtistModel({
-                userId: user._id,
-                ArtistName,
-                PhoneNumber,
-                ArtistType,
-                workingDays,
-                startTime,
-                endTime,
-                salon: salon._id,
-                ArtistPhoto,
-                services,
-              });
-      
-              await artist.save();
-      
-              createdArtists.push(artist);
-      
-              for (const serviceId of services) {
-                const service = await Service.findById(serviceId);
-                const serviceArtist = new ServiceArtist({
-                  Artist: artist._id,
-                  Service: serviceId,
-                  Price: service.ServiceCost,
-                });
-      
-                await serviceArtist.save();
-              }
-      
-              continue; // Skip the rest of the loop and continue with the next iteration
-            }
-      
-
-            if (!user) {
-                user = new UserModel({ phoneNumber:PhoneNumber,role: "Artist",name:ArtistName});
-                await user.save();
-
-            if (
-                !ArtistName ||
-                !PhoneNumber ||
-                !ArtistType ||
-                !workingDays ||
-                !startTime ||
-                !endTime
-            ) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Artist data is incomplete",
-                });
-            }
-
-            const artist = new ArtistModel({
-                userId: user._id,
-                ArtistName,
-                PhoneNumber,
-                ArtistType,
-                workingDays,
-                startTime,
-                endTime,
-                salon: salon._id,
-                ArtistPhoto,
-                services,
-            });
-
-            await artist.save();
-            createdArtists.push(artist);
-
-            for (const service of services) {
-                const serviceArtist = new ServiceArtist({
-                    Artist: artist._id,
-                    Service: service._id,
-                    Price: service.ServiceCost,
-                });
-
-                await serviceArtist.save();
-            }
-        }else{
-            return res.status(400).json({
-                success: false,
-                message: 'User already exists with this phone number: 3 '+ PhoneNumber
-            });
-        }
-      }
-        salon.Artists.push(...createdArtists);
-
-        await salon.save();
-
-        return res.status(201).json({
-            success: true,
-            message: "Artists created successfully",
-        });
-    
-  }
-    catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            message: "Error in creating artists" + error,
-        });
-    }
-}
-
-/**
- * @desc Create Artists
- * @method POST
- * @access Private
- * @route /api/artist/create-artists
- * @requestBody { artistsData: [ { ArtistName: String, PhoneNumber: Number, ArtistType: String, workingDays: Array of Strings, startTime: String, endTime: String, ArtistPhoto: String, services: Array of Strings } ] }
- */
-
-
-
-const createArtists = async (req, res) => {
   try {
+    const { artistData } = req.body;
+    const { _id: userId } = req.user;
+    const salon = await SalonModel.findOne({ userId: userId });
+    console.log(artistData);
 
-    const {artistsData} = req.body;
-
-    if (!Array.isArray(artistsData)) {
-      return res.status(400).json({
-        success: false,
-        message: "Artists data should be an array of objects",
-      });
-    }
-
-    const userId = req.user._id;
-
-    const salon = await SalonModel.findOne({ userId });
     if (!salon) {
       return res.status(404).json({
         success: false,
@@ -241,9 +28,24 @@ const createArtists = async (req, res) => {
       });
     }
 
+    const services = await Service.find({ salon: salon._id });
+
+    if (!services.length) {
+      return res.status(404).json({
+        success: false,
+        message: "No services found",
+      });
+    }
+    if (!Array.isArray(artistData)) {
+      return res.status(400).json({
+        success: false,
+        message: "Artists data should be an array of objects",
+      });
+    }
+
     const createdArtists = [];
 
-    for (const artistData of artistsData) {
+    for (const artists of artistData) {
       const {
         ArtistName,
         PhoneNumber,
@@ -252,25 +54,29 @@ const createArtists = async (req, res) => {
         startTime,
         endTime,
         ArtistPhoto,
-        services,
-      } = artistData;
+      } = artists;
 
-      let user = await UserModel.findOne({ phoneNumber:PhoneNumber  });
+      let user = await UserModel.findOne({ phoneNumber: PhoneNumber });
 
-      if(user && user.role === "Artist"){
+      if (user && user.role === "Artist") {
         return res.status(400).json({
           success: false,
-          message: 'User already exists with this phone number: '+ PhoneNumber
-      });
+          message:
+            "User  already exists with this phone number: " + PhoneNumber,
+        });
       }
 
-      if(user && user.role === "Owner"){
+      if (user && user.role === "Owner") {
+        // Convert both to ObjectId if they are not already
+        const salonUserId = new mongoose.Types.ObjectId(salon.userId);
+        const userId = new mongoose.Types.ObjectId(user._id);
 
-        if(salon.userId !== user._id){
+        if (!salonUserId.equals(userId)) {
           return res.status(400).json({
             success: false,
-            message: 'User already exists with this phone number: '+ PhoneNumber
-        });
+            message:
+              "User already exists with this phone number: " + PhoneNumber 
+          });
         }
 
         const artist = new ArtistModel({
@@ -303,7 +109,7 @@ const createArtists = async (req, res) => {
         continue; // Skip the rest of the loop and continue with the next iteration
       }
 
-      if(user && user.role === "Customer"){
+      if (user && user.role === "Customer") {
         user.role = "Artist";
         await user.save();
 
@@ -338,76 +144,274 @@ const createArtists = async (req, res) => {
         continue; // Skip the rest of the loop and continue with the next iteration
       }
 
-
       if (!user) {
-        user = new UserModel({ phoneNumber:PhoneNumber,role: "Artist",name:ArtistName });
+        user = new UserModel({
+          phoneNumber: PhoneNumber,
+          role: "Artist",
+          name: ArtistName,
+        });
         await user.save();
 
-      // // Validate inputs for each artist
-      // if (
-      //   !ArtistName ||
-      //   !PhoneNumber ||
-      //   !ArtistType ||
-      //   !workingDays ||
-      //   !startTime ||
-      //   !endTime
-      // ) {
-      //   return res.status(400).json({
-      //     success: false,
-      //     message: "Artist data is incomplete",
-      //   });
-      // }
+        if (
+          !ArtistName ||
+          !PhoneNumber ||
+          !ArtistType ||
+          !workingDays ||
+          !startTime ||
+          !endTime
+        ) {
+          return res.status(400).json({
+            success: false,
+            message: "Artist data is incomplete",
+          });
+        }
 
-      
-            
-      // Create the artist
-      const artist = new ArtistModel({
-        userId: user._id,
+        const artist = new ArtistModel({
+          userId: user._id,
+          ArtistName,
+          PhoneNumber,
+          ArtistType,
+          workingDays,
+          startTime,
+          endTime,
+          salon: salon._id,
+          ArtistPhoto,
+          services,
+        });
+
+        await artist.save();
+        createdArtists.push(artist);
+
+        for (const service of services) {
+          const serviceArtist = new ServiceArtist({
+            Artist: artist._id,
+            Service: service._id,
+            Price: service.ServiceCost,
+          });
+
+          await serviceArtist.save();
+        }
+      } else {
+        return res.status(400).json({
+          success: false,
+          message:
+            "User already exists with this phone number:  " + PhoneNumber,
+        });
+      }
+    }
+    salon.Artists.push(...createdArtists);
+
+    await salon.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Artists created successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in creating artists" + error,
+    });
+  }
+};
+
+/**
+ * @desc Create Artists
+ * @method POST
+ * @access Private
+ * @route /api/artist/create-artists
+ * @requestBody { artistsData: [ { ArtistName: String, PhoneNumber: Number, ArtistType: String, workingDays: Array of Strings, startTime: String, endTime: String, ArtistPhoto: String, services: Array of Strings } ] }
+ */
+
+const createArtists = async (req, res) => {
+  try {
+    const { artistsData } = req.body;
+
+    if (!Array.isArray(artistsData)) {
+      return res.status(400).json({
+        success: false,
+        message: "Artists data should be an array of objects",
+      });
+    }
+
+    const userId = req.user._id;
+
+    const salon = await SalonModel.findOne({ userId });
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    const createdArtists = [];
+
+    for (const artistData of artistsData) {
+      const {
         ArtistName,
         PhoneNumber,
         ArtistType,
         workingDays,
         startTime,
         endTime,
-        salon: salon._id, // Assuming SalonId is a reference to the salon
         ArtistPhoto,
         services,
-      });
-      await artist.save();
-      // Add created artist to the array
-      createdArtists.push(artist);
+      } = artistData;
 
-      // Create a new serviceArtist for each service
-      for (const serviceId of services) {
-        const service = await Service.findById(serviceId);
-        const serviceArtist = new ServiceArtist({
-          Artist: artist._id,
-          Service: serviceId,
-          Price: service.ServiceCost,
+      let user = await UserModel.findOne({ phoneNumber: PhoneNumber });
+
+      if (user && user.role === "Artist") {
+        return res.status(400).json({
+          success: false,
+          message: "User already exists with this phone number: " + PhoneNumber,
         });
-        await serviceArtist.save();
       }
 
-    }
-    else{
-        return res.status(400).json({
+      if (user && user.role === "Owner") {
+        const salonUserId = new mongoose.Types.ObjectId(salon.userId);
+        const userId = new mongoose.Types.ObjectId(user._id);
+
+        if (!salonUserId.equals(userId)) {
+          return res.status(400).json({
             success: false,
-            message: 'User already exists with this phone number: '+ PhoneNumber
+            message:
+              "User already exists with this phone number: " + PhoneNumber 
+          });
+        }
+
+        const artist = new ArtistModel({
+          userId: user._id,
+          ArtistName,
+          PhoneNumber,
+          ArtistType,
+          workingDays,
+          startTime,
+          endTime,
+          salon: salon._id,
+          ArtistPhoto,
+          services,
         });
-    }
+
+        await artist.save();
+        createdArtists.push(artist);
+
+        for (const serviceId of services) {
+          const service = await Service.findById(serviceId);
+          const serviceArtist = new ServiceArtist({
+            Artist: artist._id,
+            Service: serviceId,
+            Price: service.ServiceCost,
+          });
+
+          await serviceArtist.save();
+        }
+
+        continue; // Skip the rest of the loop and continue with the next iteration
+      }
+
+      if (user && user.role === "Customer") {
+        user.role = "Artist";
+        await user.save();
+
+        const artist = new ArtistModel({
+          userId: user._id,
+          ArtistName,
+          PhoneNumber,
+          ArtistType,
+          workingDays,
+          startTime,
+          endTime,
+          salon: salon._id,
+          ArtistPhoto,
+          services,
+        });
+
+        await artist.save();
+
+        createdArtists.push(artist);
+
+        for (const serviceId of services) {
+          const service = await Service.findById(serviceId);
+          const serviceArtist = new ServiceArtist({
+            Artist: artist._id,
+            Service: serviceId,
+            Price: service.ServiceCost,
+          });
+
+          await serviceArtist.save();
+        }
+
+        continue; // Skip the rest of the loop and continue with the next iteration
+      }
+
+      if (!user) {
+        user = new UserModel({
+          phoneNumber: PhoneNumber,
+          role: "Artist",
+          name: ArtistName,
+        });
+        await user.save();
+
+        // // Validate inputs for each artist
+        // if (
+        //   !ArtistName ||
+        //   !PhoneNumber ||
+        //   !ArtistType ||
+        //   !workingDays ||
+        //   !startTime ||
+        //   !endTime
+        // ) {
+        //   return res.status(400).json({
+        //     success: false,
+        //     message: "Artist data is incomplete",
+        //   });
+        // }
+
+        // Create the artist
+        const artist = new ArtistModel({
+          userId: user._id,
+          ArtistName,
+          PhoneNumber,
+          ArtistType,
+          workingDays,
+          startTime,
+          endTime,
+          salon: salon._id, // Assuming SalonId is a reference to the salon
+          ArtistPhoto,
+          services,
+        });
+        await artist.save();
+        // Add created artist to the array
+        createdArtists.push(artist);
+
+        // Create a new serviceArtist for each service
+        for (const serviceId of services) {
+          const service = await Service.findById(serviceId);
+          const serviceArtist = new ServiceArtist({
+            Artist: artist._id,
+            Service: serviceId,
+            Price: service.ServiceCost,
+          });
+          await serviceArtist.save();
+        }
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "User already exists with this phone number: " + PhoneNumber,
+        });
+      }
     }
 
     // Update the salon with the new artists
     salon.Artists.push(...createdArtists);
     await salon.save();
 
-    return res
-      .status(201)
-      .json({
-        success: true,
-        message: "Artists created successfully",
-        data: createdArtists,
-      });
+    return res.status(201).json({
+      success: true,
+      message: "Artists created successfully",
+      data: createdArtists,
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -426,70 +430,75 @@ const createArtists = async (req, res) => {
  */
 
 const updateArtist = async (req, res) => {
-    try {
-      const { artistId } = req.params;
-      const userId = req.user._id;
-      const salon = await SalonModel.findOne({ userId: userId });
+  try {
+    const { artistId } = req.params;
+    const userId = req.user._id;
+    const salon = await SalonModel.findOne({ userId: userId });
 
-        if (!salon) {
-            return res.status(404).json({
-                success: false,
-                message: "Salon not found",
-            });
-        }
-    
-        const artist = await ArtistModel.findById(artistId);
-        if (!artist) {
-            return res.status(404).json({
-                success: false,
-                message: "Artist not found",
-            });
-        }
-
-        const { name , phoneNumber , workingDays , services } = req.body;
-
-        if(phoneNumber){
-            const user = await UserModel.findOneAndUpdate({ _id: artist.userId }, { phoneNumber });
-
-            await user.save();
-        }
-
-        for (const serviceId of services) {
-            const service = await Service.findById(serviceId);
-            const serviceArtist = await ServiceArtist.findOne({ Artist: artist._id, Service: serviceId });
-
-            if (!serviceArtist) {
-                const newServiceArtist = new ServiceArtist({
-                    Artist: artist._id,
-                    Service: serviceId,
-                    Price: service.ServiceCost,
-                });
-
-                await newServiceArtist.save();
-            }
-        }
-
-        artist.ArtistName = name || artist.ArtistName;
-        artist.PhoneNumber = phoneNumber || artist.PhoneNumber;
-        artist.workingDays = workingDays || artist.workingDays;
-        artist.services = services || artist.services;
-
-        await artist.save();
-
-        return res.status(200).json({
-            success: true,
-            data: artist,
-            message: "Artist updated successfully",
-        });
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
     }
-    catch (error) {
-        console.error(error);
-        return res.status(500).json({
-            success: false,
-            message: "Error in updating artist",
-        });
+
+    const artist = await ArtistModel.findById(artistId);
+    if (!artist) {
+      return res.status(404).json({
+        success: false,
+        message: "Artist not found",
+      });
     }
-}
+
+    const { name, phoneNumber, workingDays, services } = req.body;
+
+    if (phoneNumber) {
+      const user = await UserModel.findOneAndUpdate(
+        { _id: artist.userId },
+        { phoneNumber }
+      );
+
+      await user.save();
+    }
+
+    for (const serviceId of services) {
+      const service = await Service.findById(serviceId);
+      const serviceArtist = await ServiceArtist.findOne({
+        Artist: artist._id,
+        Service: serviceId,
+      });
+
+      if (!serviceArtist) {
+        const newServiceArtist = new ServiceArtist({
+          Artist: artist._id,
+          Service: serviceId,
+          Price: service.ServiceCost,
+        });
+
+        await newServiceArtist.save();
+      }
+    }
+
+    artist.ArtistName = name || artist.ArtistName;
+    artist.PhoneNumber = phoneNumber || artist.PhoneNumber;
+    artist.workingDays = workingDays || artist.workingDays;
+    artist.services = services || artist.services;
+
+    await artist.save();
+
+    return res.status(200).json({
+      success: true,
+      data: artist,
+      message: "Artist updated successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in updating artist",
+    });
+  }
+};
 
 /**
  * @desc Delete Artist
@@ -499,56 +508,56 @@ const updateArtist = async (req, res) => {
  * @requestParams { artistId: String }
  */
 
-
 const deleteArtist = async (req, res) => {
-    try {
-      const { artistId } = req.params;
-      const userId = req.user._id;
-      const salon = await SalonModel.findOne({ userId: userId });
+  try {
+    const { artistId } = req.params;
+    const userId = req.user._id;
+    const salon = await SalonModel.findOne({ userId: userId });
 
-        if (!salon) {
-            return res.status(404).json({
-                success: false,
-                message: "Salon not found",
-            });
-        }
-
-      const artist = await ArtistModel.findById(artistId);
-
-        if (!artist) {  
-            return res.status(404).json({
-                success: false,
-                message: "Artist not found",
-            });
-        }
-
-        const ServiceArtist = await ServiceArtist.find({ Artist: artistId });
-
-        await ServiceArtist.deleteMany();
-
-        const appointments = await AppointmentModel.find({ artist: artistId });
-        salon.appointments.pull(...appointments.map((appointment) => appointment._id));
-
-        await appointments.deleteMany();
-        salon.Artists.pull(artistId);
-
-        await salon.save();
-
-        await ArtistModel.findByIdAndDelete(artistId);
-
-        return res.status(200).json({
-            success: true,
-            message: "Artist deleted successfully",
-        });
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
     }
-    catch (error) {
-        console.error(error);
-        return res.status(500).json({
-            success: false,
-            message: "Error in deleting artist" + error,
-        });
+
+    const artist = await ArtistModel.findById(artistId);
+
+    if (!artist) {
+      return res.status(404).json({
+        success: false,
+        message: "Artist not found",
+      });
     }
-}
+
+    const ServiceArtist = await ServiceArtist.find({ Artist: artistId });
+    if(ServiceArtist.length > 0){
+    await ServiceArtist.deleteMany();
+    }
+    const appointments = await AppointmentModel.find({ artist: artistId });
+    salon.appointments.pull(
+      ...appointments.map((appointment) => appointment._id)
+    );
+
+    await appointments.deleteMany();
+    salon.Artists.pull(artistId);
+
+    await salon.save();
+
+    await ArtistModel.findByIdAndDelete(artistId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Artist deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in deleting artist" + error,
+    });
+  }
+};
 
 /**
  * @desc Get Artists by Salon
@@ -558,47 +567,52 @@ const deleteArtist = async (req, res) => {
  */
 
 const getArtistsBySalon = async (req, res) => {
-    try {
-      const user = req.user._id;
+  try {
+    const user = req.user._id;
 
-      if(req.user.role === "subAdmin"){
-        const artist = await ArtistModel.findOne({ userId: user });
-        const salon = await SalonModel.findOne({ Artists: artist._id });
-        if (!salon) {
-          return res.status(404).json({ 
-            success: false,
-            message: "Salon not found" });
-        }
-        
-        const artists = await ArtistModel.find({ salon: salon._id }).populate("services");
-        
-        return res.status(200).json({ 
-          success: true,
-          data:artists,
-          message: "Artists fetched successfully",
-      });
+    if (req.user.role === "subAdmin") {
+      const artist = await ArtistModel.findOne({ userId: user });
+      const salon = await SalonModel.findOne({ Artists: artist._id });
+      if (!salon) {
+        return res.status(404).json({
+          success: false,
+          message: "Salon not found",
+        });
       }
-      if(req.user.role === "Owner"){
+
+      const artists = await ArtistModel.find({ salon: salon._id }).populate(
+        "services"
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: artists,
+        message: "Artists fetched successfully",
+      });
+    }
+    if (req.user.role === "Owner") {
       const salon = await SalonModel.findOne({ userId: user });
       if (!salon) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           success: false,
-          message: "Salon not found" });
+          message: "Salon not found",
+        });
       }
-      
-      const artists = await ArtistModel.find({ salon: salon._id }).populate("services");
-      
-      return res.status(200).json({ 
+
+      const artists = await ArtistModel.find({ salon: salon._id }).populate(
+        "services"
+      );
+
+      return res.status(200).json({
         success: true,
-        data:artists,
+        data: artists,
         message: "Artists fetched successfully",
-    });
-      }
-      
-    } catch (error) {
-      return new Error(error);
+      });
     }
-  };
+  } catch (error) {
+    return new Error(error);
+  }
+};
 
 /**
  * @desc Get Artists by Service
@@ -611,204 +625,216 @@ const getArtistsBySalon = async (req, res) => {
 
 const GetArtistbyService = async (req, res) => {
   try {
-      const { serviceIds } = req.body;
-      console.log('Service IDs:', serviceIds);
+    const { serviceIds } = req.body;
+    console.log("Service IDs:", serviceIds);
 
-      const { salonid } = req.params;
-      console.log('Salon ID:', salonid);
+    const { salonid } = req.params;
+    console.log("Salon ID:", salonid);
 
-      const salon = await SalonModel.findById(salonid);
-      if (!salon) {
-          return res.status(404).json({ 
-              success: false,
-              message: "Salon not found" 
-          });
-      }
-
-      // const artistService = await ServiceArtist.find({ Service: { $all: serviceIds } }).populate("Artist");
-
-      // if (!artistService.length) {
-      //     return res.status(404).json({ 
-      //         success: false,
-      //         message: "No artists found" 
-      //     });
-      // }
-      // const artists = artistService.map((service) => service.Artist);
-      // // Use the $all operator to find artists who offer all of the specified services
-      const artists = await ArtistModel.find({ 
-          services: { $all: serviceIds },
-          salon: salonid
-      }).populate("reviews");
-
-      return res.status(200).json({ artists });
-  } catch (error) {
-      console.error(error);
-      return res.status(500).json({ 
-          success: false,
-          message: "Error in fetching artists" + error,
+    const salon = await SalonModel.findById(salonid);
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
       });
+    }
+
+    // const artistService = await ServiceArtist.find({ Service: { $all: serviceIds } }).populate("Artist");
+
+    // if (!artistService.length) {
+    //     return res.status(404).json({
+    //         success: false,
+    //         message: "No artists found"
+    //     });
+    // }
+    // const artists = artistService.map((service) => service.Artist);
+    // // Use the $all operator to find artists who offer all of the specified services
+    const artists = await ArtistModel.find({
+      services: { $all: serviceIds },
+      salon: salonid,
+    }).populate("reviews");
+
+    return res.status(200).json({ artists });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching artists" + error,
+    });
   }
 };
 
-const updateArtistServicePrice = async (req,res) => {
-    try {
-      const { serviceId } = req.params;
-      const { price } = req.body;
-      const id = req.user._id;
-      const artist = await ArtistModel.findOne({ userId: id });
-      if (!artist) {
-        return res.status(404).json({ 
-          success: false,
-          message: "Artist not found",
-         });
-      }
-      const service = await ServiceArtist.findOne({ Artist: artist._id, Service: serviceId });
-
-      
-      if (!service) {
-        return res.status(404).json({ 
-          success: false,
-          message: "Service not found",
-         });
-      }
-      service.Price = price;
-      await service.save();
-
-      return res.status(200).json({ 
-        success: true,
-        data:service,
-        message: "Service price updated successfully",
-      });
-    } catch (error) {
-      return res.status(500).json({ 
+const updateArtistServicePrice = async (req, res) => {
+  try {
+    const { serviceId } = req.params;
+    const { price } = req.body;
+    const id = req.user._id;
+    const artist = await ArtistModel.findOne({ userId: id });
+    if (!artist) {
+      return res.status(404).json({
         success: false,
-        message: "Error in updating service price",
+        message: "Artist not found",
       });
     }
-}
+    const service = await ServiceArtist.findOne({
+      Artist: artist._id,
+      Service: serviceId,
+    });
 
-  const getSalonArtistsSchedule = async (req, res) => {
-    try {
-      const userId = req.user._id;
-      const salon = await SalonModel.findOne({ userId });
-      if (!salon) {
-        return res.status(404).json({ 
-          success: false,
-          message: "Salon not found",
-         });
-      }
-
-      const artists = await ArtistModel.find({ salon: salon._id }).populate("appointments");
-
-      if(!artists.length){
-        return res.status(404).json({ 
-          success: false,
-          message: "No artists found",
-         });
-      }
-
-      return res.status(200).json({ 
-        success: true,
-        data:artists,
-        message: "Artists fetched successfully",
+    if (!service) {
+      return res.status(404).json({
+        success: false,
+        message: "Service not found",
       });
-    } catch (error) {
-      
     }
+    service.Price = price;
+    await service.save();
+
+    return res.status(200).json({
+      success: true,
+      data: service,
+      message: "Service price updated successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in updating service price",
+    });
   }
+};
 
-  const getArtistData = async (req, res) => {
-    try {
-      const artistId = req.user._id;
+const getSalonArtistsSchedule = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const salon = await SalonModel.findOne({ userId });
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
 
-      const artist = await ArtistModel.find({
-        userId:artistId
-      }).populate({
-        path:"appointments",
-        populate:{
-          path:"user services",
-          select:"-userId -appointments -salon"
+    const artists = await ArtistModel.find({ salon: salon._id }).populate(
+      "appointments"
+    );
+
+    if (!artists.length) {
+      return res.status(404).json({
+        success: false,
+        message: "No artists found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: artists,
+      message: "Artists fetched successfully",
+    });
+  } catch (error) {}
+};
+
+const getArtistData = async (req, res) => {
+  try {
+    const artistId = req.user._id;
+
+    const artist = await ArtistModel.find({
+      userId: artistId,
+    })
+      .populate({
+        path: "appointments",
+        populate: {
+          path: "user services",
+          select: "-userId -appointments -salon",
         },
-      }).populate({
-        path:"salon",
-        select: " -location -StorePhotos -OwnerId -salonType -Services -Artists -createdAt -updatedAt -appointments -workingDays -startTime -endTime -__v -CoverImage -Brochure"
-      }).populate("reviews");
+      })
+      .populate({
+        path: "salon",
+        select:
+          " -location -StorePhotos -OwnerId -salonType -Services -Artists -createdAt -updatedAt -appointments -workingDays -startTime -endTime -__v -CoverImage -Brochure",
+      })
+      .populate("reviews");
 
-      const Artistt = await ArtistModel.findOne({userId:artistId});
+    const Artistt = await ArtistModel.findOne({ userId: artistId });
 
-      console.log(Artistt._id)
+    console.log(Artistt._id);
 
-      const services = await ServiceArtist.find({
-        Artist: Artistt._id
+    const services = await ServiceArtist.find({
+      Artist: Artistt._id,
     }).populate("Service");
 
     if (!services) {
-        return res.status(404).json({
-            success: false,
-            message: "Services not found for the artist"
-        });
+      return res.status(404).json({
+        success: false,
+        message: "Services not found for the artist",
+      });
     }
 
     console.log("Services fetched successfully:", services);
 
-      const data = {
-        artist,
-        services,
-      };
+    const data = {
+      artist,
+      services,
+    };
 
-      if (!artist) {
-        return res.status(404).json({ 
-          success: false,
-          message: "Artist not found",
-         });
-      }
-
-      return res.status(200).json({ 
-        success: true,
-        data,
-        message: "Artist fetched successfully",
-      });
-
-    }
-    catch (error) {
-      console.log(error)
-      return res.status(500).json({ 
+    if (!artist) {
+      return res.status(404).json({
         success: false,
-        message: "Error in fetching artist",
+        message: "Artist not found",
       });
     }
+
+    return res.status(200).json({
+      success: true,
+      data,
+      message: "Artist fetched successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching artist",
+    });
   }
+};
 
-  const GetArtistService = async (req, res) => {
-    try {
-      const userId = req.user._id;
-      
-      const services = await ServiceArtist.find({ Artist: userId }).populate("Service");
+const GetArtistService = async (req, res) => {
+  try {
+    const userId = req.user._id;
 
-      if (!services) {
-        return res.status(404).json({
-          success: false,
-          message: "Services not found for the artist"
-        });
-      }
+    const services = await ServiceArtist.find({ Artist: userId }).populate(
+      "Service"
+    );
 
-      console.log("Services fetched successfully:", services);
-
-      return res.status(200).json({
-        success: true,
-        data: services,
-        message: "Services fetched successfully",
-      });
-
-    }
-    catch (error) {
-      console.log(error)
-      return res.status(500).json({
+    if (!services) {
+      return res.status(404).json({
         success: false,
-        message: "Error in fetching services",
+        message: "Services not found for the artist",
       });
     }
+
+    console.log("Services fetched successfully:", services);
+
+    return res.status(200).json({
+      success: true,
+      data: services,
+      message: "Services fetched successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching services",
+    });
   }
+};
 
-
-export { createArtists, getArtistsBySalon, GetArtistbyService ,CreateArtistWithAllServices ,updateArtist,deleteArtist,updateArtistServicePrice, getArtistData };
+export {
+  createArtists,
+  getArtistsBySalon,
+  GetArtistbyService,
+  CreateArtistWithAllServices,
+  updateArtist,
+  deleteArtist,
+  updateArtistServicePrice,
+  getArtistData,
+};
