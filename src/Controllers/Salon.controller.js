@@ -713,7 +713,10 @@ const getSalonsAppointments = async (req, res) => {
           },
           {
             path: "artist",
-            select: "ArtistName PhoneNumber _id workingDays startTime endTime",
+            populate:{
+              path:"reviews"
+            },
+            select: "ArtistName PhoneNumber _id workingDays startTime endTime reviews",
           },
         ],
       });
