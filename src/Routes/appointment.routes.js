@@ -11,7 +11,7 @@ Appointmentrouter.post("/getTimeSlots", getTimeSlots);
 Appointmentrouter.post("/cancelAppointment/:appointmentId",verify, cancelAppointment);
 Appointmentrouter.post("/rescheduleAppointment",verify,rescheduleAppointment);
 Appointmentrouter.post("/CompleteAppointment/:appointmentId",verify,roleAuthorization(['Owner','Artist','subAdmin']),CompleteAppointment);
-Appointmentrouter.post("/editAppointment",verify,roleAuthorization(['Owner']),editAppointment);
+Appointmentrouter.post("/editAppointment",verify,roleAuthorization(['Owner','Artist','subAdmin']),editAppointment);
 Appointmentrouter.post("/getCost",verify,getCost);
 Appointmentrouter.post("/CreateAppointment",verify,CreateAppointment);
 Appointmentrouter.get("/getAppointments",verify,getAppointments);
