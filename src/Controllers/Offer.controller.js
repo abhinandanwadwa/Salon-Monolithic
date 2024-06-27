@@ -32,7 +32,12 @@ const createOffer = async (req, res) => {
       OfferDays,
     } = req.body;
     const user = req.user._id;
-    const salon = await SalonModel.findOne({ userId: user });
+    let salon = await SalonModel.findOne({ userId: user });
+
+    if(req.user.role === 'subAdmin'){
+      salon = await SalonModel.findOne({ Artists: user });
+    }
+
     if (!salon) {
       return res.status(404).json({ 
         success: false,
@@ -80,7 +85,11 @@ const createOffer = async (req, res) => {
 const getOffers = async (req, res) => {
   try {
     const user = req.user._id;
-    const salon = await SalonModel.findOne({ userId: user });
+    let salon = await SalonModel.findOne({ userId: user });
+
+    if(req.user.role === 'subAdmin'){
+      salon = await SalonModel.findOne({ Artists: user });
+    }
     if (!salon) {
       return res.status(404).json({ 
         success: false,
@@ -110,7 +119,11 @@ const deleteOffer = async (req, res) => {
   try {
     const { offerId } = req.params;
     const user = req.user._id;
-    const salon = await SalonModel.findOne({ userId: user });
+    let salon = await SalonModel.findOne({ userId: user });
+
+    if(req.user.role === 'subAdmin'){
+      salon = await SalonModel.findOne({ Artists: user });
+    }
     if (!salon) {
       return res.status(404).json({ 
         success: false,

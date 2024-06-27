@@ -558,7 +558,25 @@ const deleteArtist = async (req, res) => {
 const getArtistsBySalon = async (req, res) => {
     try {
       const user = req.user._id;
-      const salon = await SalonModel.findOne({ OwnerId: user });
+
+      if(req.user.role === "subAdmin"){
+        const salon = await SalonModel.findOne({ Artists: user });
+        if (!salon) {
+          return res.status(404).json({ 
+            success: false,
+            message: "Salon not found" });
+        }
+        
+        const artists = await ArtistModel.find({ salon: salon._id }).populate("services");
+        
+        return res.status(200).json({ 
+          success: true,
+          data:artists,
+          message: "Artists fetched successfully",
+      });
+      }
+      if(req.user.role === "Owner"){
+      const salon = await SalonModel.findOne({ userId: user });
       if (!salon) {
         return res.status(404).json({ 
           success: false,
@@ -572,6 +590,8 @@ const getArtistsBySalon = async (req, res) => {
         data:artists,
         message: "Artists fetched successfully",
     });
+      }
+      
     } catch (error) {
       return new Error(error);
     }

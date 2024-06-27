@@ -5,8 +5,8 @@ import express from "express";
 
 const Salonrouter = express.Router();
 
-Salonrouter.post("/create-salon",verify,roleAuthorization(['Owner','subAdmin']),createSalon);
-Salonrouter.post("/upload-brochure",verify,roleAuthorization(['Owner','subAdmin']),uploadBrochure);
+Salonrouter.post("/create-salon",verify,roleAuthorization(['Owner']),createSalon);
+Salonrouter.post("/upload-brochure",verify,roleAuthorization(['Owner']),uploadBrochure);
 Salonrouter.get("/get-owner-salon",verify,roleAuthorization(['Owner','subAdmin']),getOwnerSalon);
 Salonrouter.post("/search-salons", searchSalons);
 Salonrouter.get("/getSalon/:id", getSalonById);
@@ -15,7 +15,7 @@ Salonrouter.post("/getSalon", getSalonByLocation);
 Salonrouter.post(
   "/add-photos",
   verify,
-  roleAuthorization(["Owner", "subAdmin"]),
+  roleAuthorization(["Owner"]),
   
   AddPhotos
 );
@@ -37,7 +37,7 @@ Salonrouter.get(
 Salonrouter.put(
   "/update-salon",
   verify,
-  roleAuthorization(["Owner", "subAdmin"]),
+  roleAuthorization(["Owner"]),
   UpdateSalon
 );
 

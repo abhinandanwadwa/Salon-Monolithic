@@ -23,7 +23,14 @@ const createServices = async (req, res) => {
     }
 
     const user = req.user._id;
-    const salon = await SalonModel.findOne({ userId: user });
+
+
+    let salon = await SalonModel.findOne({ userId: user });
+
+    if(req.user.role === 'subAdmin'){
+      salon = await SalonModel.findOne({ Artists: user });
+    }
+
     if (!salon) {
       return res.status(404).json({ 
         success: false,
