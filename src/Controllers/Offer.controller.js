@@ -218,7 +218,7 @@ const validateOffer = async (req, res) => {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: "Error in validating offer" + error,
+      message: "Error in validating offer" + error + req.body,
     });
   }
 }
