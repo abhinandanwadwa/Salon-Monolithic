@@ -605,10 +605,10 @@ const CreateAppointment = async (req, res) => {
       });
     }
 
-    const gender = customer.gender || null;
+    
 
 
-  if(gender === null ){
+  if(customer.gender === null ){
       const appointment = new AppointmentModel({
       user: customer,
       artist: artistId,
@@ -618,7 +618,6 @@ const CreateAppointment = async (req, res) => {
       appointmentEndTime,
       Duration: duration,
       services,
-      gender,
       appointmentCost: cost,
       Status: "Booked",
     });
@@ -650,6 +649,7 @@ const CreateAppointment = async (req, res) => {
       appointmentEndTime,
       Duration: duration,
       services,
+      gender : customer.gender,
       appointmentCost: cost,
       Status: "Booked",
     });
