@@ -85,12 +85,46 @@ const CreateArtistWithAllServices = async (req, res) => {
       
               continue; // Skip the rest of the loop and continue with the next iteration
             }
+
+            if(user && user.role === "Customer"){
+              user.role = "Artist";
+              await user.save();
+      
+              const artist = new ArtistModel({
+                userId: user._id,
+                ArtistName,
+                PhoneNumber,
+                ArtistType,
+                workingDays,
+                startTime,
+                endTime,
+                salon: salon._id,
+                ArtistPhoto,
+                services,
+              });
+      
+              await artist.save();
+      
+              createdArtists.push(artist);
+      
+              for (const serviceId of services) {
+                const service = await Service.findById(serviceId);
+                const serviceArtist = new ServiceArtist({
+                  Artist: artist._id,
+                  Service: serviceId,
+                  Price: service.ServiceCost,
+                });
+      
+                await serviceArtist.save();
+              }
+      
+              continue; // Skip the rest of the loop and continue with the next iteration
+            }
       
 
             if (!user) {
                 user = new UserModel({ phoneNumber:PhoneNumber,role: "Artist",name:ArtistName});
                 await user.save();
-            }
 
             if (
                 !ArtistName ||
@@ -131,8 +165,13 @@ const CreateArtistWithAllServices = async (req, res) => {
 
                 await serviceArtist.save();
             }
+        }else{
+            return res.status(400).json({
+                success: false,
+                message: 'User already exists with this phone number: '+ PhoneNumber
+            });
         }
-
+      }
         salon.Artists.push(...createdArtists);
 
         await salon.save();
@@ -141,7 +180,8 @@ const CreateArtistWithAllServices = async (req, res) => {
             success: true,
             message: "Artists created successfully",
         });
-    }
+    
+  }
     catch (error) {
         console.log(error);
         return res.status(500).json({
@@ -230,6 +270,41 @@ const createArtists = async (req, res) => {
         continue; // Skip the rest of the loop and continue with the next iteration
       }
 
+      if(user && user.role === "Customer"){
+        user.role = "Artist";
+        await user.save();
+
+        const artist = new ArtistModel({
+          userId: user._id,
+          ArtistName,
+          PhoneNumber,
+          ArtistType,
+          workingDays,
+          startTime,
+          endTime,
+          salon: salon._id,
+          ArtistPhoto,
+          services,
+        });
+
+        await artist.save();
+
+        createdArtists.push(artist);
+
+        for (const serviceId of services) {
+          const service = await Service.findById(serviceId);
+          const serviceArtist = new ServiceArtist({
+            Artist: artist._id,
+            Service: serviceId,
+            Price: service.ServiceCost,
+          });
+
+          await serviceArtist.save();
+        }
+
+        continue; // Skip the rest of the loop and continue with the next iteration
+      }
+
 
       if (!user) {
         user = new UserModel({ phoneNumber:PhoneNumber,role: "Artist",name:ArtistName });
@@ -280,7 +355,8 @@ const createArtists = async (req, res) => {
         await serviceArtist.save();
       }
 
-    }else{
+    }
+    else{
         return res.status(400).json({
             success: false,
             message: 'User already exists with this phone number: '+ PhoneNumber

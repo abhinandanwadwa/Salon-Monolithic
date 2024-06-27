@@ -122,6 +122,8 @@ const Salon = new mongoose.Schema({
     ],
 });
 
+
+
 Salon.index({ location: '2dsphere' });
 
 const SalonModel = mongoose.model('Salon', Salon);
