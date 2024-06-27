@@ -530,21 +530,25 @@ const deleteArtist = async (req, res) => {
       });
     }
 
-    const ServiceArtist = await ServiceArtist.find({ Artist: artistId });
-    if(ServiceArtist.length > 0){
-    await ServiceArtist.deleteMany();
-    }
+    await ServiceArtist.deleteMany({ Artist: artistId });
+
     const appointments = await AppointmentModel.find({ artist: artistId });
     salon.appointments.pull(
       ...appointments.map((appointment) => appointment._id)
     );
 
-    await appointments.deleteMany();
+    await AppointmentModel.deleteMany({ artist: artistId });
     salon.Artists.pull(artistId);
 
     await salon.save();
 
     await ArtistModel.findByIdAndDelete(artistId);
+
+    const user = await UserModel.findById(artist.userId);
+
+    if(user.role === "Artist"){
+      await UserModel.findByIdAndDelete(user._id);
+    }
 
     return res.status(200).json({
       success: true,

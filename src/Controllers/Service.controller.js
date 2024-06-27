@@ -39,6 +39,8 @@ const createServices = async (req, res) => {
       });
     }
 
+    
+
     const createdServices = [];
     // Loop through each service data and create services
     for (const serviceData of servicesData) {

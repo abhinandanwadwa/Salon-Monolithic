@@ -46,6 +46,8 @@ const createOffer = async (req, res) => {
       });
     }
 
+    OfferName = OfferName.toUpperCase();
+
     const offer = new OfferModel({
       OfferName,
       OfferStartDate,
@@ -163,7 +165,7 @@ const validateOffer = async (req, res) => {
   try {
     const { offerName,salonId, TodayDate } = req.body;
     console.log(offerName);
-
+    offerName = offerName.toUpperCase();
     const user = req.user._id;
     console.log(user)
     const Costumer = await CustomerModel.findOne({ userId: user });
