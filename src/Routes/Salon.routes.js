@@ -16,10 +16,7 @@ Salonrouter.post(
   "/add-photos",
   verify,
   roleAuthorization(["Owner", "subAdmin"]),
-  upload.fields([
-    { name: "CoverImage", maxCount: 1 },
-    { name: "StorePhotos", maxCount: 10 },
-  ]),
+  
   AddPhotos
 );
 
