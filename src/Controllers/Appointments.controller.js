@@ -98,7 +98,7 @@ const getTimeSlots = async (req, res) => {
 
     // Define the start and end time as moment objects for the artist's working hours
     let startDate = moment().startOf("day");
-    const endDate = moment().add(10, "days").endOf("day");
+    const endDate = moment().add(30, "days").endOf("day");
 
     // Extract the working hours (assuming they are provided as HH:mm)
     const startTime24 = artist.startTime.split("T")[1].split(":").slice(0, 2).join(":");
