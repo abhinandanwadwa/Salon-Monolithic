@@ -55,8 +55,40 @@ const CreateArtistWithAllServices = async (req, res) => {
 
             let user = await UserModel.findOne({ phoneNumber:PhoneNumber });
 
+            if(user && user.role === "Owner"){
+              const artist = new ArtistModel({
+                userId: user._id,
+                ArtistName,
+                PhoneNumber,
+                ArtistType,
+                workingDays,
+                startTime,
+                endTime,
+                salon: salon._id,
+                ArtistPhoto,
+                services,
+              });
+      
+              await artist.save();
+              createdArtists.push(artist);
+      
+              for (const serviceId of services) {
+                const service = await Service.findById(serviceId);
+                const serviceArtist = new ServiceArtist({
+                  Artist: artist._id,
+                  Service: serviceId,
+                  Price: service.ServiceCost,
+                });
+      
+                await serviceArtist.save();
+              }
+      
+              continue; // Skip the rest of the loop and continue with the next iteration
+            }
+      
+
             if (!user) {
-                user = new UserModel({ phoneNumber:PhoneNumber,role: "Artist"});
+                user = new UserModel({ phoneNumber:PhoneNumber,role: "Artist",name:ArtistName});
                 await user.save();
             }
 
@@ -195,20 +227,12 @@ const createArtists = async (req, res) => {
           await serviceArtist.save();
         }
 
-        salon.Artists.push(...createdArtists);
-
-        await salon.save();
-
-        return res.status(201).json({
-          success: true,
-          message: "Artists created successfully",
-          data: createdArtists,
-        });
+        continue; // Skip the rest of the loop and continue with the next iteration
       }
 
 
       if (!user) {
-        user = new UserModel({ phoneNumber:PhoneNumber,role: "Artist"});
+        user = new UserModel({ phoneNumber:PhoneNumber,role: "Artist",name:ArtistName });
         await user.save();
 
       // // Validate inputs for each artist

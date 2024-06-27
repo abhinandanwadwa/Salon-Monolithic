@@ -14,6 +14,12 @@ const User = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    name: {
+        type: String,
+    },
+    gender: {
+        type: String,
+    },
     password: {
         type: String,
     },

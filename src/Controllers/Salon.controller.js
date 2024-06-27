@@ -44,6 +44,7 @@ const createSalon = async (req, res) => {
     // Get authenticated user's ID
     const { _id: userId } = req.user;
     const user = await UserModel.findById(userId);
+    user.name = OwnerName;
 
     const isSalon = await SalonModel.findOne({ userId });
     if (isSalon) {

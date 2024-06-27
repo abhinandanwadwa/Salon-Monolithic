@@ -8,6 +8,108 @@ import SalonModel from "../Models/Salon.js";
 import ArtistModel from "../Models/Artist.js";
 
 
+// const verifyToken = async (req, res) => {
+//   try {
+//       const {token,role} = req.body;
+
+//       const userDetailUsingToken = await UserDetail.verifyToken(token,process.env.CLIENT_ID,process.env.CLIENT_SECRET);
+
+//       const phoneNumber = userDetailUsingToken.national_phone_number;
+//       const user = await UserModel.findOne({ phoneNumber });
+//       if(userDetailUsingToken.success){
+//         if (!user) {
+//           const newUser = new UserModel({ phoneNumber , role});
+//           await newUser.save();
+
+//           if(role === "Customer"){
+//             const newCustomer = new CustomerModel({ userId: newUser._id, phoneNumber });
+//             await newCustomer.save();
+
+//             generateToken(res, newUser);
+//             return res.status(201).json({
+//               success: true,
+//               user:{
+//                 _id: newUser._id,
+//                 phoneNumber: newUser.phoneNumber,
+//                 role: newUser.role,
+//                 isSalon: newUser.isSalon,
+//                 isNewUser: true
+//               }
+//             });
+//           }
+    
+//           generateToken(res, newUser);
+//           return res.status(201).json({
+//             success: true,
+//             user:{
+//               _id: newUser._id,
+//               phoneNumber: newUser.phoneNumber,
+//               role: newUser.role,
+//               isSalon: newUser.isSalon,
+//             }
+//           });
+//         }
+
+//         if(user.role === "Customer" && role === "Owner"){
+//           const customer = await CustomerModel.findOne({ userId: user._id });
+//           await CustomerModel.findByIdAndDelete(customer._id);
+
+//           user.role = role;
+//           await user.save();
+
+//           generateToken(res, user);
+//           return res.status(201).json({
+//             success: true,
+//             user:{
+//               _id: user._id,
+//               phoneNumber: user.phoneNumber,
+//               role: user.role,
+//               isSalon: user.isSalon,
+//             }
+//           });
+//         }
+
+
+
+
+//         if(user.role === "Customer"){
+//           const customer = await CustomerModel.findOne({ userId: user._id });
+          
+//           generateToken(res, user);
+//           return res.status(201).json({
+//             success: true,
+//             user:{
+//               _id: user._id,
+//               name: customer.name,
+//               phoneNumber: user.phoneNumber,
+//               role: user.role,
+//               isSalon: user.isSalon,
+//             }
+//           });
+
+//         }
+
+        
+//         generateToken(res, user);
+//         return res.status(201).json({
+//           success: true,
+//           user:{
+//             _id: user._id,
+//             phoneNumber: user.phoneNumber,
+//             role: user.role,
+//             isSalon: user.isSalon,
+//           }
+//         });
+//       }
+//   } catch (error) {
+//       console.error('Error:', error.message);
+//       res.status(500).json({ error: 'An error occurred in verify-token' });
+//   }
+// };
+
+
+
+
 const verifyToken = async (req, res) => {
   try {
       const {token,role} = req.body;
@@ -17,8 +119,8 @@ const verifyToken = async (req, res) => {
       const phoneNumber = userDetailUsingToken.national_phone_number;
       const user = await UserModel.findOne({ phoneNumber });
       if(userDetailUsingToken.success){
-        if (!user) {
-          const newUser = new UserModel({ phoneNumber , role});
+        if(!user){
+          const newUser = new UserModel({phoneNumber, role});
           await newUser.save();
 
           if(role === "Customer"){
@@ -37,26 +139,22 @@ const verifyToken = async (req, res) => {
               }
             });
           }
-    
-          generateToken(res, newUser);
-          return res.status(201).json({
-            success: true,
-            user:{
-              _id: newUser._id,
-              phoneNumber: newUser.phoneNumber,
-              role: newUser.role,
-              isSalon: newUser.isSalon,
-            }
-          });
+
+          if(role === "Owner"){
+            generateToken(res, newUser);
+            return res.status(201).json({
+              success: true,
+              user:{
+                _id: newUser._id,
+                phoneNumber: newUser.phoneNumber,
+                role: newUser.role,
+                isSalon: newUser.isSalon,
+              }
+            });
+          }
         }
 
-        if(user.role === "Customer" && role === "Owner"){
-          const customer = await CustomerModel.findOne({ userId: user._id });
-          await CustomerModel.findByIdAndDelete(customer._id);
-
-          user.role = role;
-          await user.save();
-
+        if(user.role === "Artist" && role === "Owner"){
           generateToken(res, user);
           return res.status(201).json({
             success: true,
@@ -67,29 +165,93 @@ const verifyToken = async (req, res) => {
               isSalon: user.isSalon,
             }
           });
-        }
-
-
-
-
-        if(user.role === "Customer"){
+        }else if(user.role === "Artist" && role === "Customer"){
           const customer = await CustomerModel.findOne({ userId: user._id });
-          
+          const artist = await ArtistModel.findOne({ userId: user._id });
+          if(!customer){
+            const newCustomer = new CustomerModel({ 
+              userId: user._id, 
+              phoneNumber,
+              name: artist.ArtistName,
+            });
+            await newCustomer.save();
+          }
+
           generateToken(res, user);
           return res.status(201).json({
             success: true,
             user:{
               _id: user._id,
+              phoneNumber: user.phoneNumber,
+              role: user.role,
+              name: artist.ArtistName,
+              isSalon: user.isSalon,
+            }
+          });
+        }
+
+        if(user.role === "Owner" && role === "Owner"){
+          generateToken(res, user);
+          return res.status(201).json({
+            success: true,
+            user:{
+              _id: user._id,
+              phoneNumber: user.phoneNumber,
+              role: user.role,
+              isSalon: user.isSalon,
+            }
+          });
+        }else if(user.role === "Owner" && role === "Customer"){
+          const customer = await CustomerModel.findOne({ userId: user._id });
+          if(!customer){
+            const newCustomer = new CustomerModel({ userId: user._id, phoneNumber, name: user.name });
+            await newCustomer.save();
+          }
+
+          generateToken(res, user);
+          return res.status(201).json({
+            success: true,
+            user:{
+              _id: user._id,
+              phoneNumber: user.phoneNumber,
+              role: user.role,
+              name: user.name,
+              isSalon: user.isSalon,
+            }
+          });
+        }
+
+        if(user.role === "Customer" && role === "Customer"){
+          const customer = await CustomerModel.findOne({ userId: user._id });
+          if(!customer){
+            const newCustomer = new CustomerModel({ userId: user._id, phoneNumber, name: user.name });
+            await newCustomer.save();
+          }
+
+          generateToken(res, user);
+          return res.status(201).json({
+            success: true,
+            user:{
+              _id: user._id,
+              phoneNumber: user.phoneNumber,
+              role: user.role,
               name: customer.name,
+              isSalon: user.isSalon,
+            }
+          });
+        }else if(user.role === "Customer" && role === "Owner"){
+          generateToken(res, user);
+          return res.status(201).json({
+            success: true,
+            user:{
+              _id: user._id,
               phoneNumber: user.phoneNumber,
               role: user.role,
               isSalon: user.isSalon,
             }
           });
-
         }
 
-        
         generateToken(res, user);
         return res.status(201).json({
           success: true,
@@ -106,6 +268,8 @@ const verifyToken = async (req, res) => {
       res.status(500).json({ error: 'An error occurred in verify-token' });
   }
 };
+
+
 
 
 /**
@@ -302,32 +466,154 @@ const verifyUser = async (req, res) => {
   try {
     const { phoneNumber, verified,role } = req.body;
     const user = await UserModel.findOne({ phoneNumber });
-    if (!user  && verified) {
-      const newUser = new UserModel({ phoneNumber , role});
+    if(!user){
+      const newUser = new UserModel({phoneNumber, role});
       await newUser.save();
 
       if(role === "Customer"){
         const newCustomer = new CustomerModel({ userId: newUser._id, phoneNumber });
         await newCustomer.save();
+
+        generateToken(res, newUser);
+        return res.status(201).json({
+          success: true,
+          user:{
+            _id: newUser._id,
+            phoneNumber: newUser.phoneNumber,
+            role: newUser.role,
+            isSalon: newUser.isSalon,
+            isNewUser: true
+          }
+        });
       }
 
-      generateToken(res, newUser);
+      if(role === "Owner"){
+        generateToken(res, newUser);
+        return res.status(201).json({
+          success: true,
+          user:{
+            _id: newUser._id,
+            phoneNumber: newUser.phoneNumber,
+            role: newUser.role,
+            isSalon: newUser.isSalon,
+          }
+        });
+      }
+    }
+
+    if(user.role === "Artist" && role === "Owner"){
+      generateToken(res, user);
       return res.status(201).json({
-        _id: newUser._id,
-        phoneNumber: newUser.phoneNumber,
-        role: newUser.role,
-        isSalon: newUser.isSalon,
+        success: true,
+        user:{
+          _id: user._id,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          isSalon: user.isSalon,
+        }
+      });
+    }else if(user.role === "Artist" && role === "Customer"){
+      const customer = await CustomerModel.findOne({ userId: user._id });
+      const artist = await ArtistModel.findOne({ userId: user._id });
+      if(!customer){
+        const newCustomer = new CustomerModel({ 
+          userId: user._id, 
+          phoneNumber,
+          name: artist.ArtistName,
+        });
+        await newCustomer.save();
+      }
+
+      generateToken(res, user);
+      return res.status(201).json({
+        success: true,
+        user:{
+          _id: user._id,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          name: artist.ArtistName,
+          isSalon: user.isSalon,
+        }
+      });
+    }
+
+    if(user.role === "Owner" && role === "Owner"){
+      generateToken(res, user);
+      return res.status(201).json({
+        success: true,
+        user:{
+          _id: user._id,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          isSalon: user.isSalon,
+        }
+      });
+    }else if(user.role === "Owner" && role === "Customer"){
+      const customer = await CustomerModel.findOne({ userId: user._id });
+      if(!customer){
+        const newCustomer = new CustomerModel({ userId: user._id, phoneNumber, name: user.name });
+        await newCustomer.save();
+      }
+
+      generateToken(res, user);
+      return res.status(201).json({
+        success: true,
+        user:{
+          _id: user._id,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          name: user.name,
+          isSalon: user.isSalon,
+        }
+      });
+    }
+
+    if(user.role === "Customer" && role === "Customer"){
+      const customer = await CustomerModel.findOne({ userId: user._id });
+      if(!customer){
+        const newCustomer = new CustomerModel({ userId: user._id, phoneNumber, name: user.name });
+        await newCustomer.save();
+      }
+
+      generateToken(res, user);
+      return res.status(201).json({
+        success: true,
+        user:{
+          _id: user._id,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          name: customer.name,
+          isSalon: user.isSalon,
+        }
+      });
+    }else if(user.role === "Customer" && role === "Owner"){
+
+      user.role = role;
+      await user.save();
+
+      generateToken(res, user);
+      return res.status(201).json({
+        success: true,
+        user:{
+          _id: user._id,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          name: user.name,
+          isSalon: user.isSalon,
+        }
       });
     }
 
     generateToken(res, user);
     return res.status(201).json({
-      _id: user._id,
-      phoneNumber: user.phoneNumber,
-      role: user.role,
-      isSalon: user.isSalon,
+      success: true,
+      user:{
+        _id: user._id,
+        phoneNumber: user.phoneNumber,
+        role: user.role,
+        isSalon: user.isSalon,
+      }
     });
-
   } catch (error) {
     console.log("Error:", error);
     return res.status(500).json({
