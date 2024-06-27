@@ -824,7 +824,7 @@ const getSalonsubAdmins = async (req,res) => {
     for (let i = 0; i < artists.length; i++) {
       const user = await UserModel.findById(artists[i].userId);
       if(user.role === "subAdmin"){
-        users.push(user);
+        users.push(artists[i]);
       }
 
     }
@@ -843,6 +843,54 @@ const getSalonsubAdmins = async (req,res) => {
   }
 }
 
+const removesubAdmin = async (req, res) => {
+  try {
+    const { artists } = req.body
+    const user = req.user._id;
+    const salon = await SalonModel.findOne({ userId: user });
+
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    for (let i = 0; i < artists.length; i++) {
+      const artist = await ArtistModel.findById(artists[i]);
+      if (!artist) {
+        return res.status(404).json({
+          success: false,
+          message: "Artist not found",
+        });
+      }
+
+      const user = await UserModel.findById(artist.userId);
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+      user.role = "Artist";
+
+      await user.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "subAdmin removed successfully",
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in removing subAdmin",
+    });
+  }
+}
 
 
 
@@ -864,4 +912,4 @@ const logout = async (req, res) => {
   });
 };
 
-export { verifyUser, ChangeRole, logout ,verifyOwner,sendOTP,verifyOTP,verifyToken,addName,LoginAdmin,RegisterAdmin,getSalonsubAdmins  };
+export { verifyUser, ChangeRole, logout ,verifyOwner,sendOTP,verifyOTP,verifyToken,addName,LoginAdmin,RegisterAdmin,getSalonsubAdmins,removesubAdmin  };
