@@ -605,41 +605,6 @@ const CreateAppointment = async (req, res) => {
       });
     }
 
-    
-
-
-  if(customer.gender === null ){
-      const appointment = new AppointmentModel({
-      user: customer,
-      artist: artistId,
-      appointmentDate,
-      appointmentStartTime,
-      salon: salon,
-      appointmentEndTime,
-      Duration: duration,
-      services,
-      appointmentCost: cost,
-      Status: "Booked",
-    });
-
-    await appointment.save();
-
-    salon.appointments.push(appointment);
-    await salon.save();
-    artist.appointments.push(appointment);
-    await artist.save();
-    customer.appointments.push(appointment);
-    if (offerId) {
-      customer.offers.push(offerId._id);
-    }
-    await customer.save();
-
-    return res.status(201).json({
-      success: true,
-      data: appointment._id,
-      message: "Appointment created successfully",
-    });
-  }else{
     const appointment = new AppointmentModel({
       user: customer,
       artist: artistId,
@@ -649,10 +614,11 @@ const CreateAppointment = async (req, res) => {
       appointmentEndTime,
       Duration: duration,
       services,
-      gender : customer.gender,
+      gender:customer.gender,
       appointmentCost: cost,
       Status: "Booked",
     });
+
     await appointment.save();
 
     salon.appointments.push(appointment);
@@ -670,11 +636,6 @@ const CreateAppointment = async (req, res) => {
       data: appointment._id,
       message: "Appointment created successfully",
     });
-
-  }
-
-
-    
   } catch (error) {
     console.log(error);
     return res.status(500).json({
