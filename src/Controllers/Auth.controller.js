@@ -805,6 +805,46 @@ const RegisterAdmin = async (req, res) => {
   }
 }
 
+const getSalonsubAdmins = async (req,res) => {
+  try {
+    const user = req.user._id;
+    const salon = await SalonModel.findOne({ userId: user });
+
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    const artists = await ArtistModel.find({ salon: salon._id });
+
+    const users = [];
+
+    for (let i = 0; i < artists.length; i++) {
+      const user = await UserModel.findById(artists[i].userId);
+      if(user.role === "subAdmin"){
+        users.push(user);
+      }
+
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: users,
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in getting subAdmins",
+    });
+  }
+}
+
+
+
 
 
 /**
@@ -824,4 +864,4 @@ const logout = async (req, res) => {
   });
 };
 
-export { verifyUser, ChangeRole, logout ,verifyOwner,sendOTP,verifyOTP,verifyToken,addName,LoginAdmin,RegisterAdmin };
+export { verifyUser, ChangeRole, logout ,verifyOwner,sendOTP,verifyOTP,verifyToken,addName,LoginAdmin,RegisterAdmin,getSalonsubAdmins  };
