@@ -608,7 +608,7 @@ const CreateAppointment = async (req, res) => {
     const gender = customer.gender || null;
 
 
-  if(gender){
+  if(gender === null ){
       const appointment = new AppointmentModel({
       user: customer,
       artist: artistId,
