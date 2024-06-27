@@ -605,6 +605,8 @@ const CreateAppointment = async (req, res) => {
       });
     }
 
+    const gender = customer.gender || null;
+
     const appointment = new AppointmentModel({
       user: customer,
       artist: artistId,
@@ -614,7 +616,7 @@ const CreateAppointment = async (req, res) => {
       appointmentEndTime,
       Duration: duration,
       services,
-      gender:customer.gender,
+      gender,
       appointmentCost: cost,
       Status: "Booked",
     });
