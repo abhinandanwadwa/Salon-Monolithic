@@ -24,7 +24,7 @@ import OfferModel from "../Models/Offer.js";
 const createSalon = async (req, res) => {
   try {
     const { Address1, Address2, Landmark, Pincode, City, State, Country } =
-      req.body.Address;
+      req.body;
     const {
       SalonName,
       OwnerName,
