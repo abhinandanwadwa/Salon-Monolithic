@@ -26,7 +26,7 @@ const Salon = new mongoose.Schema({
             type: String,
         },
         Pincode: {
-            type: Number,
+            type: String,
             required: true
         },
         City: {
