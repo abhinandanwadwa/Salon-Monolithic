@@ -30,6 +30,7 @@ const CreateArtistWithAllServices = async (req, res) => {
 
     const services = await Service.find({ salon: salon._id });
 
+
     if (!services.length) {
       return res.status(404).json({
         success: false,
@@ -45,7 +46,7 @@ const CreateArtistWithAllServices = async (req, res) => {
 
     const createdArtists = [];
 
-    for (const artists of artistData) {
+    for (let i = 0; i < artistData.length; i++) {
       const {
         ArtistName,
         PhoneNumber,
@@ -53,11 +54,10 @@ const CreateArtistWithAllServices = async (req, res) => {
         workingDays,
         startTime,
         endTime,
-        ArtistPhoto,
-      } = artists;
+      } = artistData[i];
 
       let user = await UserModel.findOne({ phoneNumber: PhoneNumber });
-
+      const artistPhotoUrl = req.files[i] ? req.files[i].location : null;
       if (user && user.role === "Artist") {
         return res.status(400).json({
           success: false,
@@ -88,7 +88,7 @@ const CreateArtistWithAllServices = async (req, res) => {
           startTime,
           endTime,
           salon: salon._id,
-          ArtistPhoto,
+          ArtistPhoto : artistPhotoUrl,
           services,
         });
 
@@ -122,7 +122,7 @@ const CreateArtistWithAllServices = async (req, res) => {
           startTime,
           endTime,
           salon: salon._id,
-          ArtistPhoto,
+          ArtistPhoto : artistPhotoUrl,
           services,
         });
 
@@ -175,7 +175,7 @@ const CreateArtistWithAllServices = async (req, res) => {
           startTime,
           endTime,
           salon: salon._id,
-          ArtistPhoto,
+          ArtistPhoto : artistPhotoUrl,
           services,
         });
 
@@ -247,7 +247,7 @@ const createArtists = async (req, res) => {
 
     const createdArtists = [];
 
-    for (const artistData of artistsData) {
+    for (let i = 0; i < artistsData.length; i++) {
       const {
         ArtistName,
         PhoneNumber,
@@ -255,11 +255,11 @@ const createArtists = async (req, res) => {
         workingDays,
         startTime,
         endTime,
-        ArtistPhoto,
         services,
-      } = artistData;
+      } = artistsData[i];
 
       let user = await UserModel.findOne({ phoneNumber: PhoneNumber });
+      const artistPhotoUrl = req.files[i] ? req.files[i].location : null;
 
       if (user && user.role === "Artist") {
         return res.status(400).json({
@@ -289,7 +289,7 @@ const createArtists = async (req, res) => {
           startTime,
           endTime,
           salon: salon._id,
-          ArtistPhoto,
+          ArtistPhoto : artistPhotoUrl,
           services,
         });
 
@@ -323,7 +323,7 @@ const createArtists = async (req, res) => {
           startTime,
           endTime,
           salon: salon._id,
-          ArtistPhoto,
+          ArtistPhoto : artistPhotoUrl,
           services,
         });
 
@@ -378,7 +378,7 @@ const createArtists = async (req, res) => {
           startTime,
           endTime,
           salon: salon._id, // Assuming SalonId is a reference to the salon
-          ArtistPhoto,
+          ArtistPhoto : artistPhotoUrl,
           services,
         });
         await artist.save();
