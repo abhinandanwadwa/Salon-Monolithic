@@ -87,7 +87,7 @@ const createSalon = async (req, res) => {
         });
       }
 
-      locationDetails = {
+      const locationDetails = {
         type: "Point",
         coordinates: [response[0].latitude, response[0].longitude],
       };
