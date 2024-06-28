@@ -17,6 +17,6 @@ Authrouter.post("/verifyOwner",verifyOwner);
 Authrouter.post("/loginAdmin",LoginAdmin);
 Authrouter.post("/registerAdmin",RegisterAdmin);
 Authrouter.get("/getSalonsubAdmins",verify,roleAuthorization(['Owner']),getSalonsubAdmins);
-Authrouter.post("/removesubAdmin",verify,roleAuthorization(['Owner']),removesubAdmin);
+Authrouter.post("/removesubAdmin/:artistId",verify,roleAuthorization(['Owner']),removesubAdmin);
 
 export default Authrouter;
