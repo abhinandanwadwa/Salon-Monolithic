@@ -7,9 +7,8 @@ const Salonrouter = express.Router();
 
 Salonrouter.post("/create-salon",verify,roleAuthorization(['Owner']), upload.fields([
   { name: "CoverImage", maxCount: 1 },
-  { name: "StorePhotos", maxCount: 10 },
   { name: "Brochure", maxCount: 1 },
-]),createSalon);
+]),upload.array("StorePhotos"),createSalon);
 Salonrouter.post("/upload-brochure",verify,roleAuthorization(['Owner']),upload.single("Brochure"),uploadBrochure);
 Salonrouter.get("/get-owner-salon",verify,roleAuthorization(['Owner','subAdmin']),getOwnerSalon);
 Salonrouter.post("/search-salons", searchSalons);
@@ -22,8 +21,7 @@ Salonrouter.post(
   roleAuthorization(["Owner"]),
   upload.fields([
     { name: "CoverImage", maxCount: 1 },
-    { name: "StorePhotos", maxCount: 10 },
-  ]),
+  ]),upload.array("StorePhotos"),
   AddPhotos
 );
 
