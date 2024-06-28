@@ -59,7 +59,6 @@ const CreateArtistWithAllServices = async (req, res) => {
 
 
       let user = await UserModel.findOne({ phoneNumber: PhoneNumber });
-      const artistPhotoUrl = req.files && req.files[i] ? req.files[i].location : null;
 
 
       if (user && user.role === "Artist") {
@@ -92,7 +91,6 @@ const CreateArtistWithAllServices = async (req, res) => {
           startTime,
           endTime,
           salon: salon._id,
-          ArtistPhoto : artistPhotoUrl,
           services,
         });
 
@@ -126,7 +124,6 @@ const CreateArtistWithAllServices = async (req, res) => {
           startTime,
           endTime,
           salon: salon._id,
-          ArtistPhoto : artistPhotoUrl,
           services,
         });
 
@@ -179,7 +176,6 @@ const CreateArtistWithAllServices = async (req, res) => {
           startTime,
           endTime,
           salon: salon._id,
-          ArtistPhoto : artistPhotoUrl,
           services,
         });
 
@@ -255,6 +251,7 @@ const createArtist = async (req, res) => {
     }
 
     const userId = req.user._id;
+    const servicesArray = services.map(serviceId => new mongoose.Types.ObjectId(serviceId));
 
     const salon = await SalonModel.findOne({ userId });
     if (!salon) {
@@ -296,12 +293,12 @@ const createArtist = async (req, res) => {
         endTime,
         salon: salon._id,
         ArtistPhoto: artistPhotoUrl,
-        services,
+        services: servicesArray
       });
 
       await artist.save();
 
-      for (const serviceId of services) {
+      for (const serviceId of servicesArray) {
         const service = await Service.findById(serviceId);
         const serviceArtist = new ServiceArtist({
           Artist: artist._id,
@@ -337,12 +334,12 @@ const createArtist = async (req, res) => {
         endTime,
         salon: salon._id,
         ArtistPhoto: artistPhotoUrl,
-        services,
+        services: servicesArray
       });
 
       await artist.save();
 
-      for (const serviceId of services) {
+      for (const serviceId of servicesArray) {
         const service = await Service.findById(serviceId);
         const serviceArtist = new ServiceArtist({
           Artist: artist._id,
@@ -382,11 +379,11 @@ const createArtist = async (req, res) => {
         endTime,
         salon: salon._id,
         ArtistPhoto: artistPhotoUrl,
-        services,
+        services: servicesArray
       });
       await artist.save();
 
-      for (const serviceId of services) {
+      for (const serviceId of servicesArray) {
         const service = await Service.findById(serviceId);
         const serviceArtist = new ServiceArtist({
           Artist: artist._id,
@@ -460,6 +457,8 @@ const updateArtist = async (req, res) => {
       await user.save();
     }
 
+
+
     for (const serviceId of services) {
       const service = await Service.findById(serviceId);
       const serviceArtist = await ServiceArtist.findOne({
@@ -482,6 +481,7 @@ const updateArtist = async (req, res) => {
     artist.PhoneNumber = phoneNumber || artist.PhoneNumber;
     artist.workingDays = workingDays || artist.workingDays;
     artist.services = services || artist.services;
+
 
     await artist.save();
 
