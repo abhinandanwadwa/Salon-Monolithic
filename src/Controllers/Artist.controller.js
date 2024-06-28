@@ -251,7 +251,19 @@ const createArtist = async (req, res) => {
     }
 
     const userId = req.user._id;
-    const servicesArray = services.map(serviceId => new mongoose.Types.ObjectId(serviceId));
+    let servicesArray;
+    if (typeof services === 'string') {
+      try {
+        servicesArray = JSON.parse(services);
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid services format",
+        });
+      }
+    } else {
+      servicesArray = services;
+    }
 
     const salon = await SalonModel.findOne({ userId });
     if (!salon) {
