@@ -16,7 +16,7 @@ import mongoose from "mongoose";
 
 const CreateArtistWithAllServices = async (req, res) => {
   try {
-    const artistData  = req.body;
+    const { artistData } = req.body;
     const { _id: userId } = req.user;
     const salon = await SalonModel.findOne({ userId: userId });
     console.log(artistData);
