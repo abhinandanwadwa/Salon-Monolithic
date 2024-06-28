@@ -56,8 +56,12 @@ const CreateArtistWithAllServices = async (req, res) => {
         endTime,
       } = artistData[i];
 
+
+
       let user = await UserModel.findOne({ phoneNumber: PhoneNumber });
-      const artistPhotoUrl = req.files[i] ? req.files[i].location : null;
+      const artistPhotoUrl = req.files && req.files[i] ? req.files[i].location : null;
+
+
       if (user && user.role === "Artist") {
         return res.status(400).json({
           success: false,
@@ -259,7 +263,7 @@ const createArtists = async (req, res) => {
       } = artistsData[i];
 
       let user = await UserModel.findOne({ phoneNumber: PhoneNumber });
-      const artistPhotoUrl = req.files[i] ? req.files[i].location : null;
+      const artistPhotoUrl = req.files && req.files[i] ? req.files[i].location : null;
 
       if (user && user.role === "Artist") {
         return res.status(400).json({
