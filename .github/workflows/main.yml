@@ -26,4 +26,5 @@ jobs:
           script: |
             cd Salon-Monolithic
             git pull
+            npm install
             pm2 restart all
