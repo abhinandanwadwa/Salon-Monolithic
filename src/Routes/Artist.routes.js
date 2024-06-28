@@ -6,7 +6,7 @@ import express from "express";
 const Artistrouter = express.Router();
 
 Artistrouter.post("/create-artists",verify,roleAuthorization(['Owner']),upload.single("ArtistPhoto"),createArtist);
-Artistrouter.post("/create-artist-with-services",verify,roleAuthorization(['Owner']),upload.single("ArtistPhoto"),CreateArtistWithAllServices);
+Artistrouter.post("/create-artist-with-services",verify,roleAuthorization(['Owner']),CreateArtistWithAllServices);
 Artistrouter.post("/get-artist-by-service/:salonid",GetArtistbyService);
 Artistrouter.get("/get-artist-by-salon",verify,
 roleAuthorization(['Owner','subAdmin']),getArtistsBySalon);

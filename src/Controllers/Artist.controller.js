@@ -436,12 +436,11 @@ const createArtist = async (req, res) => {
  * @route /api/artist/update-artist/:artistId
  * @requestBody { name: String, phoneNumber: Number, workingDays: Array of Strings, services: Array of Strings }
  */
-
 const updateArtist = async (req, res) => {
   try {
     const { artistId } = req.params;
     const userId = req.user._id;
-    const salon = await SalonModel.findOne({ userId: userId });
+    const salon = await SalonModel.findOne({ userId });
 
     if (!salon) {
       return res.status(404).json({
@@ -469,31 +468,59 @@ const updateArtist = async (req, res) => {
       await user.save();
     }
 
+    const artistPhotoUrl = req.file ? req.file.location : artist.ArtistPhoto;
 
-
-    for (const serviceId of services) {
-      const service = await Service.findById(serviceId);
-      const serviceArtist = await ServiceArtist.findOne({
-        Artist: artist._id,
-        Service: serviceId,
-      });
-
-      if (!serviceArtist) {
-        const newServiceArtist = new ServiceArtist({
-          Artist: artist._id,
-          Service: serviceId,
-          Price: service.ServiceCost,
+    // Parse services if it's a JSON string
+    let servicesArray;
+    if (typeof services === 'string') {
+      try {
+        servicesArray = JSON.parse(services);
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid services format",
         });
+      }
+    } else {
+      servicesArray = services;
+    }
 
-        await newServiceArtist.save();
+    // Ensure services is an array of ObjectIds
+    if (servicesArray && !Array.isArray(servicesArray)) {
+      return res.status(400).json({
+        success: false,
+        message: "Services should be an array",
+      });
+    }
+
+
+    if (servicesArray) {
+      for (const serviceId of servicesArray) {
+        const service = await Service.findById(serviceId);
+        if (service) {
+          const serviceArtist = await ServiceArtist.findOne({
+            Artist: artist._id,
+            Service: serviceId,
+          });
+
+          if (!serviceArtist) {
+            const newServiceArtist = new ServiceArtist({
+              Artist: artist._id,
+              Service: serviceId,
+              Price: service.ServiceCost,
+            });
+
+            await newServiceArtist.save();
+          }
+        }
       }
     }
 
     artist.ArtistName = name || artist.ArtistName;
     artist.PhoneNumber = phoneNumber || artist.PhoneNumber;
     artist.workingDays = workingDays || artist.workingDays;
-    artist.services = services || artist.services;
-
+    artist.services = servicesArray || artist.services;
+    artist.ArtistPhoto = artistPhotoUrl;
 
     await artist.save();
 
