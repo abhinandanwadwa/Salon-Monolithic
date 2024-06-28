@@ -33,10 +33,8 @@ const createSalon = async (req, res) => {
       workingDays,
       startTime,
       endTime,
-      location,
     } = req.body;
 
-    let locationDetails = null;
 
     // Get authenticated user's ID
     const { _id: userId } = req.user;
@@ -68,10 +66,9 @@ const createSalon = async (req, res) => {
       Country,
     };
 
-    const isLocation = location.coordinates[0] == 0 && location.coordinates[1] == 0
 
   
-    if (isLocation) {
+  
       const options = {
         provider: "google",
         apiKey: process.env.GOOGLE_MAPS_API_KEY,
@@ -94,7 +91,6 @@ const createSalon = async (req, res) => {
         type: "Point",
         coordinates: [response[0].latitude, response[0].longitude],
       };
-    }
 
     const files = req.files || {};
 
@@ -116,7 +112,7 @@ const createSalon = async (req, res) => {
       CoverImage,
       StorePhotos,
       Brochure,
-      location: locationDetails || location,
+      location: locationDetails,
     });
 
     const password = otpGenerator.generate(8, {
