@@ -625,13 +625,8 @@ const AddPhotos = async (req, res) => {
   try {
     const user = req.user._id;
     const salon = await SalonModel.findOne({ userId: user });
-    if (!salon) {
-      return res.status(404).json({
-        success: false,
-        message: "Salon not found",
-      });
-    }
 
+    
     const coverImageUrl = req.file.location
     salon.CoverImage = coverImageUrl || salon.CoverImage || null;
    
