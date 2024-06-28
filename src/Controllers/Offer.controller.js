@@ -46,10 +46,10 @@ const createOffer = async (req, res) => {
       });
     }
 
-    OfferName = OfferName.toUpperCase();
+    const offerCode = OfferName.toUpperCase();
 
     const offer = new OfferModel({
-      OfferName,
+      OfferName : offerCode,
       OfferStartDate,
       OfferEndDate,
       OfferDiscountinPercentage,
@@ -164,13 +164,11 @@ const deleteOffer = async (req, res) => {
 const validateOffer = async (req, res) => {
   try {
     const { offerName,salonId, TodayDate } = req.body;
-    console.log(offerName);
-    offerName = offerName.toUpperCase();
+    const offerCode = offerName.toUpperCase();
     const user = req.user._id;
-    console.log(user)
     const Costumer = await CustomerModel.findOne({ userId: user });
     
-    const offer = await OfferModel.findOne({ OfferName: offerName, salon: salonId });
+    const offer = await OfferModel.findOne({ OfferName: offerCode, salon: salonId });
 
     console.log(offer)
 
