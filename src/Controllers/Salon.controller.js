@@ -35,6 +35,17 @@ const createSalon = async (req, res) => {
       endTime,
     } = req.body;
 
+    
+    let workingdaylist;
+    try {
+      workingdaylist = JSON.parse(workingDays);
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid workingDays format",
+      });
+    }
+
 
     // Get authenticated user's ID
     const { _id: userId } = req.user;
@@ -101,7 +112,7 @@ const createSalon = async (req, res) => {
       address,
       BusinessType,
       Gender,
-      workingDays,
+      workingDays:workingdaylist,
       startTime,
       endTime,
       salonPhoneNumber: user.phoneNumber,
@@ -626,7 +637,7 @@ const AddPhotos = async (req, res) => {
     const user = req.user._id;
     const salon = await SalonModel.findOne({ userId: user });
 
-    
+
     const coverImageUrl = req.file.location
     salon.CoverImage = coverImageUrl || salon.CoverImage || null;
    
