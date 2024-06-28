@@ -1,4 +1,4 @@
-import { createSalon,getOwnerSalon,searchSalons,getSalonById,getSalonByLocation,uploadBrochure,AddPhotos,deleteSalon,UpdateSalon,getSalonsAppointments,getAllSalons,SalonsStats } from "../Controllers/Salon.controller.js";
+import { createSalon,getOwnerSalon,searchSalons,getSalonById,getSalonByLocation,uploadBrochure,AddPhotos,deleteSalon,UpdateSalon,getSalonsAppointments,getAllSalons,SalonsStats,AddStorePhotos } from "../Controllers/Salon.controller.js";
 import { verify,roleAuthorization } from "../middlewares/authenticated.js";
 import upload from "../utils/s3Multer.js";
 import express from "express";
@@ -7,7 +7,6 @@ const Salonrouter = express.Router();
 
 Salonrouter.post("/create-salon",verify,roleAuthorization(['Owner']), upload.fields([
   { name: "CoverImage", maxCount: 1 },
-  { name: "Brochure", maxCount: 1 },
 ]),upload.array("StorePhotos"),createSalon);
 Salonrouter.post("/upload-brochure",verify,roleAuthorization(['Owner']),upload.single("Brochure"),uploadBrochure);
 Salonrouter.get("/get-owner-salon",verify,roleAuthorization(['Owner','subAdmin']),getOwnerSalon);
@@ -16,14 +15,20 @@ Salonrouter.get("/getSalon/:id", getSalonById);
 Salonrouter.post("/getSalon", getSalonByLocation);
 
 Salonrouter.post(
-  "/add-photos",
+  "/add-cover-Photo",
   verify,
   roleAuthorization(["Owner"]),
-  upload.fields([
-    { name: "CoverImage", maxCount: 1 },
-  ]),upload.array("StorePhotos"),
+  upload.single("CoverImage"),
   AddPhotos
 );
+
+Salonrouter.post(
+  "/add-store-Photos",
+  verify,
+  roleAuthorization(["Owner"]),
+  upload.array("StorePhotos"),
+  AddStorePhotos
+)
 
 Salonrouter.delete(
   "/delete-salon",

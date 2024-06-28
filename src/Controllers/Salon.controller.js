@@ -95,8 +95,6 @@ const createSalon = async (req, res) => {
     const files = req.files || {};
 
     const CoverImage = files['CoverImage'] ? files['CoverImage'][0].location : null;
-    const StorePhotos = files['StorePhotos'] ? files['StorePhotos'].map(file => file.location) : [];
-    const Brochure = files['Brochure'] ? files['Brochure'][0].location : null;
 
     const salon = new SalonModel({
       userId,
@@ -110,8 +108,6 @@ const createSalon = async (req, res) => {
       endTime,
       salonPhoneNumber: user.phoneNumber,
       CoverImage,
-      StorePhotos,
-      Brochure,
       location: locationDetails,
     });
 
@@ -638,16 +634,9 @@ const AddPhotos = async (req, res) => {
       });
     }
 
-    if (req.files.CoverImage && req.files.CoverImage.length > 0) {
-      const coverPhotoUrl = req.files.CoverImage[0].location;
-      salon.CoverImage = coverPhotoUrl;
-    }
-
-    if (req.files.StorePhotos && req.files.StorePhotos.length > 0) {
-      const profilePhotoUrls = req.files.StorePhotos.map(file => file.location);
-      salon.StorePhotos = profilePhotoUrls;
-    }
-
+    const coverImageUrl = req.file.location
+    salon.CoverImage = coverImageUrl || salon.CoverImage || null;
+   
     await salon.save();
 
     return res.status(200).json({
@@ -662,6 +651,47 @@ const AddPhotos = async (req, res) => {
     });
   }
 };
+
+const AddStorePhotos = async (req, res) => {
+  try {
+    const user = req.user._id;
+    const salon = await SalonModel.findOne({ userId: user });
+
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    const storephotos = req.files;
+
+    // Ensure the array is not empty
+    if (!storephotos || storephotos.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No photos were uploaded",
+      });
+    }
+
+    storephotos.forEach(file => {
+      salon.StorePhotos.push(file.location); // or file.filename depending on how you want to store the reference
+    });
+
+    await salon.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Photos uploaded successfully",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in uploading photos",
+    });
+  }
+}
 
 const getSalonsAppointments = async (req, res) => {
   try {
@@ -840,4 +870,5 @@ export {
   AddPhotos,
   getAllSalons,
   SalonsStats,
+  AddStorePhotos
 };
