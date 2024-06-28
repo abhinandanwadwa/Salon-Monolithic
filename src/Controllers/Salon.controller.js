@@ -693,6 +693,49 @@ const AddStorePhotos = async (req, res) => {
   }
 }
 
+
+const deleteStorePhotos = async (req, res) => {
+  try {
+    const user = req.user._id;
+    const salon = await SalonModel.findOne({ userId: user });
+
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    const storePhotos = req.body.storePhotos;
+
+    if (!storePhotos || storePhotos.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No photos were deleted",
+      });
+
+    }
+
+    storePhotos.forEach(photo => {
+      salon.StorePhotos = salon.StorePhotos.filter((storePhoto) => storePhoto !== photo);
+    });
+
+    await salon.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Photos deleted successfully",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in deleting photos",
+    });
+  }
+}
+
+
 const getSalonsAppointments = async (req, res) => {
   try {
     const id = req.user._id;
@@ -870,5 +913,6 @@ export {
   AddPhotos,
   getAllSalons,
   SalonsStats,
-  AddStorePhotos
+  AddStorePhotos,
+  deleteStorePhotos
 };

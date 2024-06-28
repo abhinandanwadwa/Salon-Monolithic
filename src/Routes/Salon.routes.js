@@ -1,4 +1,4 @@
-import { createSalon,getOwnerSalon,searchSalons,getSalonById,getSalonByLocation,uploadBrochure,AddPhotos,deleteSalon,UpdateSalon,getSalonsAppointments,getAllSalons,SalonsStats,AddStorePhotos } from "../Controllers/Salon.controller.js";
+import { createSalon,getOwnerSalon,searchSalons,getSalonById,getSalonByLocation,uploadBrochure,AddPhotos,deleteSalon,UpdateSalon,getSalonsAppointments,getAllSalons,SalonsStats,AddStorePhotos,deleteStorePhotos } from "../Controllers/Salon.controller.js";
 import { verify,roleAuthorization } from "../middlewares/authenticated.js";
 import upload from "../utils/s3Multer.js";
 import express from "express";
@@ -20,6 +20,13 @@ Salonrouter.post(
   roleAuthorization(["Owner"]),
   upload.single("CoverImage"),
   AddPhotos
+);
+
+Salonrouter.post(
+  "/delete-store-Photos",
+  verify,
+  roleAuthorization(["Owner"]),
+  deleteStorePhotos
 );
 
 Salonrouter.post(
