@@ -103,7 +103,9 @@ const createSalon = async (req, res) => {
         coordinates: [response[0].latitude, response[0].longitude],
       };
 
-    const CoverImage = req.file.location;
+      
+    const CoverImage = req.file ? req.file.location : null;
+
 
     const salon = new SalonModel({
       userId,
