@@ -6,6 +6,12 @@ import bycrypt from "bcryptjs";
 import { UserDetail } from "otpless-node-js-auth-sdk";
 import SalonModel from "../Models/Salon.js";
 import ArtistModel from "../Models/Artist.js";
+import Service from "../Models/Service.js";
+import ServiceArtist from "../Models/ServiceArtist.js";
+import AppointmentModel from "../Models/Appointment.js";
+import ReviewModel from "../Models/review.js";
+import OfferModel from "../Models/Offer.js";
+
 
 // const verifyToken = async (req, res) => {
 //   try {
@@ -888,6 +894,75 @@ const removesubAdmin = async (req, res) => {
   }
 };
 
+
+const deleteOwner = async (req, res) => {
+  try {
+
+    const { phoneNumber } = req.body;
+    const salon = await SalonModel.findOne({ phoneNumber });
+
+    if(salon){
+    const services = await Service.find({ salon: salon._id });
+
+    const serviceArtist = await ServiceArtist.find({
+      Service: { $in: services.map((service) => service._id) },
+    });
+
+    if (serviceArtist.length) {
+      await ServiceArtist.deleteMany({
+        Service: { $in: services.map((service) => service._id) },
+      });
+    }
+
+    if (services.length) {
+      await Service.deleteMany({ salon: salon._id });
+    }
+
+    const artists = await ArtistModel.find({ salon: salon._id });
+    const users = await UserModel.find({
+      _id: { $in: artists.map((artist) => artist.userId) },
+    });
+
+    if (users.length) {
+      await UserModel.deleteMany({
+        _id: { $in: artists.map((artist) => artist.userId) },
+      });
+    }
+
+    if (artists.length) {
+      await ArtistModel.deleteMany({ salon: salon._id });
+    }
+
+    if (salon.appointments.length) {
+      await AppointmentModel.deleteMany({ _id: { $in: salon.appointments } });
+    }
+
+    if (salon.Reviews.length) {
+      await ReviewModel.deleteMany({ _id: { $in: salon.Reviews } });
+    }
+
+    if (salon.offers.length) {
+      await OfferModel.deleteMany({ _id: { $in: salon.offers } });
+    }
+
+    await SalonModel.findOneAndDelete({ _id: salon._id });
+  }
+    await UserModel.findOneAndDelete({ phoneNumber });
+
+    return res.status(200).json({
+      success: true,
+      message: "Owner deleted successfully",
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in deleting Owner",
+    });
+  }
+}
+
 /**
  * @desc Logout
  * @route POST /api/auth/logout
@@ -918,4 +993,5 @@ export {
   RegisterAdmin,
   getSalonsubAdmins,
   removesubAdmin,
+  deleteOwner
 };

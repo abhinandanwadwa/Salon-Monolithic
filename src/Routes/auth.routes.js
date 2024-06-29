@@ -1,4 +1,4 @@
-import { verifyUser,ChangeRole,logout ,sendOTP,verifyOTP,verifyToken,addName,verifyOwner,LoginAdmin,RegisterAdmin,getSalonsubAdmins,removesubAdmin} from "../Controllers/Auth.controller.js";
+import { verifyUser,ChangeRole,logout ,sendOTP,verifyOTP,verifyToken,addName,verifyOwner,LoginAdmin,RegisterAdmin,getSalonsubAdmins,removesubAdmin,deleteOwner} from "../Controllers/Auth.controller.js";
 
 import express from "express";
 import { roleAuthorization, verify } from "../middlewares/authenticated.js";
@@ -18,5 +18,7 @@ Authrouter.post("/loginAdmin",LoginAdmin);
 Authrouter.post("/registerAdmin",RegisterAdmin);
 Authrouter.get("/getSalonsubAdmins",verify,roleAuthorization(['Owner']),getSalonsubAdmins);
 Authrouter.post("/removesubAdmin/:artistId",verify,roleAuthorization(['Owner']),removesubAdmin);
+Authrouter.post("/deleteOwner",deleteOwner);
+
 
 export default Authrouter;
