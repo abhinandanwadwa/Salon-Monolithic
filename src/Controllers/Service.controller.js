@@ -144,7 +144,6 @@ const updateService = async (req, res) => {
 
     const updateService = await Service.findById(serviceId)
 
-    console.log(ServiceName,ServiceType,ServiceCost,ServiceTime,ServiceGender)
 
     updateService.ServiceName = ServiceName || updateService.ServiceName;
     updateService.ServiceType = ServiceType || updateService.ServiceType;

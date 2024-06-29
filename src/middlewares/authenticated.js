@@ -3,14 +3,11 @@ import jwt from "jsonwebtoken";
 const verify = async (req, res, next) => {
   let token;
   token = req.cookies.jwt;
-  // console.log(token);
 
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log(decoded)
       req.user = decoded;
-      console.log(req.user);
       next();
     } catch (error) {
       res.status(401).json({ 

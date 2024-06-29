@@ -286,10 +286,8 @@ const verifyToken = async (req, res) => {
 const sendOTP = async (req, res) => {
   try {
     const { phoneNumber, role } = req.body;
-    console.log(phoneNumber, role);
     let user = await UserModel.findOne({ phoneNumber });
 
-    console.log(user);
 
     const otp = otpGenerator.generate(4, {
       upperCaseAlphabets: false,
@@ -324,7 +322,6 @@ const sendOTP = async (req, res) => {
     //     console.log(error);
     //   });
 
-    console.log("OTP sent:", otp);
 
     return res.status(200).json({
       success: true,
@@ -332,7 +329,6 @@ const sendOTP = async (req, res) => {
       otp,
     });
   } catch (error) {
-    console.log("Error:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to send OTP",
@@ -352,7 +348,6 @@ const verifyOTP = async (req, res) => {
   try {
     const { phoneNumber, enteredOTP } = req.body;
 
-    console.log(phoneNumber, enteredOTP);
     const user = await UserModel.findOne({ phoneNumber });
 
     if (!user) {
@@ -399,7 +394,6 @@ const verifyOTP = async (req, res) => {
       role: user.role,
     });
   } catch (error) {
-    console.log("Error:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to verify OTP",
@@ -623,7 +617,6 @@ const verifyUser = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log("Error:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to verify User",
@@ -641,7 +634,6 @@ const verifyUser = async (req, res) => {
 const ChangeRole = async (req, res) => {
   try {
     const { artists } = req.body;
-    console.log(artists);
     const user = req.user._id;
     const salon = await SalonModel.findOne({ userId: user });
     if (!salon) {
