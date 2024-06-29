@@ -25,7 +25,8 @@ app.use(cors({
     origin: ['https://www.salondekho.in','https://salon-admin-three.vercel.app','http://localhost:5173'],
     credentials: true,
 }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // app.use(function(req, res, next) {
 //     res.header('Access-Control-Allow-Origin', ['https://www.salondekho.in','http://localhost:5173']);
