@@ -469,6 +469,17 @@ const updateArtist = async (req, res) => {
 
     const { name, phoneNumber, workingDays, services } = req.body;
 
+
+    let workingdaylist;
+    try {
+      workingdaylist = JSON.parse(workingDays);
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid workingDays format",
+      });
+    }
+
     if (phoneNumber) {
       const user = await UserModel.findOneAndUpdate(
         { _id: artist.userId },
@@ -528,7 +539,7 @@ const updateArtist = async (req, res) => {
 
     artist.ArtistName = name || artist.ArtistName;
     artist.PhoneNumber = phoneNumber || artist.PhoneNumber;
-    artist.workingDays = workingDays || artist.workingDays;
+    artist.workingDays = workingdaylist || artist.workingDays;
     artist.services = servicesArray || artist.services;
     artist.ArtistPhoto = artistPhotoUrl;
 
