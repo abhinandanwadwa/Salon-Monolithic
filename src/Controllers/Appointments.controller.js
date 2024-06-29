@@ -16,6 +16,7 @@ const getCost = async (req, res) => {
   try {
     const { artistId, services, salonid } = req.body;
 
+    console.log(artistId, services);
 
     let cost = 0;
 
@@ -73,6 +74,7 @@ const getTimeSlots = async (req, res) => {
   try {
     const { artistId, timePeriod, services } = req.body;
 
+    console.log(artistId, timePeriod, services);
 
     // Fetch artist data including appointments
     const artist = await ArtistModel.findById(artistId).populate("appointments");
@@ -233,6 +235,7 @@ const createAppointmentByOwner = async (req, res) => {
         Service: services[i],
       });
 
+      console.log(serviceArtist);
 
       if (!serviceArtist) {
         return res.status(404).json({
@@ -252,6 +255,7 @@ const createAppointmentByOwner = async (req, res) => {
     const appointmentEndTime = moment(appointmentStartTime)
       .add(duration, "minutes")
       .format("YYYY-MM-DDTHH:mm:ss.SSS");
+    console.log(appointmentEndTime);
 
     const overlappingAppointments = await AppointmentModel.find({
       artist: artistId,
@@ -313,6 +317,7 @@ const createAppointmentByOwner = async (req, res) => {
       message: "Appointment created successfully",
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       success: false,
       message: "Internal server error"+error ,
@@ -392,6 +397,7 @@ const editAppointment = async (req, res) => {
       message: "Appointment updated successfully",
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       success: false,
       message: "Internal server error"+error,
@@ -410,6 +416,7 @@ const editAppointment = async (req, res) => {
 const rescheduleAppointment = async (req, res) => {
   try {
     const { appointmentId, appointmentStartTime, duration } = req.body;
+    console.log(appointmentId, appointmentStartTime, duration);
     const userId = req.user._id;
     const user = await UserModel.findById(userId);
 
@@ -433,6 +440,7 @@ const rescheduleAppointment = async (req, res) => {
       message: "Appointment rescheduled successfully",
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       success: false,
       message: "Internal server error"+error,
@@ -561,6 +569,7 @@ const CreateAppointment = async (req, res) => {
     //appointment start time is in 9:00 format
     //appointment date is in 2024-06-16 format
 
+    console.log(appointmentStartTime);
 
     if (!artist) {
       return res.status(404).json({
@@ -635,6 +644,7 @@ const CreateAppointment = async (req, res) => {
       message: "Appointment created successfully",
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       success: false,
       message: "Internal server error" + error,

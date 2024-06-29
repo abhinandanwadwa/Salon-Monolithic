@@ -19,6 +19,7 @@ const CreateArtistWithAllServices = async (req, res) => {
     const { artistData } = req.body;
     const { _id: userId } = req.user;
     const salon = await SalonModel.findOne({ userId: userId });
+    console.log(artistData);
 
     if (!salon) {
       return res.status(404).json({
@@ -207,6 +208,7 @@ const CreateArtistWithAllServices = async (req, res) => {
       message: "Artists created successfully",
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       success: false,
       message: "Error in creating artists" + error,
@@ -666,8 +668,10 @@ const getArtistsBySalon = async (req, res) => {
 const GetArtistbyService = async (req, res) => {
   try {
     const { serviceIds } = req.body;
+    console.log("Service IDs:", serviceIds);
 
     const { salonid } = req.params;
+    console.log("Salon ID:", salonid);
 
     const salon = await SalonModel.findById(salonid);
     if (!salon) {
@@ -794,6 +798,7 @@ const getArtistData = async (req, res) => {
 
     const Artistt = await ArtistModel.findOne({ userId: artistId });
 
+    console.log(Artistt._id);
 
     const services = await ServiceArtist.find({
       Artist: Artistt._id,
@@ -806,6 +811,7 @@ const getArtistData = async (req, res) => {
       });
     }
 
+    console.log("Services fetched successfully:", services);
 
     const data = {
       artist,
@@ -825,6 +831,7 @@ const getArtistData = async (req, res) => {
       message: "Artist fetched successfully",
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       success: false,
       message: "Error in fetching artist",
@@ -847,6 +854,7 @@ const GetArtistService = async (req, res) => {
       });
     }
 
+    console.log("Services fetched successfully:", services);
 
     return res.status(200).json({
       success: true,
@@ -854,6 +862,7 @@ const GetArtistService = async (req, res) => {
       message: "Services fetched successfully",
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       success: false,
       message: "Error in fetching services",

@@ -170,6 +170,7 @@ const validateOffer = async (req, res) => {
     
     const offer = await OfferModel.findOne({ OfferName: offerCode, salon: salonId });
 
+    console.log(offer)
 
     if (!offer) {
       return res.status(404).json({ 
@@ -189,6 +190,7 @@ const validateOffer = async (req, res) => {
       });
     }
 
+    console.log(Costumer)
 
     if(Costumer.offers.includes(offer._id)){
       return res.status(400).json({

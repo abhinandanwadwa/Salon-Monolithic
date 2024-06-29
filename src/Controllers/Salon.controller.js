@@ -227,12 +227,13 @@ const UpdateSalon = async (req, res) => {
 const getSalonByLocation = async (req, res) => {
   try {
     const { latitude, longitude } = req.body;
+    console.log(req.body);
     const salons = await SalonModel.aggregate([
       {
         $geoNear: {
-          near: { type: "Point", coordinates: [latitude, longitude] }, 
+          near: { type: "Point", coordinates: [latitude, longitude] }, // Note the order: [longitude, latitude]
           distanceField: "distance",
-          maxDistance: 100000,
+          maxDistance: 10000,
           spherical: true,
         },
       },
@@ -254,11 +255,7 @@ const getSalonByLocation = async (req, res) => {
       },
     ]);
 
-    return res.status(200).json({
-      success: true,
-      data: salons,
-      message: "Salons found",
-    });
+    return res.status(200).json(salons);
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -412,6 +409,7 @@ const searchSalons = async (req, res) => {
       ];
     }
 
+    console.log(salonIds);
 
     // Handle address geocoding
     if (address) {
@@ -906,142 +904,6 @@ const SalonsStats = async (req, res) => {
   }
 };
 
-const SearchSalon = async (req, res) => {
-  try {
-    const { name, location } = req.query;
-    const locationArray = location ? location.split(',').map(Number) : null;
-
-    const pipeline = [];
-
-    // If location is provided, add geospatial filtering
-    if (locationArray) {
-      pipeline.push({
-        $geoNear: {
-          near: { type: 'Point', coordinates: locationArray },
-          distanceField: 'distance',
-          spherical: true,
-          key: 'location'
-        }
-      });
-    }
-
-    // If name is provided, add text search
-    if (name) {
-      pipeline.push({
-        $match: {
-          $text: { $search: name }
-        }
-      });
-      pipeline.push({
-        $lookup: {
-          from: 'services',
-          localField: 'Services',
-          foreignField: '_id',
-          as: 'services'
-        }
-      });
-      pipeline.push({
-        $unwind: {
-          path: '$services',
-          preserveNullAndEmptyArrays: true
-        }
-      });
-      pipeline.push({
-        $addFields: {
-          serviceTextScore: { $meta: 'textScore' }
-        }
-      });
-      pipeline.push({
-        $project: {
-          SalonName: 1,
-          OwnerName: 1,
-          address: 1,
-          BusinessType: 1,
-          Gender: 1,
-          workingDays: 1,
-          startTime: 1,
-          endTime: 1,
-          salonPhoneNumber: 1,
-          CoverImage: 1,
-          StorePhotos: 1,
-          Brochure: 1,
-          location: 1,
-          Reviews: 1,
-          Services: 1,
-          Artists: 1,
-          Instagram: 1,
-          Facebook: 1,
-          appointments: 1,
-          offers: 1,
-          serviceName: '$services.ServiceName',
-          combinedTextScore: {
-            $add: [
-              { $meta: 'textScore' },
-              '$serviceTextScore'
-            ]
-          }
-        }
-      });
-      pipeline.push({
-        $sort: {
-          combinedTextScore: -1
-        }
-      });
-    }
-
-    // Group back the services
-    pipeline.push({
-      $group: {
-        _id: '$_id',
-        SalonName: { $first: '$SalonName' },
-        OwnerName: { $first: '$OwnerName' },
-        address: { $first: '$address' },
-        BusinessType: { $first: '$BusinessType' },
-        Gender: { $first: '$Gender' },
-        workingDays: { $first: '$workingDays' },
-        startTime: { $first: '$startTime' },
-        endTime: { $first: '$endTime' },
-        salonPhoneNumber: { $first: '$salonPhoneNumber' },
-        CoverImage: { $first: '$CoverImage' },
-        StorePhotos: { $first: '$StorePhotos' },
-        Brochure: { $first: '$Brochure' },
-        location: { $first: '$location' },
-        Reviews: { $first: '$Reviews' },
-        Services: { $push: '$services' },
-        Artists: { $first: '$Artists' },
-        Instagram: { $first: '$Instagram' },
-        Facebook: { $first: '$Facebook' },
-        appointments: { $first: '$appointments' },
-        offers: { $first: '$offers' },
-        combinedTextScore: { $first: '$combinedTextScore' },
-        distance: { $first: '$distance' }
-      }
-    });
-
-    // Sort by distance if location is provided and no name is provided
-    if (locationArray && !name) {
-      pipeline.push({
-        $sort: {
-          distance: 1
-        }
-      });
-    }
-
-    const salons = await SalonModel.aggregate(pipeline);
-
-    return res.status(200).json({
-      success: true,
-      salons
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Error in fetching salons"
-    });
-  }
-};
-
 export {
   createSalon,
   getSalonById,
@@ -1056,6 +918,5 @@ export {
   getAllSalons,
   SalonsStats,
   AddStorePhotos,
-  deleteStorePhotos,
-  SearchSalon
+  deleteStorePhotos
 };
