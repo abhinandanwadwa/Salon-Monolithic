@@ -4,14 +4,13 @@ import generateToken from "../utils/generatetoken.js";
 import otpGenerator from "otp-generator";
 import bycrypt from "bcryptjs";
 import { UserDetail } from "otpless-node-js-auth-sdk";
-import SalonModel from "../Models/Salon.js";
-import ArtistModel from "../Models/Artist.js";
-import Service from "../Models/Service.js";
+import Service from "../Models/Services.js";
 import ServiceArtist from "../Models/ServiceArtist.js";
-import AppointmentModel from "../Models/Appointment.js";
+import ArtistModel from "../Models/Artist.js";
+import AppointmentModel from "../Models/Appointments.js";
 import ReviewModel from "../Models/review.js";
+import SalonModel from "../Models/Salon.js";
 import OfferModel from "../Models/Offer.js";
-
 
 // const verifyToken = async (req, res) => {
 //   try {
