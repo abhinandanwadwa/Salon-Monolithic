@@ -236,6 +236,16 @@ const createArtist = async (req, res) => {
       services,
     } = req.body
 
+    let workingdaylist;
+    try {
+      workingdaylist = JSON.parse(workingDays);
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid workingDays format",
+      });
+    }
+
     if (
       !ArtistName ||
       !PhoneNumber ||
@@ -300,7 +310,7 @@ const createArtist = async (req, res) => {
         ArtistName,
         PhoneNumber,
         ArtistType,
-        workingDays,
+        workingDays :workingdaylist,
         startTime,
         endTime,
         salon: salon._id,
@@ -341,7 +351,7 @@ const createArtist = async (req, res) => {
         ArtistName,
         PhoneNumber,
         ArtistType,
-        workingDays,
+        workingDays :workingdaylist,
         startTime,
         endTime,
         salon: salon._id,
@@ -386,7 +396,7 @@ const createArtist = async (req, res) => {
         ArtistName,
         PhoneNumber,
         ArtistType,
-        workingDays,
+        workingDays :workingdaylist,
         startTime,
         endTime,
         salon: salon._id,
