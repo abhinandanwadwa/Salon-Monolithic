@@ -19,7 +19,7 @@ const Services = new mongoose.Schema({
     },
     ServiceGender: {
         type: String,
-        enum: ['Male','Female','Unisex']
+        enum: ['Male','Female','Both']
     }
 });
 
