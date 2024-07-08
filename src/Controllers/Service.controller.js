@@ -92,7 +92,7 @@ const createServices = async (req, res) => {
           const serviceArtist = new ServiceArtist({
             Service: service._id,
             Artist: artist._id,
-            ServiceCost: service.ServiceCost,
+            Price: service.ServiceCost,
           });
           await serviceArtist.save();
         }
