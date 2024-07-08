@@ -113,8 +113,8 @@ const verifyToken = async (req, res) => {
 
     const userDetailUsingToken = await UserDetail.verifyToken(
       token,
-      process.env.CLIENT_ID,
-      process.env.CLIENT_SECRET
+      'XI43XR8TV3OD7VGKK08DJS3224D7J2BC',
+      'dz7dhmhbkbv329sqf90r6uovpztiz700'
     );
 
     const phoneNumber = userDetailUsingToken.national_phone_number;
