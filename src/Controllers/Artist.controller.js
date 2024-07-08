@@ -467,7 +467,7 @@ const updateArtist = async (req, res) => {
       });
     }
 
-    const { name, phoneNumber, workingDays, services } = req.body;
+    const { name, phoneNumber, workingDays, services,startTime , endTime } = req.body;
 
 
     let workingdaylist;
@@ -541,6 +541,8 @@ const updateArtist = async (req, res) => {
     artist.PhoneNumber = phoneNumber || artist.PhoneNumber;
     artist.workingDays = workingdaylist || artist.workingDays;
     artist.services = servicesArray || artist.services;
+    artist.startTime = startTime || artist.startTime;
+    artist.endTime = endTime || artist.endTime;
     artist.ArtistPhoto = artistPhotoUrl;
 
     await artist.save();
@@ -554,7 +556,7 @@ const updateArtist = async (req, res) => {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: "Error in updating artist",
+      message: "Error in updating artist" + error,
     });
   }
 };
