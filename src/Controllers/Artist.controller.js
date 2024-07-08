@@ -236,6 +236,9 @@ const createArtist = async (req, res) => {
       services,
     } = req.body
 
+    const startTimeString = startTime ? startTime.toString() : null;
+    const endTimeString = endTime ? endTime.toString() : null;
+
     let workingdaylist;
     try {
       workingdaylist = JSON.parse(workingDays);
@@ -311,8 +314,8 @@ const createArtist = async (req, res) => {
         PhoneNumber,
         ArtistType,
         workingDays :workingdaylist,
-        startTime,
-        endTime,
+        startTime: startTimeString,
+        endTime: endTimeString,
         salon: salon._id,
         ArtistPhoto: artistPhotoUrl,
         services: servicesArray
@@ -352,8 +355,8 @@ const createArtist = async (req, res) => {
         PhoneNumber,
         ArtistType,
         workingDays :workingdaylist,
-        startTime,
-        endTime,
+        startTime: startTimeString,
+        endTime: endTimeString,
         salon: salon._id,
         ArtistPhoto: artistPhotoUrl,
         services: servicesArray
@@ -397,8 +400,8 @@ const createArtist = async (req, res) => {
         PhoneNumber,
         ArtistType,
         workingDays :workingdaylist,
-        startTime,
-        endTime,
+        startTime : startTimeString,
+        endTime : endTimeString,
         salon: salon._id,
         ArtistPhoto: artistPhotoUrl,
         services: servicesArray
@@ -468,6 +471,9 @@ const updateArtist = async (req, res) => {
     }
 
     const { name, phoneNumber, workingDays, services,startTime , endTime } = req.body;
+
+    const startTimeString = startTime ? startTime.toString() : null;
+    const endTimeString = endTime ? endTime.toString() : null;
 
 
     let workingdaylist;
@@ -541,8 +547,8 @@ const updateArtist = async (req, res) => {
     artist.PhoneNumber = phoneNumber || artist.PhoneNumber;
     artist.workingDays = workingdaylist || artist.workingDays;
     artist.services = servicesArray || artist.services;
-    artist.startTime = startTime || artist.startTime;
-    artist.endTime = endTime || artist.endTime;
+    artist.startTime = startTimeString || artist.startTime;
+    artist.endTime = endTimeString || artist.endTime;
     artist.ArtistPhoto = artistPhotoUrl;
 
     await artist.save();
