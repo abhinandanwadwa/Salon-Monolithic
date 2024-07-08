@@ -111,7 +111,7 @@ const createServices = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ 
         success: false,
-        message: "Error in creating services"
+        message: "Error in creating services" + error ,
      });
   }
 };
@@ -161,7 +161,7 @@ const updateService = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ 
         success: false,
-        message: "Error in updating service"
+        message: "Error in updating service"+error,
      });
   }
 }
@@ -229,7 +229,7 @@ const getServices = async (req, res) => {
     console.error(error);
     return res.status(500).json({ 
         success: false,
-        message: "Error in fetching services"
+        message: "Error in fetching services" 
      });
   }
 };
