@@ -176,44 +176,58 @@ const updateService = async (req, res) => {
 
 
 const deleteService = async (req, res) => {
-    try {
-        const { serviceId } = req.params;
-        const service = await Service.findById(serviceId);
-        const artist = await ArtistModel.findOne({ services: serviceId });
-        const salon = await SalonModel.findOne({ services: serviceId });
-        const serviceArtist = await ServiceArtist.find({ Service: serviceId });
-        if (!service) {
-        return res.status(404).json({ 
-          success: false,
-          message: "Service not found" 
-        });
-        }
+  try {
+    const { serviceId } = req.params;
 
-        for (const service of serviceArtist) {
-          await service.deleteOne();
-        }
-
-        if(artist){
-          artist.services.pull(serviceId);
-          await artist.save();
-        }
-        if(salon){
-          salon.Services.pull(serviceId);
-          await salon.save();
-        }
-        await service.deleteOne();
-
-        return res.status(200).json({ 
-            success: true,
-            message: "Service deleted successfully" 
-        });
-    } catch (error) {
-        return res.status(500).json({ 
-            success: false,
-            message: "Error in deleting service"+error,
-         });
+    // Find the service by ID
+    const service = await Service.findById(serviceId);
+    if (!service) {
+      return res.status(404).json({
+        success: false,
+        message: "Service not found"
+      });
     }
+
+    // Find artist and salon that reference this service
+    const artists = await ArtistModel.find({ services: serviceId });
+    const salon = await SalonModel.findOne({ Services: serviceId });
+
+    // Find all service-artist relationships
+    const serviceArtist = await ServiceArtist.find({ Service: serviceId });
+
+    // Delete all service-artist relationships
+    for (const sa of serviceArtist) {
+      await sa.deleteOne();
     }
+
+    // Remove service reference from artist, if it exists
+    if (artists) {
+      for (const artist of artists) {
+        artist.services = artist.services.filter(id => id.toString() !== serviceId);
+        await artist.save();
+      }
+    }
+
+    // Remove service reference from salon, if it exists
+    if (salon) {
+      salon.Services = salon.Services.filter(id => id.toString() !== serviceId);
+      await salon.save();
+    }
+
+    // Delete the service
+    await service.deleteOne();
+
+    return res.status(200).json({
+      success: true,
+      message: "Service deleted successfully"
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in deleting service: " + error,
+    });
+  }
+};
 
 /**
  * @desc Get services
