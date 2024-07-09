@@ -140,13 +140,13 @@ const getTimeSlots = async (req, res) => {
 
         let slot = moment(dayStart);
         while (slot.isBefore(dayEnd)) {
-          if (slot.add(timeDuration, 'minutes').isBefore(dayEnd)) {
-            slots.push(slot.clone().format("YYYY-MM-DDTHH:mm:ss.SSS"));
-          }
+          slots.push(slot.clone().format("YYYY-MM-DDTHH:mm:ss.SSS"));
           slot.add(15, "minutes");
+          slot.add(15, "minutes")
         }
       }
     }
+
 
     // Filter out slots that conflict with existing appointments
     const conflictingSlots = artist.appointments.map((appointment) => ({
