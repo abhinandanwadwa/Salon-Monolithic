@@ -136,7 +136,7 @@ const getTimeSlots = async (req, res) => {
           minute: endTime24.split(":")[1],
           second: 0,
           millisecond: 0,
-        });
+        }).subtract(timeDuration, "minutes");
 
         let slot = moment(dayStart);
         while (slot.isBefore(dayEnd)) {
@@ -158,6 +158,9 @@ const getTimeSlots = async (req, res) => {
         slotMoment.isBetween(conflict.start, conflict.end, null, "[)")
       );
     });
+
+    // remove the time duration from the end of the day
+
 
     // Return the available slots
     return res.status(200).json({
