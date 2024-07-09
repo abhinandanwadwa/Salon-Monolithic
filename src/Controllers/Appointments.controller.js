@@ -136,9 +136,7 @@ const getTimeSlots = async (req, res) => {
           minute: endTime24.split(":")[1],
           second: 0,
           millisecond: 0,
-        });
-
-        const adjustedEnd = dayEnd.clone().subtract(timeDuration, 'minutes'); // Adjust end time by subtracting the duration
+        }).subtract(timeDuration, "minutes");
 
         let slot = moment(dayStart);
         while (slot.isBefore(dayEnd)) {
@@ -149,7 +147,6 @@ const getTimeSlots = async (req, res) => {
         }
       }
     }
-
 
     // Filter out slots that conflict with existing appointments
     const conflictingSlots = artist.appointments.map((appointment) => ({
