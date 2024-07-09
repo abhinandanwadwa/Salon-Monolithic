@@ -142,7 +142,6 @@ const getTimeSlots = async (req, res) => {
         while (slot.isBefore(dayEnd)) {
           slots.push(slot.clone().format("YYYY-MM-DDTHH:mm:ss.SSS"));
           slot.add(15, "minutes");
-          slot.add(15, "minutes")
         }
       }
     }
