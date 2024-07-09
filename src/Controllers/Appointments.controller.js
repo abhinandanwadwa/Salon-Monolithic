@@ -136,15 +136,20 @@ const getTimeSlots = async (req, res) => {
           minute: endTime24.split(":")[1],
           second: 0,
           millisecond: 0,
-        }).subtract(timeDuration, "minutes");
+        });
+
+        const adjustedEnd = dayEnd.clone().subtract(timeDuration, 'minutes'); // Adjust end time by subtracting the duration
 
         let slot = moment(dayStart);
         while (slot.isBefore(dayEnd)) {
-          slots.push(slot.clone().format("YYYY-MM-DDTHH:mm:ss.SSS"));
+          if (slot.add(timeDuration, 'minutes').isBefore(dayEnd)) {
+            slots.push(slot.clone().format("YYYY-MM-DDTHH:mm:ss.SSS"));
+          }
           slot.add(15, "minutes");
         }
       }
     }
+
 
     // Filter out slots that conflict with existing appointments
     const conflictingSlots = artist.appointments.map((appointment) => ({
