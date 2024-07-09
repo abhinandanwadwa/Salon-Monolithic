@@ -33,6 +33,7 @@ const createSalon = async (req, res) => {
       workingDays,
       startTime,
       endTime,
+      coordinates
     } = req.body;
 
     
@@ -45,6 +46,16 @@ const createSalon = async (req, res) => {
         message: "Invalid workingDays format",
       });
     }
+
+  let coordinate;
+  try{
+    coordinate = JSON.parse(coordinates);
+  }catch(error){
+    return res.status(400).json({
+      success: false,
+      message: "Invalid coordinates format",
+    });
+  }
 
 
     // Get authenticated user's ID
@@ -78,13 +89,16 @@ const createSalon = async (req, res) => {
     };
 
 
-  
-  
+    
+    
       const options = {
         provider: "google",
         apiKey: process.env.GOOGLE_MAPS_API_KEY,
       };
 
+    let locationDetails;
+
+     if(!coordinate){ 
       const geocoder = NodeGeocoder(options);
       const mergedAddress = `${Address1} ${Address2}`;
       const response = await geocoder.geocode(
@@ -98,12 +112,16 @@ const createSalon = async (req, res) => {
         });
       }
 
-      const locationDetails = {
+      locationDetails = {
         type: "Point",
         coordinates: [response[0].latitude, response[0].longitude],
       };
-
-      
+    }else{
+      locationDetails = {
+        type: "Point",
+        coordinates: [coordinate[0], coordinate[1]],
+      };
+    }  
     const CoverImage = req.file ? req.file.location : null;
 
 
@@ -190,6 +208,29 @@ const UpdateSalon = async (req, res) => {
         success: false,
         message: "Salon not found",
       });
+    }
+
+    if(endTime || startTime){
+      if(new Date(endTime) < new Date(startTime)){
+        return res.status(400).json({
+          success: false,
+          message: "End time should be greater than start time",
+        });
+      }
+      
+      const artists = await ArtistModel.find({salon: salon._id});
+     // if any artists start and end time is not in between the new start and end time then make it a subset 
+
+      for(let i=0;i<artists.length;i++){
+        if(new Date(artists[i].startTime) < new Date(startTime) || new Date(artists[i].endTime) > new Date(endTime)){
+          return res.status(400).json({
+            success: false,
+            message: "Artist start and end time should be in between salon start and end time",
+          });
+        }
+      }
+
+
     }
 
     salon.SalonName = SalonName || salon.SalonName;
@@ -329,6 +370,7 @@ const getOwnerSalon = async (req, res) => {
           populate: { 
             path: "appointments",
             path: "reviews", 
+            
           } 
         })
         .populate("appointments")
