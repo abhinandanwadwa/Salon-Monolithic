@@ -181,6 +181,7 @@ const deleteService = async (req, res) => {
         const service = await Service.findById(serviceId);
         const artist = await ArtistModel.findOne({ services: serviceId });
         const salon = await SalonModel.findOne({ services: serviceId });
+        const serviceArtist = await ServiceArtist.find({ Service: serviceId });
         if (!service) {
         return res.status(404).json({ 
           success: false,
@@ -188,7 +189,10 @@ const deleteService = async (req, res) => {
         });
         }
 
-        
+        for (const service of serviceArtist) {
+          await service.deleteOne();
+        }
+
         if(artist){
           artist.services.pull(serviceId);
           await artist.save();
@@ -197,7 +201,6 @@ const deleteService = async (req, res) => {
           salon.Services.pull(serviceId);
           await salon.save();
         }
-
         await service.deleteOne();
 
         return res.status(200).json({ 
@@ -254,6 +257,20 @@ const deleteCategory = async (req, res) => {
       await service.deleteOne();
     }
 
+
+    const Artists = await ArtistModel.find({ services: { $in: servicesIds } });
+
+    for (const artist of Artists) {
+      artist.services.pull(...servicesIds);
+      await artist.save();
+    }
+
+    const salon = await SalonModel.findOne({ services: { $in: servicesIds } });
+
+    if(salon){
+      salon.Services.pull(...servicesIds);
+      await salon.save();
+    }
 
     for (const service of services) {
       await service.deleteOne();

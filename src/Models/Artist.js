@@ -14,6 +14,9 @@ const Artist = new mongoose.Schema({
         type: Number,
         required: true
     },
+    ArtistGender: {
+        type: String,
+    },
     ArtistType : {
         type: String,
         required: true

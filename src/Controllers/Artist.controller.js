@@ -31,12 +31,7 @@ const CreateArtistWithAllServices = async (req, res) => {
     const services = await Service.find({ salon: salon._id });
 
 
-    if (!services.length) {
-      return res.status(404).json({
-        success: false,
-        message: "No services found",
-      });
-    }
+    
     if (!Array.isArray(artistData)) {
       return res.status(400).json({
         success: false,
@@ -54,6 +49,7 @@ const CreateArtistWithAllServices = async (req, res) => {
         workingDays,
         startTime,
         endTime,
+        gender
       } = artistData[i];
 
 
@@ -90,6 +86,7 @@ const CreateArtistWithAllServices = async (req, res) => {
           workingDays,
           startTime,
           endTime,
+          ArtistGender: gender,
           salon: salon._id,
           services,
         });
@@ -122,6 +119,7 @@ const CreateArtistWithAllServices = async (req, res) => {
           ArtistType,
           workingDays,
           startTime,
+          ArtistGender: gender,
           endTime,
           salon: salon._id,
           services,
@@ -150,6 +148,7 @@ const CreateArtistWithAllServices = async (req, res) => {
           phoneNumber: PhoneNumber,
           role: "Artist",
           name: ArtistName,
+          gender: gender,
         });
         await user.save();
 
@@ -175,6 +174,7 @@ const CreateArtistWithAllServices = async (req, res) => {
           workingDays,
           startTime,
           endTime,
+          ArtistGender: gender,
           salon: salon._id,
           services,
         });
@@ -234,6 +234,7 @@ const createArtist = async (req, res) => {
       startTime,
       endTime,
       services,
+      gender
     } = req.body
 
     const startTimeString = startTime ? startTime.toString() : null;
@@ -263,8 +264,9 @@ const createArtist = async (req, res) => {
       });
     }
 
-    const userId = req.user._id;
-    let servicesArray;
+
+      const userId = req.user._id;
+      let servicesArray;
     if (typeof services === 'string') {
       try {
         servicesArray = JSON.parse(services);
@@ -317,6 +319,7 @@ const createArtist = async (req, res) => {
         startTime: startTimeString,
         endTime: endTimeString,
         salon: salon._id,
+        ArtistGender: gender,
         ArtistPhoto: artistPhotoUrl,
         services: servicesArray
       });
@@ -358,6 +361,7 @@ const createArtist = async (req, res) => {
         startTime: startTimeString,
         endTime: endTimeString,
         salon: salon._id,
+        ArtistGender: gender,
         ArtistPhoto: artistPhotoUrl,
         services: servicesArray
       });
@@ -391,6 +395,7 @@ const createArtist = async (req, res) => {
         phoneNumber: PhoneNumber,
         role: "Artist",
         name: ArtistName,
+        gender: gender,
       });
       await user.save();
 
@@ -403,6 +408,7 @@ const createArtist = async (req, res) => {
         startTime : startTimeString,
         endTime : endTimeString,
         salon: salon._id,
+        ArtistGender: gender,
         ArtistPhoto: artistPhotoUrl,
         services: servicesArray
       });
@@ -470,7 +476,7 @@ const updateArtist = async (req, res) => {
       });
     }
 
-    const { name, phoneNumber, workingDays, services,startTime , endTime } = req.body;
+    const { name, phoneNumber, workingDays, services,startTime , endTime,gender } = req.body;
 
     const startTimeString = startTime ? startTime.toString() : null;
     const endTimeString = endTime ? endTime.toString() : null;
@@ -549,6 +555,7 @@ const updateArtist = async (req, res) => {
     artist.services = servicesArray || artist.services;
     artist.startTime = startTimeString || artist.startTime;
     artist.endTime = endTimeString || artist.endTime;
+    artist.ArtistGender = gender || artist.ArtistGender;
     artist.ArtistPhoto = artistPhotoUrl;
 
     await artist.save();
