@@ -551,24 +551,48 @@ const searchSalons = async (req, res) => {
 const searchSalonss = async(req,res) => {
   try {
     const { salonName , location} = req.body;
-
+    console.log(req.body)
 
     if(location && salonName || location){
-      //location has lat and long
+    
 
-      const salons = await SalonModel.find({
-        location: {
-          $near: {
-            $geometry: {
-              type: "Point",
-              coordinates: [location.latitude, location.longitude],
-            },
-            $maxDistance: 200000, // 100 km,
+      const locations = {
+        type: "Point",
+        coordinates: [location.latitude, location.longitude], // Corrected order: [longitude, latitude]
+      };
+
+      //location has lat and long
+     
+      const aggregationPipeline = [
+        {
+          $geoNear: {
+            near: locations,
             distanceField: "distance",
+            maxDistance: 200000, // 200 kilometers
             spherical: true,
           },
         },
-      });
+        {
+          $lookup: {
+            from: "offers",
+            localField: "_id",
+            foreignField: "salon",
+            as: "offers",
+          },
+        },
+        {
+          $lookup: {
+            from: "reviews",
+            localField: "_id",
+            foreignField: "salon",
+            as: "reviews",
+          },
+        },
+      ];
+
+      const salons = await SalonModel.aggregate(aggregationPipeline);
+
+      
 
       return res.status(200).json({
         success: true,
@@ -577,15 +601,37 @@ const searchSalonss = async(req,res) => {
       });
     }
 
-    if(salonName){
-      //text index search on salon name or a service name
-      const salons = await SalonModel.find({$text: {$search: salonName}});
+
+    if (salonName) {
+
+      // Perform text search
+      const textSearchResults = await SalonModel.find(
+        { $text: { $search: salonName } },
+        { score: { $meta: "textScore" } }
+      ).sort({ score: { $meta: "textScore" } }).populate("offers").populate("Reviews");
+
+      // Perform regex search
+      const regexSearchResults = await SalonModel.find({
+        SalonName: new RegExp(salonName, 'i')
+      }).populate("offers").populate("Reviews");
+
+      // Merge results, ensuring no duplicates
+      const mergedResults = [...textSearchResults, ...regexSearchResults].reduce((acc, current) => {
+        const x = acc.find(item => item._id.equals(current._id));
+        if (!x) {
+          return acc.concat([current]);
+        } else {
+          return acc;
+        }
+      }, []);
+
       return res.status(200).json({
         success: true,
-        data: salons,
+        data: mergedResults,
         message: "Salons found",
       });
     }
+
 
     return res.status(400).json({
       success: false,
@@ -593,6 +639,7 @@ const searchSalonss = async(req,res) => {
     });
 
   } catch (error) {
+    console.error(error);
     return res.status(500).json({
       success: false,
       message: "Error in fetching salons",
@@ -1098,5 +1145,6 @@ export {
   AddStorePhotos,
   deleteStorePhotos,
   deleteBrochure,
-  deleteCoverPhoto
+  deleteCoverPhoto,
+  searchSalonss
 };
