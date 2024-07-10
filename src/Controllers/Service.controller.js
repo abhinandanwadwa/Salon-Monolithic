@@ -198,11 +198,13 @@ const deleteService = async (req, res) => {
 
     const appointments = await AppointmentModel.find({ Service: serviceId });
 
-    if(appointments){
-      return res.status(400).json({
-        success: false,
-        message: "Service is in use"
-      });
+    for (const appointment of appointments) {
+      if(appointment.Status === 'Booked'){
+        return res.status(400).json({
+          success: false,
+          message: "Service is in use"
+        });
+      }
     }
 
 
@@ -278,13 +280,14 @@ const deleteCategory = async (req, res) => {
 
     const appointments = await AppointmentModel.find({ Service: { $in: servicesIds } });
 
-    if(appointments){
-      return res.status(400).json({
-        success: false,
-        message: "Category-service is in use"
-      });
+    for (const appointment of appointments) {
+      if(appointment.Status === 'Booked'){
+        return res.status(400).json({
+          success: false,
+          message: "Category-service is in use"
+        });
+      }
     }
-
     const serviceArtist = await ServiceArtist.find({ Service: { $in: servicesIds } });
 
     for (const service of serviceArtist) {
