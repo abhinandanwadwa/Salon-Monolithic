@@ -6,7 +6,7 @@ import express from "express";
 const Salonrouter = express.Router();
 
 Salonrouter.post("/create-salon",verify,roleAuthorization(['Owner']), upload.single("CoverImage"),createSalon);
-Salonrouter.post("/upload-brochure",verify,roleAuthorization(['Owner']),upload.array("Brochure"),uploadBrochure);
+Salonrouter.post("/upload-brochure",verify,roleAuthorization(['Owner']),upload.array("brochurePhotos"),uploadBrochure);
 Salonrouter.get("/get-owner-salon",verify,roleAuthorization(['Owner','subAdmin']),getOwnerSalon);
 Salonrouter.post("/search-salons", searchSalons);
 Salonrouter.get("/getSalon/:id", getSalonById);
