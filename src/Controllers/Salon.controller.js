@@ -548,6 +548,58 @@ const searchSalons = async (req, res) => {
   }
 };
 
+const searchSalonss = async(req,res) => {
+  try {
+    const { salonName , location} = req.body;
+
+
+    if(location && salonName || location){
+      //location has lat and long
+
+      const salons = await SalonModel.find({
+        location: {
+          $near: {
+            $geometry: {
+              type: "Point",
+              coordinates: [location.latitude, location.longitude],
+            },
+            $maxDistance: 200000, // 100 km,
+            distanceField: "distance",
+            spherical: true,
+          },
+        },
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: salons,
+        message: "Salons found",
+      });
+    }
+
+    if(salonName){
+      //text index search on salon name or a service name
+      const salons = await SalonModel.find({$text: {$search: salonName}});
+      return res.status(200).json({
+        success: true,
+        data: salons,
+        message: "Salons found",
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: "Invalid search criteria",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching salons",
+    });
+  }
+}
+
 /**
  * @desc Upload salon brochure
  * @method POST
@@ -840,7 +892,7 @@ const deleteBrochure = async (req, res) => {
     if (!brochure || brochure.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "No brochures were deleted",
+        message: "No brochures were deleted" + brochure,
       });
     }
 

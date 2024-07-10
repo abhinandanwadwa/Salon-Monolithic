@@ -123,6 +123,8 @@ const Salon = new mongoose.Schema({
 });
 
 
+//text index for search on salon name
+Salon.index({ SalonName: 'text' });
 
 Salon.index({ location: '2dsphere' });
 
