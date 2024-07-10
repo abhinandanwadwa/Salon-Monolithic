@@ -2,6 +2,7 @@ import Service from "../Models/Services.js";
 import SalonModel from "../Models/Salon.js";
 import ArtistModel from "../Models/Artist.js";
 import ServiceArtist from "../Models/ServiceArtist.js";
+import AppointmentModel from "../Models/Appointments.js";
 
 /**
  * @desc Create services
@@ -195,6 +196,16 @@ const deleteService = async (req, res) => {
     // Find all service-artist relationships
     const serviceArtist = await ServiceArtist.find({ Service: serviceId });
 
+    const appointments = await AppointmentModel.find({ Service: serviceId });
+
+    if(appointments){
+      return res.status(400).json({
+        success: false,
+        message: "Service is in use"
+      });
+    }
+
+
     // Delete all service-artist relationships
     for (const sa of serviceArtist) {
       await sa.deleteOne();
@@ -264,6 +275,15 @@ const deleteCategory = async (req, res) => {
     }
 
     const servicesIds = services.map((service) => service._id);
+
+    const appointments = await AppointmentModel.find({ Service: { $in: servicesIds } });
+
+    if(appointments){
+      return res.status(400).json({
+        success: false,
+        message: "Category-service is in use"
+      });
+    }
 
     const serviceArtist = await ServiceArtist.find({ Service: { $in: servicesIds } });
 
