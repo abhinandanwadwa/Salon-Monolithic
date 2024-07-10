@@ -685,11 +685,13 @@ const ChangeRole = async (req, res) => {
 
       await user.save();
 
-      return res.status(200).json({
-        success: true,
-        message: "Role changed successfully",
-      });
+     
     }
+
+    return res.status(200).json({
+      success: true,
+      message: "Role changed successfully",
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
