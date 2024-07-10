@@ -558,16 +558,21 @@ const searchSalons = async (req, res) => {
 
 const uploadBrochure = async (req, res) => {
   try {
-    if (!req.file) {
+    
+    const user = req.user._id;
+
+    const brochurePhotos = req.files;
+
+    // Ensure the array is not empty
+    if (!brochurePhotos || brochurePhotos.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "No file uploaded",
+        message: "No photos were uploaded",
       });
     }
 
-    const brochureUrl = req.file.location;
-    const user = req.user._id;
     const salon = await SalonModel.findOne({ userId: user });
+
     if (!salon) {
       return res.status(404).json({
         success: false,
@@ -575,7 +580,10 @@ const uploadBrochure = async (req, res) => {
       });
     }
 
-    salon.Brochure = brochureUrl || salon.Brochure || null;
+    brochurePhotos.forEach(file => {
+      salon.Brochure.push(file.location); // or file.filename depending on how you want to store the reference
+    });
+
     await salon.save();
     return res.status(200).json({
       success: true,
@@ -787,6 +795,77 @@ const deleteStorePhotos = async (req, res) => {
 }
 
 
+const deleteCoverPhoto = async (req, res) => {
+  try {
+    const user = req.user._id;
+    const salon = await SalonModel.findOne({ userId: user });
+
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    salon.CoverImage = null;
+    await salon.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Cover photo deleted successfully",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in deleting cover photo",
+    });
+  }
+}
+
+const deleteBrochure = async (req, res) => {
+  try {
+    const user = req.user._id;
+    const salon = await SalonModel.findOne({ userId: user });
+     
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    const brochure = req.body.brochures;
+
+    if (!brochure || brochure.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No brochures were deleted",
+      });
+    }
+
+    brochure.forEach(brochure => {
+      salon.Brochure = salon.Brochure.filter((brochures) => brochures !== brochure);
+    });
+
+    await salon.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Brochures deleted successfully",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in deleting brochures",
+    });
+  }
+}
+
+    
+    
+
 const getSalonsAppointments = async (req, res) => {
   try {
     const id = req.user._id;
@@ -965,5 +1044,7 @@ export {
   getAllSalons,
   SalonsStats,
   AddStorePhotos,
-  deleteStorePhotos
+  deleteStorePhotos,
+  deleteBrochure,
+  deleteCoverPhoto
 };

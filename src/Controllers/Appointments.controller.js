@@ -234,6 +234,20 @@ const createAppointmentByOwner = async (req, res) => {
       await newCustomer.save();
     }
 
+    if(user.role == "Artist" || user.role == "Owner" || user.role == "subAdmin"){
+      const customer = await CustomerModel.findOne({ userId: user });
+      if(!customer){
+        const newCustomer = new CustomerModel({
+          userId: user,
+          name,
+          phoneNumber,
+          gender,
+        });
+
+        await newCustomer.save();
+      }
+    }
+
     if (!artist) {
       return res.status(404).json({
         success: false,

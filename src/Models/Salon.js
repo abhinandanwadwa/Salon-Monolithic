@@ -71,7 +71,7 @@ const Salon = new mongoose.Schema({
         type: [String],
     },
     Brochure : {
-        type: String,
+        type: [String],
     },
     location : {
         type: {

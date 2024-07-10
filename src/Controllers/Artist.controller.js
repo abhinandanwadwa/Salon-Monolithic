@@ -906,6 +906,35 @@ const GetArtistService = async (req, res) => {
   }
 };
 
+const deleteArtistPhoto = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const {artistId} = req.params;
+    const artist = await ArtistModel.findById(artistId);
+    if (!artist) {
+      return res.status(404).json({
+        success: false,
+        message: "Artist not found",
+      });
+    }
+
+    artist.ArtistPhoto = null;
+    await artist.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Artist photo deleted successfully",
+    });
+  }
+  catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in deleting artist photo",
+    });
+  }
+};
+
 export {
   createArtist,
   getArtistsBySalon,
@@ -915,4 +944,5 @@ export {
   deleteArtist,
   updateArtistServicePrice,
   getArtistData,
+  deleteArtistPhoto
 };
