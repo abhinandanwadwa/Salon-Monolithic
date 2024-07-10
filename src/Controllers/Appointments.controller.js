@@ -144,15 +144,7 @@ const getTimeSlots = async (req, res) => {
           slot.add(15, "minutes");
         }
         //add a extra slot at the end of day
-        const lastSlot = moment(dayEnd);
-        if (lastSlot.isBefore(moment(m).set({
-          hour: endTime24.split(":")[0],
-          minute: endTime24.split(":")[1],
-          second: 0,
-          millisecond: 0,
-        }))) {
-          slots.push(lastSlot.format("YYYY-MM-DDTHH:mm:ss.SSS"));
-        }
+        
       }
     }
 
