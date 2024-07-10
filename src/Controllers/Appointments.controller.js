@@ -219,9 +219,9 @@ const createAppointmentByOwner = async (req, res) => {
       salon = await SalonModel.findOne({ Artists: artist._id });
     }
 
-    const user = await UserModel.findOne({ phoneNumber });
+    const ExistUser = await UserModel.findOne({ phoneNumber });
 
-    if (!user) {
+    if (!ExistUser) {
       const newUser = new UserModel({ name, phoneNumber, role: "Customer" });
       await newUser.save();
 
@@ -233,6 +233,8 @@ const createAppointmentByOwner = async (req, res) => {
       });
       await newCustomer.save();
     }
+
+    const user = await UserModel.findOne({ phoneNumber });
 
     if(user.role == "Artist" || user.role == "Owner" || user.role == "subAdmin"){
       const customer = await CustomerModel.findOne({ userId: user });
