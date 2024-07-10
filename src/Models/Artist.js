@@ -8,11 +8,13 @@ const Artist = new mongoose.Schema({
     },
     ArtistName : {
         type: String,
-        required: true
+        required: true,
+    
     },
     PhoneNumber : {
         type: Number,
-        required: true
+        required: true,
+        unique: true
     },
     ArtistGender: {
         type: String,
