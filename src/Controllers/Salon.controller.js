@@ -160,10 +160,10 @@ const createSalon = async (req, res) => {
 
     const salt = await bycrypt.genSalt(10);
     user.password = await bycrypt.hash(password, salt);
+    await salon.save();
 
     user.isSalon = true;
     await user.save();
-    await salon.save();
 
     return res.status(201).json({
       success: true,

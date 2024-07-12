@@ -5,6 +5,8 @@ import Service from "../Models/Services.js";
 import ServiceArtist from "../Models/ServiceArtist.js";
 import AppointmentModel from "../Models/Appointments.js";
 import mongoose from "mongoose";
+
+
 /**
  * @desc Create an artist with all services
  * @method POST
@@ -19,7 +21,6 @@ const CreateArtistWithAllServices = async (req, res) => {
     const { artistData } = req.body;
     const { _id: userId } = req.user;
     const salon = await SalonModel.findOne({ userId: userId });
-    console.log(artistData);
 
     if (!salon) {
       return res.status(404).json({
@@ -38,6 +39,18 @@ const CreateArtistWithAllServices = async (req, res) => {
         message: "Artists data should be an array of objects",
       });
     }
+
+
+    for(let i = 0; i < artistData.length; i++) { 
+      const { PhoneNumber } = artistData[i];
+      const Artist = await ArtistModel.findOne({PhoneNumber});
+      if(Artist) {
+        return res.status(400).json({
+          success: false,
+          message: "Artist already exists with this phone number: " + PhoneNumber,
+        });
+      }
+    } 
 
     const createdArtists = [];
 
