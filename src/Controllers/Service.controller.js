@@ -117,6 +117,77 @@ const createServices = async (req, res) => {
   }
 };
 
+
+const createService = async (req, res) => {
+  try {
+    const {ServiceName,
+        ServiceType,
+        ServiceCost,
+        ServiceTime,
+        ServiceGender,
+    } = req.body;
+
+    const user = req.user._id;
+
+    let salon = await SalonModel.findOne({ userId: user });
+
+    if(req.user.role === 'subAdmin'){
+      const artist = await ArtistModel.findOne({ userId: user });
+      salon = await SalonModel.findOne({ Artists: artist._id });
+    }
+
+    if (!salon) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Salon not found" 
+      });
+    }
+
+    const service = new Service({
+      ServiceName,
+      ServiceType,
+      salon : salon._id,
+      ServiceCost,
+      ServiceTime,
+      ServiceGender,
+    });
+
+    await service.save();
+
+    salon.Services.push(service);
+
+    await salon.save();
+
+    const artists = await ArtistModel.find({ salon: salon._id });
+
+    if(artists){
+      for (const artist of artists) {
+        const serviceArtist = new ServiceArtist({
+          Service: service._id,
+          Artist: artist._id,
+          Price: service.ServiceCost,
+        });
+        await serviceArtist.save();
+        artist.services.push(service);
+        await artist.save();
+      }
+    }
+
+    return res.status(201).json({ 
+        success: true,
+        data: service 
+    });
+
+  } catch (error) {
+
+    return res.status(500).json({ 
+        success: false,
+        message: "Error in creating service" + error,
+     });
+
+  }
+}
+
 /**
  * @desc Update services
  * @method PUT
@@ -331,4 +402,4 @@ const deleteCategory = async (req, res) => {
     
 
 
-export { createServices, getServices ,updateService,deleteService ,deleteCategory};
+export { createServices, getServices ,updateService,deleteService ,deleteCategory,createService};
