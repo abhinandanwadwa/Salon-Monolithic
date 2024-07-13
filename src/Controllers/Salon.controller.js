@@ -984,11 +984,12 @@ const getSalonsAppointments = async (req, res) => {
           },
           {
             path: "artist",
-            populate:{
-              path:"reviews"
-            },
             select: "ArtistName PhoneNumber _id workingDays startTime endTime reviews",
           },
+          {
+            path: "Review",
+            select: "Review Rating",  
+          }
         ],
       });
       // If salon not found or no appointments
@@ -1018,11 +1019,12 @@ const getSalonsAppointments = async (req, res) => {
           },
           {
             path: "artist",
-            populate:{
-              path:"reviews"
-            },
             select: "ArtistName PhoneNumber _id workingDays startTime endTime reviews",
           },
+          {
+            path: "Review",
+            select: "Review Rating",  
+          }
         ],
       });
       // If salon not found or no appointments
