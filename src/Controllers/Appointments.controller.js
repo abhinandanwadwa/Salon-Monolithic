@@ -475,6 +475,8 @@ const rescheduleAppointment = async (req, res) => {
       const TIME = moment(appointmentStartTime).format("hh:mm A");
       const date = moment(appointmentDate).format("DD-MM-YYYY");
 
+      sendtokens = [...new Set(sendtokens)];
+
       if(sendtokens.length > 0){
 
       const message = {
@@ -590,6 +592,9 @@ const cancelAppointment = async (req, res) => {
     const TIME = moment(appointment.appointmentStartTime).format("hh:mm A");
     const date = moment(appointment.appointmentDate).format("DD-MM-YYYY");
 
+    sendtokens = [...new Set(sendtokens)];
+
+
         if(sendtokens.length > 0){
 
         const message = {
@@ -645,6 +650,9 @@ const cancelAppointment = async (req, res) => {
 
     const TIME = moment(appointment.appointmentStartTime).format("hh:mm A");
     const date = moment(appointment.appointmentDate).format("DD-MM-YYYY");
+
+    sendtokens = [...new Set(sendtokens)];
+
 
     if(sendtokens.length > 0){
 
@@ -763,6 +771,9 @@ const CreateAppointment = async (req, res) => {
     }
 
     const TIME = moment(appointmentStartTime).format("hh:mm A");
+
+    sendtokens = [...new Set(sendtokens)];
+
 
     if(sendtokens.length > 0){
 
