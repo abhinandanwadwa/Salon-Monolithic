@@ -163,6 +163,7 @@ const verifyToken = async (req, res) => {
       if (user.role === "Artist" && role === "Owner") {
 
         user.token = FcmTokenDetails;
+        await user.save();
         generateToken(res, user);
         return res.status(201).json({
           success: true,
@@ -200,7 +201,7 @@ const verifyToken = async (req, res) => {
 
       if (user.role === "Owner" && role === "Owner") {
         user.token = FcmTokenDetails;
-
+        await user.save();
         generateToken(res, user);
         return res.status(201).json({
           success: true,
@@ -247,7 +248,7 @@ const verifyToken = async (req, res) => {
         }
 
         user.token = FcmTokenDetails;
-
+        await user.save();
         generateToken(res, user);
         return res.status(201).json({
           success: true,
