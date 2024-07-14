@@ -566,22 +566,30 @@ const cancelAppointment = async (req, res) => {
 
     await appointment.save();
 
-    let tokens = [];
+  
+    let token = [];
 
-    if(ArtistUser.fcmToken){
-      tokens.push(ArtistUser.fcmToken);
+    if(ArtistUser.token){
+      token.push(ArtistUser.token);
     }
-    if(SalonOwner.fcmToken){
-      tokens.push(SalonOwner.fcmToken);
+    if(SalonOwner.token){
+      token.push(SalonOwner.token);
     }
 
-    messaging.send({
+    const TimeAMPM = moment(appointment.appointmentStartTime).format("hh:mm A");
+
+    const message = {
       notification: {
         title: "Appointment Cancelled",
-        body: `Your appointment on ${appointment.appointmentDate} at ${appointment.appointmentStartTime} has been cancelled`,
+        body: `Your appointment on ${appointment.appointmentDate} at ${TimeAMPM} has been cancelled`,
       },
-      token: tokens,
-    });
+      tokens: token,
+    };
+
+    if(token.length > 0){
+    messaging.sendMulticast(message);
+    }
+
     
 
     return res.status(200).json({
@@ -685,17 +693,21 @@ const CreateAppointment = async (req, res) => {
       sendtokens.push(SalonOwner.token);
     }
 
+    const TIME = moment(appointmentStartTime).format("hh:mm A");
+
+    if(sendtokens.length > 0){
 
     const message = {
       notification: {
         title: "New Appointment",
-        body: `You have a new appointment on ${appointmentDate} at ${appointmentStartTime}`,
+        body: `You have a new appointment on ${appointmentDate} at ${TIME}`,
       },
       tokens: sendtokens,
     };
 
     messaging.sendMulticast(message)
     
+  }
     
 
     await appointment.save();
