@@ -678,11 +678,11 @@ const CreateAppointment = async (req, res) => {
 
     let sendtokens = [];
 
-    if(ArtistUser.fcmToken){
-      sendtokens.push(ArtistUser.fcmToken);
+    if(ArtistUser.token){
+      sendtokens.push(ArtistUser.token);
     }
-    if(SalonOwner.fcmToken){
-      sendtokens.push(SalonOwner.fcmToken);
+    if(SalonOwner.token){
+      sendtokens.push(SalonOwner.token);
     }
 
 
