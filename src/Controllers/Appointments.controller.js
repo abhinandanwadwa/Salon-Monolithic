@@ -538,6 +538,32 @@ const cancelAppointment = async (req, res) => {
 
       await appointment.save();
 
+      let sendtokens = [];
+
+    if(ArtistUser.token){
+      sendtokens.push(ArtistUser.token);
+    }
+    if(SalonOwner.token){
+      sendtokens.push(SalonOwner.token);
+    }
+
+    const TIME = moment(appointment.appointmentStartTime).format("hh:mm A");
+
+        if(sendtokens.length > 0){
+
+        const message = {
+          notification: {
+            title: "New Appointment",
+            body: `You have a new appointment on ${appointment.appointmentDate} at ${TIME}`,
+          },
+          tokens: sendtokens,
+        };
+
+        messaging.sendEachForMulticast(message)
+        
+      }
+
+
       return res.status(200).json({
         success: true,
         message: "Appointment cancelled successfully",
