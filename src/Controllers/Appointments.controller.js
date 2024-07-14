@@ -567,30 +567,30 @@ const cancelAppointment = async (req, res) => {
     await appointment.save();
 
   
-    let token = [];
+    let sendtokens = [];
 
     if(ArtistUser.token){
-      token.push(ArtistUser.token);
+      sendtokens.push(ArtistUser.token);
     }
     if(SalonOwner.token){
-      token.push(SalonOwner.token);
+      sendtokens.push(SalonOwner.token);
     }
 
-    const TimeAMPM = moment(appointment.appointmentStartTime).format("hh:mm A");
+    const TIME = moment(appointmentStartTime).format("hh:mm A");
+
+    if(sendtokens.length > 0){
 
     const message = {
       notification: {
-        title: "Appointment Cancelled",
-        body: `Your appointment on ${appointment.appointmentDate} at ${TimeAMPM} has been cancelled`,
+        title: "New Appointment",
+        body: `You have a new appointment on ${appointmentDate} at ${TIME}`,
       },
-      tokens: token,
+      tokens: sendtokens,
     };
 
-    if(token.length > 0){
-    messaging.sendMulticast(message);
-    }
-
+    messaging.sendEachForMulticast(message)
     
+  }
 
     return res.status(200).json({
       success: true,
@@ -615,13 +615,14 @@ const CreateAppointment = async (req, res) => {
       cost,
       offer,
     } = req.body;
+
+
     const userId = req.user._id;
     const customer = await CustomerModel.findOne({ userId: userId });
     const artist = await ArtistModel.findById(artistId);
     const ArtistUser = await UserModel.findById(artist.userId);
     const salon = await SalonModel.findOne({ Artists: artistId });
     const SalonOwner = await UserModel.findById(salon.userId);
-
     const offerId = await OfferModel.findOne({ OfferName: offer });
 
     //appointment start time is in 9:00 format
@@ -705,7 +706,7 @@ const CreateAppointment = async (req, res) => {
       tokens: sendtokens,
     };
 
-    messaging.sendMulticast(message)
+    messaging.sendEachForMulticast(message)
     
   }
     
