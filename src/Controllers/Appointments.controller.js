@@ -576,14 +576,14 @@ const cancelAppointment = async (req, res) => {
       sendtokens.push(SalonOwner.token);
     }
 
-    const TIME = moment(appointmentStartTime).format("hh:mm A");
+    const TIME = moment(appointment.appointmentStartTime).format("hh:mm A");
 
     if(sendtokens.length > 0){
 
     const message = {
       notification: {
         title: "New Appointment",
-        body: `You have a new appointment on ${appointmentDate} at ${TIME}`,
+        body: `You have a new appointment on ${appointment.appointmentDate} at ${TIME}`,
       },
       tokens: sendtokens,
     };
