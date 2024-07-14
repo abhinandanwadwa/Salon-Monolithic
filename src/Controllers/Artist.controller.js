@@ -246,7 +246,6 @@ const createArtist = async (req, res) => {
     const endTimeString = endTime ? endTime.toString() : null;
 
     let workingdaylist;
-    if (typeof workingDays === 'string') {
     try {
       workingdaylist = JSON.parse(workingDays);
     } catch (error) {
@@ -255,9 +254,7 @@ const createArtist = async (req, res) => {
         message: "Invalid workingDays format",
       });
     }
-  } else {
-    workingdaylist = workingDays;
-  }
+ 
 
     if (
       !ArtistName ||
