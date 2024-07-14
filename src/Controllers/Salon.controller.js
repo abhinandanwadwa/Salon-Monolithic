@@ -33,10 +33,9 @@ const createSalon = async (req, res) => {
       workingDays,
       startTime,
       endTime,
-      coordinates
+      coordinates,
     } = req.body;
 
-    
     let workingdaylist;
     try {
       workingdaylist = JSON.parse(workingDays);
@@ -47,16 +46,15 @@ const createSalon = async (req, res) => {
       });
     }
 
-  let coordinate;
-  try{
-    coordinate = JSON.parse(coordinates);
-  }catch(error){
-    return res.status(400).json({
-      success: false,
-      message: "Invalid coordinates format",
-    });
-  }
-
+    let coordinate;
+    try {
+      coordinate = JSON.parse(coordinates);
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid coordinates format",
+      });
+    }
 
     // Get authenticated user's ID
     const { _id: userId } = req.user;
@@ -88,17 +86,14 @@ const createSalon = async (req, res) => {
       Country,
     };
 
-
-    
-    
-      const options = {
-        provider: "google",
-        apiKey: process.env.GOOGLE_MAPS_API_KEY,
-      };
+    const options = {
+      provider: "google",
+      apiKey: process.env.GOOGLE_MAPS_API_KEY,
+    };
 
     let locationDetails;
 
-     if(!coordinate){ 
+    if (!coordinate) {
       const geocoder = NodeGeocoder(options);
       const mergedAddress = `${Address1} ${Address2}`;
       const response = await geocoder.geocode(
@@ -116,14 +111,13 @@ const createSalon = async (req, res) => {
         type: "Point",
         coordinates: [response[0].latitude, response[0].longitude],
       };
-    }else{
+    } else {
       locationDetails = {
         type: "Point",
         coordinates: [coordinate[0], coordinate[1]],
       };
-    }  
+    }
     const CoverImage = req.file ? req.file.location : null;
-
 
     const salon = new SalonModel({
       userId,
@@ -132,7 +126,7 @@ const createSalon = async (req, res) => {
       address,
       BusinessType,
       Gender,
-      workingDays:workingdaylist,
+      workingDays: workingdaylist,
       startTime,
       endTime,
       salonPhoneNumber: user.phoneNumber,
@@ -210,29 +204,49 @@ const UpdateSalon = async (req, res) => {
       });
     }
 
-    if(endTime || startTime){
-      if(new Date(endTime) < new Date(startTime)){
+    if (endTime || startTime) {
+      if (new Date(endTime) < new Date(startTime)) {
         return res.status(400).json({
           success: false,
           message: "End time should be greater than start time",
         });
       }
-      
-      const artists = await ArtistModel.find({salon: salon._id});
-     // if any artists start and end time is not in between the new start and end time then make it a subset 
 
-      for(let i=0;i<artists.length;i++){
-        if(new Date(artists[i].startTime) < new Date(startTime) || new Date(artists[i].endTime) > new Date(endTime)){
+      const artists = await ArtistModel.find({ salon: salon._id });
+      // if any artists start and end time is not in between the new start and end time then make it a subset
+
+      for (let i = 0; i < artists.length; i++) {
+        if (
+          new Date(artists[i].startTime) < new Date(startTime) ||
+          new Date(artists[i].endTime) > new Date(endTime)
+        ) {
           return res.status(400).json({
             success: false,
-            message: "Artist start and end time should be in between salon start and end time",
+            message:
+              "Artist start and end time should be in between salon start and end time",
           });
         }
       }
-
-
     }
 
+    if (workingDays) {
+      const allArtists = await ArtistModel.find({ salon: salon._id });
+      
+      for (let i = 0; i < allArtists.length; i++) {
+        const artistWorkingDays = allArtists[i].workingDays;
+        const updatedWorkingDays = artistWorkingDays.filter((day) =>
+          workingDays.includes(day)
+        );
+    
+        // Update the artist's working days if they have changed
+        if (updatedWorkingDays.length !== artistWorkingDays.length) {
+          allArtists[i].workingDays = updatedWorkingDays;
+          await allArtists[i].save();
+        }
+      }
+    }
+
+    
     salon.SalonName = SalonName || salon.SalonName;
     salon.OwnerName = OwnerName || salon.OwnerName;
     salon.salonPhoneNumber = salonPhoneNumber || salon.salonPhoneNumber;
@@ -365,13 +379,12 @@ const getOwnerSalon = async (req, res) => {
       const artist = await ArtistModel.findOne({ userId: OwnerId });
       const salon = await SalonModel.find({ Artists: artist._id })
         .populate("Services")
-        .populate({ 
-          path: "Artists", 
-          populate: { 
+        .populate({
+          path: "Artists",
+          populate: {
             path: "appointments",
-            path: "reviews", 
-            
-          } 
+            path: "reviews",
+          },
         })
         .populate("appointments")
         .populate("userId", "phoneNumber")
@@ -548,21 +561,19 @@ const searchSalons = async (req, res) => {
   }
 };
 
-const searchSalonss = async(req,res) => {
+const searchSalonss = async (req, res) => {
   try {
-    const { salonName , location} = req.body;
-    console.log(req.body)
+    const { salonName, location } = req.body;
+    console.log(req.body);
 
-    if(location && salonName || location){
-    
-
+    if ((location && salonName) || location) {
       const locations = {
         type: "Point",
         coordinates: [location.latitude, location.longitude], // Corrected order: [longitude, latitude]
       };
 
       //location has lat and long
-     
+
       const aggregationPipeline = [
         {
           $geoNear: {
@@ -592,8 +603,6 @@ const searchSalonss = async(req,res) => {
 
       const salons = await SalonModel.aggregate(aggregationPipeline);
 
-      
-
       return res.status(200).json({
         success: true,
         data: salons,
@@ -601,23 +610,29 @@ const searchSalonss = async(req,res) => {
       });
     }
 
-
     if (salonName) {
-
       // Perform text search
       const textSearchResults = await SalonModel.find(
         { $text: { $search: salonName } },
         { score: { $meta: "textScore" } }
-      ).sort({ score: { $meta: "textScore" } }).populate("offers").populate("Reviews");
+      )
+        .sort({ score: { $meta: "textScore" } })
+        .populate("offers")
+        .populate("Reviews");
 
       // Perform regex search
       const regexSearchResults = await SalonModel.find({
-        SalonName: new RegExp(salonName, 'i')
-      }).populate("offers").populate("Reviews");
+        SalonName: new RegExp(salonName, "i"),
+      })
+        .populate("offers")
+        .populate("Reviews");
 
       // Merge results, ensuring no duplicates
-      const mergedResults = [...textSearchResults, ...regexSearchResults].reduce((acc, current) => {
-        const x = acc.find(item => item._id.equals(current._id));
+      const mergedResults = [
+        ...textSearchResults,
+        ...regexSearchResults,
+      ].reduce((acc, current) => {
+        const x = acc.find((item) => item._id.equals(current._id));
         if (!x) {
           return acc.concat([current]);
         } else {
@@ -632,12 +647,10 @@ const searchSalonss = async(req,res) => {
       });
     }
 
-
     return res.status(400).json({
       success: false,
       message: "Invalid search criteria",
     });
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -645,7 +658,7 @@ const searchSalonss = async(req,res) => {
       message: "Error in fetching salons",
     });
   }
-}
+};
 
 /**
  * @desc Upload salon brochure
@@ -657,7 +670,6 @@ const searchSalonss = async(req,res) => {
 
 const uploadBrochure = async (req, res) => {
   try {
-    
     const user = req.user._id;
 
     const brochurePhotos = req.files;
@@ -679,7 +691,7 @@ const uploadBrochure = async (req, res) => {
       });
     }
 
-    brochurePhotos.forEach(file => {
+    brochurePhotos.forEach((file) => {
       salon.Brochure.push(file.location); // or file.filename depending on how you want to store the reference
     });
 
@@ -725,26 +737,35 @@ const deleteSalon = async (req, res) => {
 
     const services = await Service.find({ salon: salon._id });
     const serviceIds = services.map((service) => service._id);
-    
+
     if (serviceIds.length) {
-      await ServiceArtist.deleteMany({ Service: { $in: serviceIds } }, { session });
+      await ServiceArtist.deleteMany(
+        { Service: { $in: serviceIds } },
+        { session }
+      );
       await Service.deleteMany({ _id: { $in: serviceIds } }, { session });
     }
 
     const artists = await ArtistModel.find({ salon: salon._id });
     const artistUserIds = artists.map((artist) => artist.userId);
-    
+
     if (artistUserIds.length) {
       await UserModel.deleteMany({ _id: { $in: artistUserIds } }, { session });
       await ArtistModel.deleteMany({ salon: salon._id }, { session });
     }
 
     if (salon.appointments.length) {
-      await AppointmentModel.deleteMany({ _id: { $in: salon.appointments } }, { session });
+      await AppointmentModel.deleteMany(
+        { _id: { $in: salon.appointments } },
+        { session }
+      );
     }
 
     if (salon.Reviews.length) {
-      await ReviewModel.deleteMany({ _id: { $in: salon.Reviews } }, { session });
+      await ReviewModel.deleteMany(
+        { _id: { $in: salon.Reviews } },
+        { session }
+      );
     }
 
     if (salon.offers.length) {
@@ -785,10 +806,9 @@ const AddPhotos = async (req, res) => {
     const user = req.user._id;
     const salon = await SalonModel.findOne({ userId: user });
 
-
-    const coverImageUrl = req.file.location
+    const coverImageUrl = req.file.location;
     salon.CoverImage = coverImageUrl || salon.CoverImage || null;
-   
+
     await salon.save();
 
     return res.status(200).json({
@@ -826,7 +846,7 @@ const AddStorePhotos = async (req, res) => {
       });
     }
 
-    storephotos.forEach(file => {
+    storephotos.forEach((file) => {
       salon.StorePhotos.push(file.location); // or file.filename depending on how you want to store the reference
     });
 
@@ -836,15 +856,13 @@ const AddStorePhotos = async (req, res) => {
       success: true,
       message: "Photos uploaded successfully",
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: "Error in uploading photos",
     });
   }
-}
-
+};
 
 const deleteStorePhotos = async (req, res) => {
   try {
@@ -865,11 +883,12 @@ const deleteStorePhotos = async (req, res) => {
         success: false,
         message: "No photos were deleted",
       });
-
     }
 
-    storePhotos.forEach(photo => {
-      salon.StorePhotos = salon.StorePhotos.filter((storePhoto) => storePhoto !== photo);
+    storePhotos.forEach((photo) => {
+      salon.StorePhotos = salon.StorePhotos.filter(
+        (storePhoto) => storePhoto !== photo
+      );
     });
 
     await salon.save();
@@ -878,15 +897,13 @@ const deleteStorePhotos = async (req, res) => {
       success: true,
       message: "Photos deleted successfully",
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: "Error in deleting photos",
     });
   }
-}
-
+};
 
 const deleteCoverPhoto = async (req, res) => {
   try {
@@ -907,20 +924,19 @@ const deleteCoverPhoto = async (req, res) => {
       success: true,
       message: "Cover photo deleted successfully",
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: "Error in deleting cover photo",
     });
   }
-}
+};
 
 const deleteBrochure = async (req, res) => {
   try {
     const user = req.user._id;
     const salon = await SalonModel.findOne({ userId: user });
-     
+
     if (!salon) {
       return res.status(404).json({
         success: false,
@@ -937,8 +953,10 @@ const deleteBrochure = async (req, res) => {
       });
     }
 
-    brochure.forEach(brochure => {
-      salon.Brochure = salon.Brochure.filter((brochures) => brochures !== brochure);
+    brochure.forEach((brochure) => {
+      salon.Brochure = salon.Brochure.filter(
+        (brochures) => brochures !== brochure
+      );
     });
 
     await salon.save();
@@ -947,23 +965,19 @@ const deleteBrochure = async (req, res) => {
       success: true,
       message: "Brochures deleted successfully",
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: "Error in deleting brochures",
     });
   }
-}
-
-    
-    
+};
 
 const getSalonsAppointments = async (req, res) => {
   try {
     const id = req.user._id;
 
-    if(req.user.role === 'subAdmin'){
+    if (req.user.role === "subAdmin") {
       const artist = await ArtistModel.findOne({ userId: id });
       const salon = await SalonModel.findOne({ Artists: artist._id }).populate({
         path: "appointments",
@@ -978,28 +992,28 @@ const getSalonsAppointments = async (req, res) => {
           },
           {
             path: "artist",
-            select: "ArtistName PhoneNumber _id workingDays startTime endTime reviews",
+            select:
+              "ArtistName PhoneNumber _id workingDays startTime endTime reviews",
           },
           {
             path: "Review",
-            select: "Review Rating",  
-          }
+            select: "Review Rating",
+          },
         ],
       });
       // If salon not found or no appointments
-    if (!salon || !salon.appointments) {
-      return res.status(404).json({
-        success: false,
-        message: "No appointments found for this salon",
-      });
-    }
+      if (!salon || !salon.appointments) {
+        return res.status(404).json({
+          success: false,
+          message: "No appointments found for this salon",
+        });
+      }
 
-    // Extract appointments from the salon object
-    const appointments = salon.appointments;
+      // Extract appointments from the salon object
+      const appointments = salon.appointments;
 
-
-    return res.status(200).json(appointments);
-    }else{
+      return res.status(200).json(appointments);
+    } else {
       const salon = await SalonModel.findOne({ userId: id }).populate({
         path: "appointments",
         populate: [
@@ -1013,30 +1027,28 @@ const getSalonsAppointments = async (req, res) => {
           },
           {
             path: "artist",
-            select: "ArtistName PhoneNumber _id workingDays startTime endTime reviews",
+            select:
+              "ArtistName PhoneNumber _id workingDays startTime endTime reviews",
           },
           {
             path: "Review",
-            select: "Review Rating",  
-          }
+            select: "Review Rating",
+          },
         ],
       });
       // If salon not found or no appointments
-    if (!salon || !salon.appointments) {
-      return res.status(404).json({
-        success: false,
-        message: "No appointments found for this salon",
-      });
+      if (!salon || !salon.appointments) {
+        return res.status(404).json({
+          success: false,
+          message: "No appointments found for this salon",
+        });
+      }
+
+      // Extract appointments from the salon object
+      const appointments = salon.appointments;
+
+      return res.status(200).json(appointments);
     }
-
-    // Extract appointments from the salon object
-    const appointments = salon.appointments;
-
-
-    return res.status(200).json(appointments);
-    }
-
-    
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -1142,5 +1154,5 @@ export {
   deleteStorePhotos,
   deleteBrochure,
   deleteCoverPhoto,
-  searchSalonss
+  searchSalonss,
 };
