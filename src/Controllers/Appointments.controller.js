@@ -676,6 +676,28 @@ const CreateAppointment = async (req, res) => {
       Status: "Booked",
     });
 
+    let tokens = [];
+
+    if(ArtistUser.fcmToken){
+      tokens.push(ArtistUser.fcmToken);
+    }
+    if(SalonOwner.fcmToken){
+      tokens.push(SalonOwner.fcmToken);
+    }
+
+
+    const message = {
+      notification: {
+        title: "New Appointment",
+        body: `You have a new appointment on ${appointmentDate} at ${appointmentStartTime}`,
+      },
+      token: tokens,
+    };
+
+    messaging.sendMulticast(message)
+    
+    
+
     await appointment.save();
 
     salon.appointments.push(appointment);
@@ -688,23 +710,7 @@ const CreateAppointment = async (req, res) => {
     }
     await customer.save();
 
-    let tokens = [];
-
-    if(ArtistUser.fcmToken){
-      tokens.push(ArtistUser.fcmToken);
-    }
-    if(SalonOwner.fcmToken){
-      tokens.push(SalonOwner.fcmToken);
-    }
-
-
-    messaging.send({
-      notification: {
-        title: "New Appointment",
-        body: `You have a new appointment on ${appointmentDate} at ${appointmentStartTime}`,
-      },
-      token: tokens,
-    });
+    
     
 
 
