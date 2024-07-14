@@ -518,7 +518,13 @@ const cancelAppointment = async (req, res) => {
       const appointment = await AppointmentModel.findOne({
         _id: appointmentId,
       });
+
+        
       const artist = await ArtistModel.findById(appointment.artist);
+      const salon = await SalonModel.findById(appointment.salon);
+
+      const ArtistUser = await UserModel.findById(artist.userId);
+      const SalonOwner = await UserModel.findById(salon.userId);
 
       if (!appointment) {
         return res.status(404).json({
