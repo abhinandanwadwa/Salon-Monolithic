@@ -32,6 +32,9 @@ const User = new mongoose.Schema({
         get: (otpExpiration) => otpExpiration.getTime(),
         set: (otpExpiration) => new Date(otpExpiration)
     },
+    token: {
+        type: String,
+    },
 }, { timestamps: true })
 
 const UserModel = mongoose.model('User', User);

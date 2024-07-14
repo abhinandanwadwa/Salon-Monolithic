@@ -335,8 +335,6 @@ const createAppointmentByOwner = async (req, res) => {
     salon.appointments.push(appointment);
     await salon.save();
 
-      
-
     return res.status(201).json({
       success: true,
       message: "Appointment created successfully",
@@ -551,6 +549,12 @@ const cancelAppointment = async (req, res) => {
       user: user,
     });
 
+    const artist = await ArtistModel.findById(appointment.artist);
+    const salon = await SalonModel.findById(appointment.salon);
+
+    const ArtistUser = await UserModel.findById(artist.userId);
+    const SalonOwner = await UserModel.findById(salon.userId);
+
     if (!appointment) {
       return res.status(404).json({
         success: false,
@@ -561,6 +565,15 @@ const cancelAppointment = async (req, res) => {
     appointment.Status = "Cancelled";
 
     await appointment.save();
+
+    messaging.send({
+      notification: {
+        title: "Appointment Cancelled",
+        body: `Your appointment on ${appointment.appointmentDate} at ${appointment.appointmentStartTime} has been cancelled`,
+      },
+      token: [ArtistUser.fcmToken, SalonOwner.fcmToken],
+    });
+    
 
     return res.status(200).json({
       success: true,
@@ -588,7 +601,10 @@ const CreateAppointment = async (req, res) => {
     const userId = req.user._id;
     const customer = await CustomerModel.findOne({ userId: userId });
     const artist = await ArtistModel.findById(artistId);
+    const ArtistUser = await UserModel.findById(artist.userId);
     const salon = await SalonModel.findOne({ Artists: artistId });
+    const SalonOwner = await UserModel.findById(salon.userId);
+
     const offerId = await OfferModel.findOne({ OfferName: offer });
 
     //appointment start time is in 9:00 format
@@ -663,7 +679,15 @@ const CreateAppointment = async (req, res) => {
     }
     await customer.save();
 
+    messaging.send({
+      notification: {
+        title: "New Appointment",
+        body: `You have a new appointment on ${appointmentDate} at ${appointmentStartTime}`,
+      },
+      token: [ArtistUser.fcmToken, SalonOwner.fcmToken],
+    });
     
+
 
     return res.status(201).json({
       success: true,

@@ -109,19 +109,21 @@ import OfferModel from "../Models/Offer.js";
 
 const verifyToken = async (req, res) => {
   try {
-    const { token, role } = req.body;
+    const { token, role, fcmToken } = req.body;
+
+    const FcmTokenDetails = fcmToken ? fcmToken : null;
 
     const userDetailUsingToken = await UserDetail.verifyToken(
       token,
-      'XI43XR8TV3OD7VGKK08DJS3224D7J2BC',
-      'dz7dhmhbkbv329sqf90r6uovpztiz700'
+      "XI43XR8TV3OD7VGKK08DJS3224D7J2BC",
+      "dz7dhmhbkbv329sqf90r6uovpztiz700"
     );
 
     const phoneNumber = userDetailUsingToken.national_phone_number;
     const user = await UserModel.findOne({ phoneNumber });
     if (userDetailUsingToken.success) {
       if (!user) {
-        const newUser = new UserModel({ phoneNumber, role });
+        const newUser = new UserModel({ phoneNumber, role, token: FcmTokenDetails });
         await newUser.save();
 
         if (role === "Customer") {
@@ -159,6 +161,8 @@ const verifyToken = async (req, res) => {
       }
 
       if (user.role === "Artist" && role === "Owner") {
+
+        user.token = FcmTokenDetails;
         generateToken(res, user);
         return res.status(201).json({
           success: true,
@@ -195,6 +199,8 @@ const verifyToken = async (req, res) => {
       }
 
       if (user.role === "Owner" && role === "Owner") {
+        user.token = FcmTokenDetails;
+
         generateToken(res, user);
         return res.status(201).json({
           success: true,
@@ -240,6 +246,8 @@ const verifyToken = async (req, res) => {
           await newCustomer.save();
         }
 
+        user.token = FcmTokenDetails;
+
         generateToken(res, user);
         return res.status(201).json({
           success: true,
@@ -252,6 +260,9 @@ const verifyToken = async (req, res) => {
           },
         });
       } else if (user.role === "Customer" && role === "Owner") {
+        user.role = role;
+        user.token = FcmTokenDetails;
+        await user.save();
         generateToken(res, user);
         return res.status(201).json({
           success: true,
@@ -684,8 +695,6 @@ const ChangeRole = async (req, res) => {
       user.role = "subAdmin";
 
       await user.save();
-
-     
     }
 
     return res.status(200).json({
@@ -895,66 +904,63 @@ const removesubAdmin = async (req, res) => {
   }
 };
 
-
 const deleteOwner = async (req, res) => {
   try {
-
     const { phoneNumber } = req.body;
     const salon = await SalonModel.findOne({ phoneNumber });
 
-    if(salon){
-    const services = await Service.find({ salon: salon._id });
+    if (salon) {
+      const services = await Service.find({ salon: salon._id });
 
-    const serviceArtist = await ServiceArtist.find({
-      Service: { $in: services.map((service) => service._id) },
-    });
-
-    if (serviceArtist.length) {
-      await ServiceArtist.deleteMany({
+      const serviceArtist = await ServiceArtist.find({
         Service: { $in: services.map((service) => service._id) },
       });
-    }
 
-    if (services.length) {
-      await Service.deleteMany({ salon: salon._id });
-    }
+      if (serviceArtist.length) {
+        await ServiceArtist.deleteMany({
+          Service: { $in: services.map((service) => service._id) },
+        });
+      }
 
-    const artists = await ArtistModel.find({ salon: salon._id });
-    const users = await UserModel.find({
-      _id: { $in: artists.map((artist) => artist.userId) },
-    });
+      if (services.length) {
+        await Service.deleteMany({ salon: salon._id });
+      }
 
-    if (users.length) {
-      await UserModel.deleteMany({
+      const artists = await ArtistModel.find({ salon: salon._id });
+      const users = await UserModel.find({
         _id: { $in: artists.map((artist) => artist.userId) },
       });
-    }
 
-    if (artists.length) {
-      await ArtistModel.deleteMany({ salon: salon._id });
-    }
+      if (users.length) {
+        await UserModel.deleteMany({
+          _id: { $in: artists.map((artist) => artist.userId) },
+        });
+      }
 
-    if (salon.appointments.length) {
-      await AppointmentModel.deleteMany({ _id: { $in: salon.appointments } });
-    }
+      if (artists.length) {
+        await ArtistModel.deleteMany({ salon: salon._id });
+      }
 
-    if (salon.Reviews.length) {
-      await ReviewModel.deleteMany({ _id: { $in: salon.Reviews } });
-    }
+      if (salon.appointments.length) {
+        await AppointmentModel.deleteMany({ _id: { $in: salon.appointments } });
+      }
 
-    if (salon.offers.length) {
-      await OfferModel.deleteMany({ _id: { $in: salon.offers } });
-    }
+      if (salon.Reviews.length) {
+        await ReviewModel.deleteMany({ _id: { $in: salon.Reviews } });
+      }
 
-    await SalonModel.findOneAndDelete({ _id: salon._id });
-  }
+      if (salon.offers.length) {
+        await OfferModel.deleteMany({ _id: { $in: salon.offers } });
+      }
+
+      await SalonModel.findOneAndDelete({ _id: salon._id });
+    }
     await UserModel.findOneAndDelete({ phoneNumber });
 
     return res.status(200).json({
       success: true,
       message: "Owner deleted successfully",
     });
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -962,7 +968,7 @@ const deleteOwner = async (req, res) => {
       message: "Error in deleting Owner",
     });
   }
-}
+};
 
 /**
  * @desc Logout
@@ -994,5 +1000,5 @@ export {
   RegisterAdmin,
   getSalonsubAdmins,
   removesubAdmin,
-  deleteOwner
+  deleteOwner,
 };
