@@ -479,10 +479,13 @@ const verifyOwner = async (req, res) => {
 
 const verifyUser = async (req, res) => {
   try {
-    const { phoneNumber, verified, role } = req.body;
+    const { phoneNumber, verified, role,fcmToken } = req.body;
+
+    const FcmTokenDetails = fcmToken ? fcmToken : null;
+
     const user = await UserModel.findOne({ phoneNumber });
     if (!user) {
-      const newUser = new UserModel({ phoneNumber, role });
+      const newUser = new UserModel({ phoneNumber, role ,token: FcmTokenDetails});
       await newUser.save();
 
       if (role === "Customer") {
@@ -506,6 +509,10 @@ const verifyUser = async (req, res) => {
       }
 
       if (role === "Owner") {
+
+        user.token = FcmTokenDetails;
+        await user.save();
+
         generateToken(res, newUser);
         return res.status(201).json({
           success: true,
@@ -520,6 +527,10 @@ const verifyUser = async (req, res) => {
     }
 
     if (user.role === "Artist" && role === "Owner") {
+
+      user.token = FcmTokenDetails;
+      await user.save();
+
       generateToken(res, user);
       return res.status(201).json({
         success: true,
@@ -542,6 +553,8 @@ const verifyUser = async (req, res) => {
         await newCustomer.save();
       }
 
+
+
       generateToken(res, user);
       return res.status(201).json({
         success: true,
@@ -556,6 +569,10 @@ const verifyUser = async (req, res) => {
     }
 
     if (user.role === "Owner" && role === "Owner") {
+
+      user.token = FcmTokenDetails;
+      await user.save();
+
       generateToken(res, user);
       return res.status(201).json({
         success: true,
@@ -615,6 +632,8 @@ const verifyUser = async (req, res) => {
     } else if (user.role === "Customer" && role === "Owner") {
       user.role = role;
       await user.save();
+      user.token = FcmTokenDetails;
+      await user.save();
 
       generateToken(res, user);
       return res.status(201).json({
@@ -628,6 +647,9 @@ const verifyUser = async (req, res) => {
         },
       });
     }
+
+    user.token = FcmTokenDetails;
+    await user.save();
 
     generateToken(res, user);
     return res.status(201).json({
