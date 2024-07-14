@@ -456,6 +456,40 @@ const rescheduleAppointment = async (req, res) => {
     appointment.appointmentEndTime = appointmentEndTime;
     appointment.Duration = duration;
 
+    if(user.role == "Customer"){
+      const artist = await ArtistModel.findById(appointment.artist);
+      const salon = await SalonModel.findById(appointment.salon);
+
+      const ArtistUser = await UserModel.findById(artist.userId);
+      const SalonOwner = await UserModel.findById(salon.userId);
+
+      let sendtokens = [];
+
+      if(ArtistUser.token){
+        sendtokens.push(ArtistUser.token);
+      }
+      if(SalonOwner.token){
+        sendtokens.push(SalonOwner.token);
+      }
+
+      const TIME = moment(appointmentStartTime).format("hh:mm A");
+      const date = moment(appointmentDate).format("DD-MM-YYYY");
+
+      if(sendtokens.length > 0){
+
+      const message = {
+        notification: {
+          title: "Appointment Rescheduled",
+          body: `Your appointment on ${date} has been rescheduled to ${TIME} `,
+        },
+        tokens: sendtokens,
+      };
+
+      messaging.sendEachForMulticast(message)
+
+    }
+  }
+
     await appointment.save();
 
     return res.status(200).json({
@@ -554,13 +588,14 @@ const cancelAppointment = async (req, res) => {
     }
 
     const TIME = moment(appointment.appointmentStartTime).format("hh:mm A");
+    const date = moment(appointment.appointmentDate).format("DD-MM-YYYY");
 
         if(sendtokens.length > 0){
 
         const message = {
           notification: {
-            title: "New Appointment",
-            body: `You have a new appointment on ${appointment.appointmentDate} at ${TIME}`,
+            title: "Appointment Cancelled",
+            body: `Your appointment on ${date} at ${TIME} has been cancelled`,
           },
           tokens: sendtokens,
         };
@@ -609,13 +644,14 @@ const cancelAppointment = async (req, res) => {
     }
 
     const TIME = moment(appointment.appointmentStartTime).format("hh:mm A");
+    const date = moment(appointment.appointmentDate).format("DD-MM-YYYY");
 
     if(sendtokens.length > 0){
 
     const message = {
       notification: {
-        title: "New Appointment",
-        body: `You have a new appointment on ${appointment.appointmentDate} at ${TIME}`,
+        title: "Appointment Cancelled",
+        body: `Your appointment on ${date} at ${TIME} has been cancelled`,
       },
       tokens: sendtokens,
     };
