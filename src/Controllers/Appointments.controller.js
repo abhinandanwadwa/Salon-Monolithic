@@ -676,13 +676,13 @@ const CreateAppointment = async (req, res) => {
       Status: "Booked",
     });
 
-    let tokens = [];
+    let sendtokens = [];
 
     if(ArtistUser.fcmToken){
-      tokens.push(ArtistUser.fcmToken);
+      sendtokens.push(ArtistUser.fcmToken);
     }
     if(SalonOwner.fcmToken){
-      tokens.push(SalonOwner.fcmToken);
+      sendtokens.push(SalonOwner.fcmToken);
     }
 
 
@@ -691,7 +691,7 @@ const CreateAppointment = async (req, res) => {
         title: "New Appointment",
         body: `You have a new appointment on ${appointmentDate} at ${appointmentStartTime}`,
       },
-      token: tokens,
+      tokens: sendtokens,
     };
 
     messaging.sendMulticast(message)
