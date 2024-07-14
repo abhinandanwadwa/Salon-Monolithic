@@ -254,6 +254,7 @@ const createArtist = async (req, res) => {
     const endTimeString = endTime ? endTime.toString() : null;
 
     let workingdaylist;
+    if (typeof workingDays === 'string') {
     try {
       workingdaylist = JSON.parse(workingDays);
     } catch (error) {
@@ -262,6 +263,9 @@ const createArtist = async (req, res) => {
         message: "Invalid workingDays format",
       });
     }
+  } else {
+    workingdaylist = workingDays;
+  }
 
     if (
       !ArtistName ||
@@ -471,15 +475,6 @@ const createArtist = async (req, res) => {
 const updateArtist = async (req, res) => {
   try {
     const { artistId } = req.params;
-    const userId = req.user._id;
-    const salon = await SalonModel.findOne({ userId });
-
-    if (!salon) {
-      return res.status(404).json({
-        success: false,
-        message: "Salon not found",
-      });
-    }
 
     const artist = await ArtistModel.findById(artistId);
     if (!artist) {
@@ -496,6 +491,7 @@ const updateArtist = async (req, res) => {
 
 
     let workingdaylist;
+    if(typeof workingDays === 'string'){
     try {
       workingdaylist = JSON.parse(workingDays);
     } catch (error) {
@@ -504,6 +500,9 @@ const updateArtist = async (req, res) => {
         message: "Invalid workingDays format",
       });
     }
+  } else {
+    workingdaylist = workingDays;
+  }
 
     if (phoneNumber) {
       const user = await UserModel.findOneAndUpdate(
