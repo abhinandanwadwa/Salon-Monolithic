@@ -13,6 +13,7 @@ import Appointmentrouter from './Routes/appointment.routes.js';
 import Salonrouter from './Routes/Salon.routes.js';
 import Offerrouter from './Routes/Offer.routes.js';
 import Reviewrouter from './Routes/Review.routes.js';
+import messaging from './Controllers/fcmClient.js';
 
 
 
@@ -44,6 +45,22 @@ app.use('/api/salon', Salonrouter);
 app.use('/api/offer', Offerrouter);
 app.use('/api/review', Reviewrouter);
 
+app.post('/api/notification', async (req, res) => {
+    try {
+        const { token, title, body } = req.body;
+        const message = {
+            notification: {
+                title: title,
+                body: body
+            },
+            token: token
+        };
+        messaging.send(message);
+        res.status(200).json({ success: true, message: 'Notification sent' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
 
 app.use(notfound);
 app.use(errorHandler);

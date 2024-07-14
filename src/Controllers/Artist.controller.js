@@ -70,14 +70,6 @@ const CreateArtistWithAllServices = async (req, res) => {
       let user = await UserModel.findOne({ phoneNumber: PhoneNumber });
 
 
-      if (user && user.role === "Artist") {
-        return res.status(400).json({
-          success: false,
-          message:
-            "User  already exists with this phone number: " + PhoneNumber,
-        });
-      }
-
       if (user && user.role === "Owner") {
         // Convert both to ObjectId if they are not already
         const salonUserId = new mongoose.Types.ObjectId(salon.userId);
@@ -475,6 +467,7 @@ const createArtist = async (req, res) => {
 const updateArtist = async (req, res) => {
   try {
     const { artistId } = req.params;
+    
 
     const artist = await ArtistModel.findById(artistId);
     if (!artist) {
@@ -492,17 +485,17 @@ const updateArtist = async (req, res) => {
 
     let workingdaylist;
     if(typeof workingDays === 'string'){
-    try {
-      workingdaylist = JSON.parse(workingDays);
-    } catch (error) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid workingDays format",
-      });
+      try {
+        workingdaylist = JSON.parse(workingDays);
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid workingDays format",
+        });
+      }
+    } else {
+      workingdaylist = workingDays;
     }
-  } else {
-    workingdaylist = workingDays;
-  }
 
     if (phoneNumber) {
       const user = await UserModel.findOneAndUpdate(

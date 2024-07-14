@@ -9,6 +9,7 @@ import Service from "../Models/Services.js";
 import ServiceArtist from "../Models/ServiceArtist.js";
 import OfferModel from "../Models/Offer.js";
 import ReviewModel from "../Models/review.js";
+import messaging from "./fcmClient.js";
 
 moment.suppressDeprecationWarnings = true;
 
@@ -333,6 +334,8 @@ const createAppointmentByOwner = async (req, res) => {
 
     salon.appointments.push(appointment);
     await salon.save();
+
+      
 
     return res.status(201).json({
       success: true,
@@ -659,6 +662,8 @@ const CreateAppointment = async (req, res) => {
       customer.offers.push(offerId._id);
     }
     await customer.save();
+
+    
 
     return res.status(201).json({
       success: true,

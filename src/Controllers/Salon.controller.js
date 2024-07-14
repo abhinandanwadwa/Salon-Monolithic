@@ -706,64 +706,56 @@ const uploadBrochure = async (req, res) => {
  */
 
 const deleteSalon = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const user = req.user._id;
 
     const salon = await SalonModel.findOne({ userId: user });
 
-    const services = await Service.find({ salon: salon._id });
-
-    const serviceArtist = await ServiceArtist.find({
-      Service: { $in: services.map((service) => service._id) },
-    });
-
-    if (serviceArtist.length) {
-      await ServiceArtist.deleteMany({
-        Service: { $in: services.map((service) => service._id) },
-      });
-    }
-
-    if (services.length) {
-      await Service.deleteMany({ salon: salon._id });
-    }
-
-    const artists = await ArtistModel.find({ salon: salon._id });
-    const users = await UserModel.find({
-      _id: { $in: artists.map((artist) => artist.userId) },
-    });
-
-    if (users.length) {
-      await UserModel.deleteMany({
-        _id: { $in: artists.map((artist) => artist.userId) },
-      });
-    }
-
-    if (artists.length) {
-      await ArtistModel.deleteMany({ salon: salon._id });
-    }
-
-    if (salon.appointments.length) {
-      await AppointmentModel.deleteMany({ _id: { $in: salon.appointments } });
-    }
-
-    if (salon.Reviews.length) {
-      await ReviewModel.deleteMany({ _id: { $in: salon.Reviews } });
-    }
-
-    if (salon.offers.length) {
-      await OfferModel.deleteMany({ _id: { $in: salon.offers } });
-    }
-
-    await SalonModel.findOneAndDelete({ userId: user });
-
     if (!salon) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({
         success: false,
         message: "Salon not found",
       });
     }
 
-    await UserModel.findOneAndDelete({ _id: user });
+    const services = await Service.find({ salon: salon._id });
+    const serviceIds = services.map((service) => service._id);
+    
+    if (serviceIds.length) {
+      await ServiceArtist.deleteMany({ Service: { $in: serviceIds } }, { session });
+      await Service.deleteMany({ _id: { $in: serviceIds } }, { session });
+    }
+
+    const artists = await ArtistModel.find({ salon: salon._id });
+    const artistUserIds = artists.map((artist) => artist.userId);
+    
+    if (artistUserIds.length) {
+      await UserModel.deleteMany({ _id: { $in: artistUserIds } }, { session });
+      await ArtistModel.deleteMany({ salon: salon._id }, { session });
+    }
+
+    if (salon.appointments.length) {
+      await AppointmentModel.deleteMany({ _id: { $in: salon.appointments } }, { session });
+    }
+
+    if (salon.Reviews.length) {
+      await ReviewModel.deleteMany({ _id: { $in: salon.Reviews } }, { session });
+    }
+
+    if (salon.offers.length) {
+      await OfferModel.deleteMany({ _id: { $in: salon.offers } }, { session });
+    }
+
+    await SalonModel.findOneAndDelete({ userId: user }, { session });
+    await UserModel.findOneAndDelete({ _id: user }, { session });
+
+    await session.commitTransaction();
+    session.endSession();
 
     return res.status(200).json({
       success: true,
@@ -771,6 +763,8 @@ const deleteSalon = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+    await session.abortTransaction();
+    session.endSession();
     return res.status(500).json({
       success: false,
       message: "Error in deleting salon",
