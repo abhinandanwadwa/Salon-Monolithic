@@ -566,12 +566,21 @@ const cancelAppointment = async (req, res) => {
 
     await appointment.save();
 
+    let tokens = [];
+
+    if(ArtistUser.fcmToken){
+      tokens.push(ArtistUser.fcmToken);
+    }
+    if(SalonOwner.fcmToken){
+      tokens.push(SalonOwner.fcmToken);
+    }
+
     messaging.send({
       notification: {
         title: "Appointment Cancelled",
         body: `Your appointment on ${appointment.appointmentDate} at ${appointment.appointmentStartTime} has been cancelled`,
       },
-      token: [ArtistUser.fcmToken, SalonOwner.fcmToken],
+      token: tokens,
     });
     
 
