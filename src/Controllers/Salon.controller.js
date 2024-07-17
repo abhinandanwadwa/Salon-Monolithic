@@ -419,7 +419,12 @@ const getOwnerSalon = async (req, res) => {
         })
         .populate("appointments")
         .populate("userId", "phoneNumber")
-        .populate("Reviews");
+        .populate({
+          path: "Reviews",
+          populate: {
+            path:"customerId",
+          },
+        })
 
       if (!salons.length) {
         return res.status(404).json({

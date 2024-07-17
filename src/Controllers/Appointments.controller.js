@@ -708,8 +708,7 @@ const CreateAppointment = async (req, res) => {
     const SalonOwner = await UserModel.findById(salon.userId);
     const offerId = await OfferModel.findOne({ OfferName: offer });
 
-    //appointment start time is in 9:00 format
-    //appointment date is in 2024-06-16 format
+  
 
     console.log(appointmentStartTime);
 
