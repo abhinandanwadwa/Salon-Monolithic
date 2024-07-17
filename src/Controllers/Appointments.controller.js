@@ -156,7 +156,7 @@ const getTimeSlots = async (req, res) => {
       if(appointment._id == appointmentId){
         return;
       }
-      if(appointment.Status === "Booked" || appointment.Status === "Completed"){
+      if(appointment.Status === "Booked"){
       const conflictStart = moment(appointment.appointmentStartTime).subtract(timeDuration-15, "minutes");
       const conflictEnd = moment(appointment.appointmentEndTime);
       for (let m = moment(conflictStart); m.isBefore(conflictEnd); m.add(15, "minutes")) {
