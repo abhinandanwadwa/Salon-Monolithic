@@ -317,6 +317,7 @@ const createAppointmentByOwner = async (req, res) => {
     }
 
     const appointment = new AppointmentModel({
+      name: name,
       user: customer,
       appointmentDate,
       salon: salon,
@@ -755,6 +756,7 @@ const CreateAppointment = async (req, res) => {
     }
 
     const appointment = new AppointmentModel({
+      name: customer.name,
       user: customer,
       artist: artistId,
       appointmentDate,

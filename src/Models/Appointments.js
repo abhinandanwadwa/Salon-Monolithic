@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 
 const appointmentSchema = new mongoose.Schema({
+    name : {
+        type: String,
+        required: true
+    },
     user : {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Customer',
