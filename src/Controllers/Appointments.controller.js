@@ -288,6 +288,7 @@ const createAppointmentByOwner = async (req, res) => {
     const overlappingAppointments = await AppointmentModel.find({
       artist: artistId,
       appointmentDate,
+      status: "Booked",
       $or: [
         {
           appointmentStartTime: {
@@ -725,6 +726,7 @@ const CreateAppointment = async (req, res) => {
     const overlappingAppointments = await AppointmentModel.find({
       artist: artistId,
       appointmentDate,
+      status: "Booked",
       $or: [
         {
           appointmentStartTime: {

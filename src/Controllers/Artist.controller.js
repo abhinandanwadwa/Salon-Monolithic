@@ -834,7 +834,12 @@ const getArtistData = async (req, res) => {
         select:
           " -location -StorePhotos -OwnerId -salonType -Services -Artists -createdAt -updatedAt -appointments -workingDays -startTime -endTime -__v -CoverImage -Brochure",
       })
-      .populate("reviews");
+      .populate({
+        path: "reviews",
+        populate: {
+          path: "customerId",
+        },
+      })
 
     const Artistt = await ArtistModel.findOne({ userId: artistId });
 
