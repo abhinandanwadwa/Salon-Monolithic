@@ -5,6 +5,7 @@ import Service from "../Models/Services.js";
 import ServiceArtist from "../Models/ServiceArtist.js";
 import AppointmentModel from "../Models/Appointments.js";
 import mongoose from "mongoose";
+import CustomerModel from "../Models/Customer.js";
 
 
 /**
@@ -624,6 +625,7 @@ const deleteArtist = async (req, res) => {
 
     if(user.role === "Artist"){
       await UserModel.findByIdAndDelete(user._id);
+      await CustomerModel.findOneAndDelete({userId: user._id});
     }
 
     return res.status(200).json({

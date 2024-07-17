@@ -73,9 +73,8 @@ const getCost = async (req, res) => {
 
 const getTimeSlots = async (req, res) => {
   try {
-    const { artistId, timePeriod, services } = req.body;
+    const { artistId, timePeriod, services ,appointmentId} = req.body;
 
-    console.log(artistId, timePeriod, services);
 
     // Fetch artist data including appointments
     const artist = await ArtistModel.findById(artistId).populate("appointments");
@@ -137,7 +136,7 @@ const getTimeSlots = async (req, res) => {
           minute: endTime24.split(":")[1],
           second: 0,
           millisecond: 0,
-        }).subtract(timeDuration, "minutes");
+        }).subtract(timeDuration-15, "minutes");
 
         let slot = moment(dayStart);
         while (slot.isBefore(dayEnd)) {
@@ -148,20 +147,26 @@ const getTimeSlots = async (req, res) => {
         
       }
     }
-
+    
 
     // Filter out slots that conflict with existing appointments
-    const conflictingSlots = artist.appointments.map((appointment) => ({
-      start: moment(appointment.appointmentStartTime),
-      end: moment(appointment.appointmentEndTime),
-    }));
-
-    slots = slots.filter((slot) => {
-      const slotMoment = moment(slot);
-      return !conflictingSlots.some((conflict) =>
-        slotMoment.isBetween(conflict.start, conflict.end, null, "[)")
-      );
+    const invalidSlots = new Set();
+    artist.appointments.forEach((appointment) => {
+      // if the appointment id is same as above appointment and then skip the iteration
+      if(appointment._id == appointmentId){
+        return;
+      }
+      if(appointment.Status === "Booked" || appointment.Status === "Completed"){
+      const conflictStart = moment(appointment.appointmentStartTime).subtract(timeDuration-15, "minutes");
+      const conflictEnd = moment(appointment.appointmentEndTime);
+      for (let m = moment(conflictStart); m.isBefore(conflictEnd); m.add(15, "minutes")) {
+        invalidSlots.add(m.format("YYYY-MM-DDTHH:mm:ss.SSS"));
+      }
+      }
     });
+
+    // Filter out invalid slots
+    slots = slots.filter(slot => !invalidSlots.has(slot));
 
     // remove the time duration from the end of the day
 

@@ -12,6 +12,7 @@ import ServiceArtist from "../Models/ServiceArtist.js";
 import ArtistModel from "../Models/Artist.js";
 import ReviewModel from "../Models/review.js";
 import OfferModel from "../Models/Offer.js";
+import CustomerModel from "../Models/Customer.js";
 
 /**
  * @desc Create a new salon
@@ -748,8 +749,10 @@ const deleteSalon = async (req, res) => {
 
     const artists = await ArtistModel.find({ salon: salon._id });
     const artistUserIds = artists.map((artist) => artist.userId);
+  
 
     if (artistUserIds.length) {
+      await CustomerModel.deleteMany({ userId: { $in: artistUserIds } }, { session });
       await UserModel.deleteMany({ _id: { $in: artistUserIds } }, { session });
       await ArtistModel.deleteMany({ salon: salon._id }, { session });
     }
@@ -773,6 +776,7 @@ const deleteSalon = async (req, res) => {
     }
 
     await SalonModel.findOneAndDelete({ userId: user }, { session });
+    await CustomerModel.findOneAndDelete({ userId: user }, { session });
     await UserModel.findOneAndDelete({ _id: user }, { session });
 
     await session.commitTransaction();

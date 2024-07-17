@@ -8,11 +8,9 @@ const Review = new mongoose.Schema({
     },
     Rating: {
         type: Number,
-        required: true
     },
     Review: {
         type: String,
-        required: true
     },
 })
 
