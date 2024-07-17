@@ -12,7 +12,7 @@ const Review = new mongoose.Schema({
     Review: {
         type: String,
     },
-})
+},{timestamps: true})
 
 const ReviewModel = mongoose.model('Review', Review);
 export default ReviewModel;
