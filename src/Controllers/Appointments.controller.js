@@ -757,7 +757,6 @@ const CreateAppointment = async (req, res) => {
     }
 
     const appointment = new AppointmentModel({
-      name: user.name,
       user: customer,
       artist: artistId,
       appointmentDate,
