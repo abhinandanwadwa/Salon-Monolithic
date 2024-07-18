@@ -707,7 +707,7 @@ const CreateAppointment = async (req, res) => {
     const salon = await SalonModel.findOne({ Artists: artistId });
     const SalonOwner = await UserModel.findById(salon.userId);
     const offerId = await OfferModel.findOne({ OfferName: offer });
-
+    const user = await UserModel.findById(userId);
   
 
     console.log(appointmentStartTime);
@@ -757,7 +757,7 @@ const CreateAppointment = async (req, res) => {
     }
 
     const appointment = new AppointmentModel({
-      name: customer.name,
+      name: user.name,
       user: customer,
       artist: artistId,
       appointmentDate,
