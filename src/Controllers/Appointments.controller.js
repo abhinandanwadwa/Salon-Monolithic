@@ -725,13 +725,6 @@ const CreateAppointment = async (req, res) => {
       .add(duration, "minutes")
       .format("YYYY-MM-DDTHH:mm:ss.SSS");
 
-    if(appointmentStartTime < artist.startTime || appointmentEndTime > artist.endTime){
-      return res.status(400).json({
-        success: false,
-        message: "Appointment time out of artist working hours",
-      });
-    }
-
     const overlappingAppointments = await AppointmentModel.find({
       artist: artistId,
       appointmentDate,
