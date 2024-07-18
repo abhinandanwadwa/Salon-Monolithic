@@ -719,9 +719,18 @@ const CreateAppointment = async (req, res) => {
       });
     }
 
+  
+
     const appointmentEndTime = moment(appointmentStartTime)
       .add(duration, "minutes")
       .format("YYYY-MM-DDTHH:mm:ss.SSS");
+
+    if(appointmentStartTime < artist.startTime || appointmentStartTime > artist.endTime){
+      return res.status(400).json({
+        success: false,
+        message: "Appointment time out of artist working hours",
+      });
+    }
 
     const overlappingAppointments = await AppointmentModel.find({
       artist: artistId,
@@ -919,6 +928,53 @@ const getAppointmentsById = async (req, res) => {
   }
 };
 
+const getPastSalons = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await UserModel.findById(userId);
+    const customer = await CustomerModel.findOne({ userId: user });
+
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
+    }
+
+    const appointments = await AppointmentModel.find({ user: customer })
+
+    const salons = await SalonModel.find({appointments: { $in: appointments }, userId: { $ne: userId }}).populate("Reviews").populate("offers");
+
+    //send only unique salons 
+
+    const uniqueSalons = salons.filter((salon, index, self) =>
+      index === self.findIndex((t) => (t._id === salon._id))
+    );
+
+    if (!salons.length) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+        message: "No salons found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: uniqueSalons,
+      message: "Salons fetched successfully",
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+
 export {
   getTimeSlots,
   createAppointmentByOwner,
@@ -930,6 +986,7 @@ export {
   CreateAppointment,
   getAppointments,
   getAppointmentsById,
+  getPastSalons
 };
 
 // /**
