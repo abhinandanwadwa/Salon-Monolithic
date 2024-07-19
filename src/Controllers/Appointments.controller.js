@@ -519,6 +519,10 @@ const CompleteAppointment = async (req, res) => {
     const { appointmentId } = req.params;
 
     const appointment = await AppointmentModel.findById(appointmentId);
+    const artist = await ArtistModel.findById(appointment.artist);
+    const salon = await SalonModel.findById(appointment.salon);
+    const ArtistUser = await UserModel.findById(artist.userId);
+    const SalonOwner = await UserModel.findById(salon.userId);
 
     if (!appointmentId) {
       return res.status(400).json({
@@ -530,6 +534,31 @@ const CompleteAppointment = async (req, res) => {
     appointment.Status = "Completed";
 
     await appointment.save();
+
+    let sendtokens = [];
+
+    if(ArtistUser.token){
+      sendtokens.push(ArtistUser.token);
+    }
+
+    if(SalonOwner.token){
+      sendtokens.push(SalonOwner.token);
+    }
+
+    const TIME = moment(appointment.appointmentStartTime).format("hh:mm A");
+    const date = moment(appointment.appointmentDate).format("DD-MM-YYYY");
+
+    sendtokens = [...new Set(sendtokens)];
+
+    if(sendtokens.length > 0){
+      const message = {
+        notification: {
+          title: "Appointment Completed",
+          body: `Your appointment on ${date} at ${TIME} has been completed`,
+        },
+        tokens: sendtokens,
+      };
+    }
 
     return res.status(200).json({
       success: true,

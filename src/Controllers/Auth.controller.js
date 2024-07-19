@@ -11,6 +11,7 @@ import AppointmentModel from "../Models/Appointments.js";
 import ReviewModel from "../Models/review.js";
 import SalonModel from "../Models/Salon.js";
 import OfferModel from "../Models/Offer.js";
+import messaging from "./fcmClient.js";
 
 // const verifyToken = async (req, res) => {
 //   try {
@@ -718,6 +719,19 @@ const ChangeRole = async (req, res) => {
       user.role = "subAdmin";
 
       await user.save();
+
+      if(user.token){
+        const message = {
+          notification: {
+            title: "Role Changed",
+            body: `Your role has been changed to subAdmin`,
+          },
+          token: user.token,
+        };
+
+        messaging.send(message);
+      }
+
     }
 
     return res.status(200).json({
@@ -911,6 +925,18 @@ const removesubAdmin = async (req, res) => {
     }
 
     user1.role = "Artist";
+    
+    if(user1.token){
+      const message = {
+        notification: {
+          title: "Role Changed",
+          body: `Your role has been changed to Artist`,
+        },
+        token: user1.token,
+      };
+
+      messaging.send(message);
+    }
 
     await user1.save();
 
