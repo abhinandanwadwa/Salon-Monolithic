@@ -305,12 +305,12 @@ const getSalonByLocation = async (req, res) => {
       },
       {
         $lookup: {
-          from: "reviews", // The collection name in the database
+          from: "reviews", // The name of the Review collection in MongoDB
           localField: "Reviews",
-          foreignField: "salon",
-          as: "reviews",
-        },
-      }
+          foreignField: "_id",
+          as: "Reviews",
+        }
+      },  
     ]);
 
     return res.status(200).json({
@@ -604,12 +604,12 @@ const searchSalonss = async (req, res) => {
         },
         {
           $lookup: {
-            from: "reviews",
-            localField: "_id",
-            foreignField: "salon",
-            as: "reviews",
-          },
-        },
+            from: "reviews", // The name of the Review collection in MongoDB
+            localField: "Reviews",
+            foreignField: "_id",
+            as: "Reviews",
+          }
+        },  
       ];
 
       const salons = await SalonModel.aggregate(aggregationPipeline);
