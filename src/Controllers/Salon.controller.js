@@ -305,9 +305,9 @@ const getSalonByLocation = async (req, res) => {
       },
       {
         $lookup: {
-          from: "reviews", // The collection name in the database
-          localField: "Reviews",
-          foreignField: "_id",
+          from: "reviews",
+          localField: "_id",
+          foreignField: "salon",
           as: "reviews",
         },
       },

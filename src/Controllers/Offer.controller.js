@@ -3,6 +3,7 @@ import SalonModel from "../Models/Salon.js";
 import CustomerModel from "../Models/Customer.js";
 import moment from "moment";
 import ArtistModel from "../Models/Artist.js";
+import messaging from "./fcmClient.js";
 /**
  * @desc Create Offer
  * @method POST
@@ -241,7 +242,30 @@ const validateOffer = async (req, res) => {
 
 const testApi = async (req, res) => {
 
-  const user = req.user._id;
+  const user = req.user._id
+  if(user.token){
+  const message = {
+    notification: {
+      title: 'New Order',
+      body: 'You have a new order'
+    },
+    token: user.token
+  };
+
+  messaging.send(message).then((response) => {
+    console.log('Successfully sent message:', response);
+    return res.status(200).json({
+      success: true,
+      message: "Notification sent",
+    });
+  }).catch((error) => {
+    console.log('Error sending message:', error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in sending notification",
+    });
+  });
+  }
   if(user){
     return res.status(200).json({
       success: true,

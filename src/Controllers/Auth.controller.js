@@ -368,7 +368,8 @@ const sendOTP = async (req, res) => {
 
 const verifyOTP = async (req, res) => {
   try {
-    const { phoneNumber, enteredOTP } = req.body;
+    const { phoneNumber, enteredOTP,role,fcmToken } = req.body;
+    const FcmTokenDetails = fcmToken ? fcmToken : null;
 
     console.log(phoneNumber, enteredOTP);
     const user = await UserModel.findOne({ phoneNumber });
@@ -388,6 +389,8 @@ const verifyOTP = async (req, res) => {
     }
 
     const currentDateTime = new Date();
+
+    console.log(currentDateTime)
     if (currentDateTime > user.otpExpiration) {
       return res.status(400).json({
         success: false,
@@ -395,15 +398,120 @@ const verifyOTP = async (req, res) => {
       });
     }
 
-    if (user.role === "Customer") {
+    if (user.role === "Artist" && role === "Owner") {
+
+      user.token = FcmTokenDetails;
+      await user.save();
+      generateToken(res, user);
+      return res.status(201).json({
+        success: true,
+        user: {
+          _id: user._id,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          isSalon: user.isSalon,
+        },
+      });
+    } else if (user.role === "Artist" && role === "Customer") {
+      const customer = await CustomerModel.findOne({ userId: user._id });
+      const artist = await ArtistModel.findOne({ userId: user._id });
+      if (!customer) {
+        const newCustomer = new CustomerModel({
+          userId: user._id,
+          phoneNumber,
+          name: artist.ArtistName,
+        });
+        await newCustomer.save();
+      }
+
+      generateToken(res, user);
+      return res.status(201).json({
+        success: true,
+        user: {
+          _id: user._id,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          name: artist.ArtistName,
+          isSalon: user.isSalon,
+        },
+      });
+    }
+
+    if (user.role === "Owner" && role === "Owner") {
+      user.token = FcmTokenDetails;
+      await user.save();
+      generateToken(res, user);
+      return res.status(201).json({
+        success: true,
+        user: {
+          _id: user._id,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          isSalon: user.isSalon,
+        },
+      });
+    } else if (user.role === "Owner" && role === "Customer") {
       const customer = await CustomerModel.findOne({ userId: user._id });
       if (!customer) {
         const newCustomer = new CustomerModel({
           userId: user._id,
           phoneNumber,
+          name: user.name,
         });
         await newCustomer.save();
       }
+
+      generateToken(res, user);
+      return res.status(201).json({
+        success: true,
+        user: {
+          _id: user._id,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          name: user.name,
+          isSalon: user.isSalon,
+        },
+      });
+    }
+
+    if (user.role === "Customer" && role === "Customer") {
+      const customer = await CustomerModel.findOne({ userId: user._id });
+      if (!customer) {
+        const newCustomer = new CustomerModel({
+          userId: user._id,
+          phoneNumber,
+          name: user.name,
+        });
+        await newCustomer.save();
+      }
+
+      user.token = FcmTokenDetails;
+      await user.save();
+      generateToken(res, user);
+      return res.status(201).json({
+        success: true,
+        user: {
+          _id: user._id,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          name: customer.name,
+          isSalon: user.isSalon,
+        },
+      });
+    } else if (user.role === "Customer" && role === "Owner") {
+      user.role = role;
+      user.token = FcmTokenDetails;
+      await user.save();
+      generateToken(res, user);
+      return res.status(201).json({
+        success: true,
+        user: {
+          _id: user._id,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          isSalon: user.isSalon,
+        },
+      });
     }
 
     user.otp = null;
@@ -415,6 +523,7 @@ const verifyOTP = async (req, res) => {
       _id: user._id,
       phoneNumber: user.phoneNumber,
       role: user.role,
+      isSalon: user.isSalon,
     });
   } catch (error) {
     console.log("Error:", error);
@@ -861,6 +970,7 @@ const getSalonsubAdmins = async (req, res) => {
   try {
     const user = req.user._id;
     const salon = await SalonModel.findOne({ userId: user });
+   
 
     if (!salon) {
       return res.status(404).json({
