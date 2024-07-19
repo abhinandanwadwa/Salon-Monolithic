@@ -305,12 +305,12 @@ const getSalonByLocation = async (req, res) => {
       },
       {
         $lookup: {
-          from: "reviews",
-          localField: "_id",
+          from: "reviews", // The collection name in the database
+          localField: "Reviews",
           foreignField: "salon",
-          as: "Reviews",
+          as: "reviews",
         },
-      },
+      }
     ]);
 
     return res.status(200).json({
