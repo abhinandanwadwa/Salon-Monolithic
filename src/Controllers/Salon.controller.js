@@ -308,7 +308,7 @@ const getSalonByLocation = async (req, res) => {
           from: "reviews",
           localField: "_id",
           foreignField: "salon",
-          as: "reviews",
+          as: "Reviews",
         },
       },
     ]);
