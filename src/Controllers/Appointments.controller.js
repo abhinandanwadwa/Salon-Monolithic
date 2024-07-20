@@ -786,7 +786,6 @@ const CreateAppointment = async (req, res) => {
     }
 
     const appointment = new AppointmentModel({
-      name: user.name,
       user: customer,
       artist: artistId,
       appointmentDate,
@@ -953,9 +952,10 @@ const getAppointmentsById = async (req, res) => {
 const getPastSalons = async (req, res) => {
   try {
     const userId = req.user._id;
+    console.log(userId)
     const user = await UserModel.findById(userId);
-    const customer = await CustomerModel.findOne({ userId: user });
-
+    const customer = await CustomerModel.findOne({ userId });
+    
     if (!customer) {
       return res.status(404).json({
         success: false,
