@@ -334,19 +334,19 @@ const sendOTP = async (req, res) => {
       await user.save();
     }
 
-    // `https://www.fast2sms.com/dev/bulkV2?authorization=e9Oj3HC7B0EAltLkdYTrJZboQzmcihP24DpMwgRX5ynsIW6qfGud6AiNZyS41cqjxogQVhIOXUBvGPk3&route=dlt&sender_id=MACVEN&message=171048&variables_values=${otp}%7C&flash=0&numbers=${phoneNumber}`
+  //   // `https://www.fast2sms.com/dev/bulkV2?authorization=&route=dlt&sender_id=MACVEN&message=171048&variables_values=${otp}%7C&flash=0&numbers=${phoneNumber}`
 
-    const Url = `https://www.fast2sms.com/dev/bulkV2?authorization=e9Oj3HC7B0EAltLkdYTrJZboQzmcihP24DpMwgRX5ynsIW6qfGud6AiNZyS41cqjxogQVhIOXUBvGPk3&route=dlt&sender_id=MACVEN&message=171048&variables_values=${otp}%7C&flash=0&numbers=${phoneNumber}`;
+  //   const Url = `https://www.fast2sms.com/dev/bulkV2?authorization=${process.env.}&route=dlt&sender_id=MACVEN&message=171048&variables_values=${otp}%7C&flash=0&numbers=${phoneNumber}`;
 
-    const response = await axios.get(Url);
+  //   const response = await axios.get(Url);
 
-    
-    if(response.data.return){
-    await Statistic.findOneAndUpdate(
-      { _id: "Statistic" },
-      { $inc: { OtpCount: 1 } },
-    );
-  }
+
+  //   if(response.data.return){
+  //   await Statistic.findOneAndUpdate(
+  //     { _id: "Statistic" },
+  //     { $inc: { OtpCount: 1 } },
+  //   );
+  // }
     // fast2sms
     //   .sendMessage(options)
     //   .then((response) => {
