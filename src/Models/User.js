@@ -19,6 +19,7 @@ const User = new mongoose.Schema({
     },
     gender: {
         type: String,
+        default: 'Male',
     },
     password: {
         type: String,

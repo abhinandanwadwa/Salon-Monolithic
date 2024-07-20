@@ -719,6 +719,7 @@ const cancelAppointment = async (req, res) => {
 const CreateAppointment = async (req, res) => {
   try {
     const {
+      name,
       artistId,
       appointmentDate,
       appointmentStartTime,
@@ -786,6 +787,7 @@ const CreateAppointment = async (req, res) => {
     }
 
     const appointment = new AppointmentModel({
+      name : name,
       user: customer,
       artist: artistId,
       appointmentDate,

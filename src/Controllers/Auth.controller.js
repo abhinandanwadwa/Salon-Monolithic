@@ -195,6 +195,7 @@ const verifyToken = async (req, res) => {
             phoneNumber: user.phoneNumber,
             role: user.role,
             name: artist.ArtistName,
+            gender: user.gender,
             isSalon: user.isSalon,
           },
         });
@@ -220,6 +221,7 @@ const verifyToken = async (req, res) => {
             userId: user._id,
             phoneNumber,
             name: user.name,
+            gender: user.gender,
           });
           await newCustomer.save();
         }
@@ -244,6 +246,7 @@ const verifyToken = async (req, res) => {
             userId: user._id,
             phoneNumber,
             name: user.name,
+            gender: user.gender,
           });
           await newCustomer.save();
         }
@@ -432,6 +435,7 @@ const verifyOTP = async (req, res) => {
           phoneNumber: user.phoneNumber,
           role: user.role,
           name: artist.ArtistName,
+          gender: user.gender,
           isSalon: user.isSalon,
         },
       });
@@ -469,6 +473,7 @@ const verifyOTP = async (req, res) => {
           phoneNumber: user.phoneNumber,
           role: user.role,
           name: user.name,
+          gender: user.gender,
           isSalon: user.isSalon,
         },
       });
@@ -494,7 +499,8 @@ const verifyOTP = async (req, res) => {
           _id: user._id,
           phoneNumber: user.phoneNumber,
           role: user.role,
-          name: customer.name,
+          name: user.name,
+          gender: user.gender,
           isSalon: user.isSalon,
         },
       });
@@ -523,7 +529,9 @@ const verifyOTP = async (req, res) => {
       _id: user._id,
       phoneNumber: user.phoneNumber,
       role: user.role,
+      gender: user.gender,
       isSalon: user.isSalon,
+      name: user.name,
     });
   } catch (error) {
     console.log("Error:", error);
@@ -871,6 +879,8 @@ const addName = async (req, res) => {
 
     customer.name = name || customer.name;
     customer.gender = gender || customer.gender;
+    user1.name = name || user1.name;
+    user1.gender = gender || user1.gender;
 
     await customer.save();
 
@@ -878,8 +888,9 @@ const addName = async (req, res) => {
       success: true,
       data: {
         _id: user1._id,
-        name: customer.name,
+        name: user1.name,
         phoneNumber: user1.phoneNumber,
+        gender: user1.gender,
         role: user1.role,
         isSalon: user1.isSalon,
       },
