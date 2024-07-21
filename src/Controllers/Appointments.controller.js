@@ -17,7 +17,6 @@ const getCost = async (req, res) => {
   try {
     const { artistId, services, salonid } = req.body;
 
-    console.log(artistId, services);
 
     let cost = 0;
 
@@ -75,7 +74,6 @@ const getTimeSlots = async (req, res) => {
   try {
     const { artistId, timePeriod, services ,appointmentId} = req.body;
 
-    console.log(artistId, timePeriod, services);
     // Fetch artist data including appointments
     const artist = await ArtistModel.findById(artistId).populate("appointments");
     if (!artist) {
@@ -263,7 +261,6 @@ const createAppointmentByOwner = async (req, res) => {
         Service: services[i],
       });
 
-      console.log(serviceArtist);
 
       if (!serviceArtist) {
         return res.status(404).json({
@@ -283,7 +280,6 @@ const createAppointmentByOwner = async (req, res) => {
     const appointmentEndTime = moment(appointmentStartTime)
       .add(duration, "minutes")
       .format("YYYY-MM-DDTHH:mm:ss.SSS");
-    console.log(appointmentEndTime);
 
     const overlappingAppointments = await AppointmentModel.find({
       artist: artistId,
@@ -901,7 +897,6 @@ const CreateAppointment = async (req, res) => {
     const user = await UserModel.findById(userId);
   
 
-    console.log(appointmentStartTime);
 
     if (!artist) {
       return res.status(404).json({
@@ -1131,7 +1126,6 @@ const getAppointmentsById = async (req, res) => {
 const getPastSalons = async (req, res) => {
   try {
     const userId = req.user._id;
-    console.log(userId)
     const user = await UserModel.findById(userId);
     const customer = await CustomerModel.findOne({ userId });
     

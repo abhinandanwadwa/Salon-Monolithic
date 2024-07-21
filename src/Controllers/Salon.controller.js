@@ -286,7 +286,6 @@ const UpdateSalon = async (req, res) => {
 const getSalonByLocation = async (req, res) => {
   try {
     const { latitude, longitude } = req.body;
-    console.log(req.body);
     const salons = await SalonModel.aggregate([
       {
         $geoNear: {
@@ -481,7 +480,6 @@ const searchSalons = async (req, res) => {
       ];
     }
 
-    console.log(salonIds);
 
     // Handle address geocoding
     if (address) {
@@ -576,7 +574,6 @@ const searchSalons = async (req, res) => {
 const searchSalonss = async (req, res) => {
   try {
     const { salonName, location } = req.body;
-    console.log(req.body);
 
     if ((location && salonName) || location) {
       const locations = {
