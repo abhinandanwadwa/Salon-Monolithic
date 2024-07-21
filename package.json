@@ -22,7 +22,6 @@
     "express": "^4.19.2",
     "express-async-handler": "^1.2.0",
     "fast-two-sms": "^3.0.0",
-    "firebase": "^10.12.4",
     "firebase-admin": "^12.2.0",
     "google-auth-library": "^9.10.0",
     "google-spreadsheet": "^4.1.2",
