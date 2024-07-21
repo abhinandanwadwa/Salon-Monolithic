@@ -836,7 +836,7 @@ const CreateAppointment = async (req, res) => {
   db.collection("Notification").add({
     title: "New Appointment",
     body: `You have a new appointment on ${appointmentDate} at ${TIME}`,
-    Ids: Ids,
+    Ids: Ids.map(id => id.toString()),
     read: false,
     createdAt: new Date(),
   }).then((docRef) => {
