@@ -75,7 +75,7 @@ const getTimeSlots = async (req, res) => {
   try {
     const { artistId, timePeriod, services ,appointmentId} = req.body;
 
-
+    console.log(artistId, timePeriod, services);
     // Fetch artist data including appointments
     const artist = await ArtistModel.findById(artistId).populate("appointments");
     if (!artist) {
