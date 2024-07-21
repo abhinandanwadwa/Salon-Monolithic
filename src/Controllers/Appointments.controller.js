@@ -599,20 +599,23 @@ const rescheduleAppointment = async (req, res) => {
 
     }
 
-    db.collection("Notification").add({
-      title: "Appointment Rescheduled",
-      body: `Your appointment on ${date} has been rescheduled to ${TIME}`,
-      Ids: Ids.map(id => id.toString()),
-      read: false,
-      createdAt: new Date(),
-    }).then((docRef) => {
-      console.log("Document written with ID: ", docRef.id);
-    }).catch((error) => {
-      console.error("Error adding document: ", error);
-    });
+    
   }
 
+  const date = moment(appointmentDate).format("DD-MM-YYYY");
+  const TIME = moment(appointmentStartTime).format("hh:mm A");
 
+  db.collection("Notification").add({
+    title: "Appointment Rescheduled",
+    body: `Your appointment on ${date} has been rescheduled to ${TIME}`,
+    Ids: Ids.map(id => id.toString()),
+    read: false,
+    createdAt: new Date(),
+  }).then((docRef) => {
+    console.log("Document written with ID: ", docRef.id);
+  }).catch((error) => {
+    console.error("Error adding document: ", error);
+  });
     await appointment.save();
 
    
