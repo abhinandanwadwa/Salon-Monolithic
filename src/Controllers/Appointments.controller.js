@@ -602,10 +602,6 @@ const rescheduleAppointment = async (req, res) => {
       messaging.sendEachForMulticast(message)
 
     }
-  }
-
-
-    await appointment.save();
 
     db.collection("Notification").add({
       title: "Appointment Rescheduled",
@@ -618,6 +614,12 @@ const rescheduleAppointment = async (req, res) => {
     }).catch((error) => {
       console.error("Error adding document: ", error);
     });
+  }
+
+
+    await appointment.save();
+
+   
 
 
     return res.status(200).json({
