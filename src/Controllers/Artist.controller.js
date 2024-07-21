@@ -475,7 +475,7 @@ const updateArtist = async (req, res) => {
       });
     }
 
-    const { name, phoneNumber, workingDays, services,startTime , endTime,gender } = req.body;
+    const { name, phoneNumber, workingDays, services,startTime,role , endTime,gender } = req.body;
 
     const startTimeString = startTime ? startTime.toString() : null;
     const endTimeString = endTime ? endTime.toString() : null;
@@ -553,6 +553,7 @@ const updateArtist = async (req, res) => {
     }
 
     artist.ArtistName = name || artist.ArtistName;
+    artist.ArtistType = role || artist.ArtistType;
     artist.PhoneNumber = phoneNumber || artist.PhoneNumber;
     artist.workingDays = workingdaylist || artist.workingDays;
     artist.services = servicesArray || artist.services;
