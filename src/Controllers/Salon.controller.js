@@ -13,6 +13,7 @@ import ArtistModel from "../Models/Artist.js";
 import ReviewModel from "../Models/review.js";
 import OfferModel from "../Models/Offer.js";
 import CustomerModel from "../Models/Customer.js";
+import Statistic from "../Models/Statistics.js";
 
 /**
  * @desc Create a new salon
@@ -1132,9 +1133,12 @@ const SalonsStats = async (req, res) => {
       createdAt: { $gte: weekStart, $lte: weekEnd },
     }).countDocuments();
 
+    const stats = await Statistic.findOne({});
+
     return res.status(200).json({
       success: true,
       data: {
+        stats,
         totalSalons,
         totalUsers,
         totalAppointments,
