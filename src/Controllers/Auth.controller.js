@@ -14,6 +14,9 @@ import OfferModel from "../Models/Offer.js";
 import messaging from "./fcmClient.js";
 import axios from "axios";
 import Statistic from "../Models/Statistics.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 
 
@@ -336,25 +339,18 @@ const sendOTP = async (req, res) => {
 
   //   // `https://www.fast2sms.com/dev/bulkV2?authorization=&route=dlt&sender_id=MACVEN&message=171048&variables_values=${otp}%7C&flash=0&numbers=${phoneNumber}`
 
-  //   const Url = `https://www.fast2sms.com/dev/bulkV2?authorization=${process.env.}&route=dlt&sender_id=MACVEN&message=171048&variables_values=${otp}%7C&flash=0&numbers=${phoneNumber}`;
+    const API = process.env.FAST2SMS_AUTH_KEY;
 
-  //   const response = await axios.get(Url);
+    const Url = `https://www.fast2sms.com/dev/bulkV2?authorization=${API}&route=dlt&sender_id=MACVEN&message=171048&variables_values=${otp}%7C&flash=0&numbers=${phoneNumber}`;
 
+    const response = await axios.get(Url);
 
-  //   if(response.data.return){
-  //   await Statistic.findOneAndUpdate(
-  //     { _id: "Statistic" },
-  //     { $inc: { OtpCount: 1 } },
-  //   );
-  // }
-    // fast2sms
-    //   .sendMessage(options)
-    //   .then((response) => {
-    //     console.log("otp sent successfully", response);
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //   });
+    if(response.data.return){
+    await Statistic.findOneAndUpdate(
+      { _id: "Statistic" },
+      { $inc: { OtpCount: 1 } },
+    );
+  }
 
     console.log("OTP sent:", otp);
 
