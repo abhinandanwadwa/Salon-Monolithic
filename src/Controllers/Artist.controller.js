@@ -825,7 +825,7 @@ const getArtistData = async (req, res) => {
       .populate({
         path: "appointments",
         populate: {
-          path: "user services",
+          path: "user services Review",
           select: "-userId -appointments -salon",
         },
       })
