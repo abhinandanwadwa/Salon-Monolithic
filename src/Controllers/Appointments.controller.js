@@ -831,19 +831,19 @@ const CreateAppointment = async (req, res) => {
 
     messaging.sendEachForMulticast(message)
 
-    db.collection("Notification").add({
-      title: "New Appointment",
-      body: `You have a new appointment on ${appointmentDate} at ${TIME}`,
-      Ids: Ids,
-      read: false,
-      createdAt: new Date(),
-    }).then((docRef) => {
-      console.log("Document written with ID: ", docRef.id);
-    }).catch((error) => {
-      console.error("Error adding document: ", error);
-    });
-    
   }
+
+  db.collection("Notification").add({
+    title: "New Appointment",
+    body: `You have a new appointment on ${appointmentDate} at ${TIME}`,
+    Ids: Ids,
+    read: false,
+    createdAt: new Date(),
+  }).then((docRef) => {
+    console.log("Document written with ID: ", docRef.id);
+  }).catch((error) => {
+    console.error("Error adding document: ", error);
+  });
     
 
     await appointment.save();
