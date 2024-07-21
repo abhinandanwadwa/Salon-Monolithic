@@ -11,7 +11,7 @@ import AppointmentModel from "../Models/Appointments.js";
 import ReviewModel from "../Models/review.js";
 import SalonModel from "../Models/Salon.js";
 import OfferModel from "../Models/Offer.js";
-import { messaging } from "./fcmClient.js";
+import { db, messaging } from "./fcmClient.js";
 import axios from "axios";
 import Statistic from "../Models/Statistics.js";
 import dotenv from "dotenv";
@@ -856,7 +856,33 @@ const ChangeRole = async (req, res) => {
         messaging.send(message);
       }
 
+      db.collection("Notification").add({
+        title: "Role Changed",
+        body: `Your role has been changed to subAdmin`,
+        Ids: [user._id.toString()],
+        read: false,
+        createdAt: new Date(),
+      }).then((docRef) => {
+        console.log("Document written with ID: ", docRef.id);
+      }).catch((error) => {
+        console.error("Error adding document: ", error);
+      });
     }
+
+    
+    // db.collection("Notification").add({
+    //   title: "Appointment Completed",
+    //   body: `Your appointment on ${date} at ${TIME} has been completed`,
+    //   Ids: Ids.map(id => id.toString()),
+    //   read: false,
+    //   createdAt: new Date(),
+    // }).then((docRef) => {
+    //   console.log("Document written with ID: ", docRef.id);
+    // }).catch((error) => {
+    //   console.error("Error adding document: ", error);
+    // });
+
+    
 
     return res.status(200).json({
       success: true,
@@ -1065,6 +1091,18 @@ const removesubAdmin = async (req, res) => {
 
       messaging.send(message);
     }
+
+    db.collection("Notification").add({
+      title: "Role Changed",
+      body: `Your role has been changed to Artist`,
+      Ids: [user1._id.toString()],
+      read: false,
+      createdAt: new Date(),
+    }).then((docRef) => {
+      console.log("Document written with ID: ", docRef.id);
+    }).catch((error) => {
+      console.error("Error adding document: ", error);
+    });
 
     await user1.save();
 

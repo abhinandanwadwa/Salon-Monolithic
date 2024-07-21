@@ -342,6 +342,54 @@ const createAppointmentByOwner = async (req, res) => {
     salon.appointments.push(appointment);
     await salon.save();
 
+    let sendtokens = [];
+    let Ids = [];
+
+    Ids.push(user._id);
+    Ids.push(artist.userId);
+
+    const ArtistUser = await UserModel.findById(artist.userId);
+    const SalonOwner = await UserModel.findById(salon.userId);
+
+    if(ArtistUser.token){
+      sendtokens.push(ArtistUser.token);
+    }
+    if(SalonOwner.token){
+      sendtokens.push(SalonOwner.token);
+    }
+
+    const TIME = moment(appointmentStartTime).format("hh:mm A");
+    const date = moment(appointmentDate).format("DD-MM-YYYY");
+
+    sendtokens = [...new Set(sendtokens)];
+    Ids = [...new Set(Ids)];
+
+    if(sendtokens.length > 0){
+
+    const message = {
+      notification: {
+        title: "New Appointment",
+        body: `You have a new appointment on ${date} at ${TIME}`,
+      },
+      tokens: sendtokens,
+    };
+
+    messaging.sendEachForMulticast(message)
+
+  }
+
+  db.collection("Notification").add({
+    title: "New Appointment",
+    body: `You have a new appointment on ${date} at ${TIME}`,
+    Ids: Ids.map(id => id.toString()),
+    read: false,
+    createdAt: new Date(),
+  }).then((docRef) => {
+    console.log("Document written with ID: ", docRef.id);
+  }).catch((error) => {
+    console.error("Error adding document: ", error);
+  });
+
     return res.status(201).json({
       success: true,
       message: "Appointment created successfully",
@@ -422,6 +470,56 @@ const editAppointment = async (req, res) => {
 
     await newArtist.save();
 
+    let sendtokens = [];
+    let Ids = [];
+
+    Ids.push(artist.userId);
+    Ids.push(appointment.salon.userId);
+
+    const ArtistUser = await UserModel.findById(artist.userId);
+    const SalonOwner = await UserModel.findById(appointment.salon.userId);
+
+    if(ArtistUser.token){
+      sendtokens.push(ArtistUser.token);
+    }
+
+    if(SalonOwner.token){
+      sendtokens.push(SalonOwner.token);
+    }
+
+    const TIME = moment(appointmentStartTime).format("hh:mm A");
+    const date = moment(appointmentDate).format("DD-MM-YYYY");
+
+    sendtokens = [...new Set(sendtokens)];
+    Ids = [...new Set(Ids)];
+
+    if(sendtokens.length > 0){
+      
+    const message = {
+      notification: {
+        title: "Appointment Updated",
+        body: `Your appointment on ${date} at ${TIME} has been updated`,
+      },
+      tokens: sendtokens,
+    };
+
+    messaging.sendEachForMulticast(message)
+
+  }
+
+  db.collection("Notification").add({
+    title: "Appointment Updated",
+    body: `Your appointment on ${date} at ${TIME} has been updated`,
+    Ids: Ids.map(id => id.toString()),
+    read: false,
+    createdAt: new Date(),
+  }).then((docRef) => {
+    console.log("Document written with ID: ", docRef.id);
+  }).catch((error) => {
+    console.error("Error adding document: ", error);
+  });
+
+
     return res.status(200).json({
       success: true,
       message: "Appointment updated successfully",
@@ -471,6 +569,12 @@ const rescheduleAppointment = async (req, res) => {
       const SalonOwner = await UserModel.findById(salon.userId);
 
       let sendtokens = [];
+      let Ids = [];
+
+      Ids.push(ArtistUser._id);
+      Ids.push(SalonOwner._id);
+
+
 
       if(ArtistUser.token){
         sendtokens.push(ArtistUser.token);
@@ -483,6 +587,7 @@ const rescheduleAppointment = async (req, res) => {
       const date = moment(appointmentDate).format("DD-MM-YYYY");
 
       sendtokens = [...new Set(sendtokens)];
+      Ids = [...new Set(Ids)];
 
       if(sendtokens.length > 0){
 
@@ -499,7 +604,21 @@ const rescheduleAppointment = async (req, res) => {
     }
   }
 
+
     await appointment.save();
+
+    db.collection("Notification").add({
+      title: "Appointment Rescheduled",
+      body: `Your appointment on ${date} has been rescheduled to ${TIME}`,
+      Ids: Ids.map(id => id.toString()),
+      read: false,
+      createdAt: new Date(),
+    }).then((docRef) => {
+      console.log("Document written with ID: ", docRef.id);
+    }).catch((error) => {
+      console.error("Error adding document: ", error);
+    });
+
 
     return res.status(200).json({
       success: true,
@@ -536,6 +655,10 @@ const CompleteAppointment = async (req, res) => {
     await appointment.save();
 
     let sendtokens = [];
+    let Ids = [];
+
+    Ids.push(ArtistUser._id);
+    Ids.push(SalonOwner._id);
 
     if(ArtistUser.token){
       sendtokens.push(ArtistUser.token);
@@ -549,6 +672,7 @@ const CompleteAppointment = async (req, res) => {
     const date = moment(appointment.appointmentDate).format("DD-MM-YYYY");
 
     sendtokens = [...new Set(sendtokens)];
+    Ids = [...new Set(Ids)];
 
     if(sendtokens.length > 0){
       const message = {
@@ -558,7 +682,22 @@ const CompleteAppointment = async (req, res) => {
         },
         tokens: sendtokens,
       };
+
+      messaging.sendEachForMulticast(message)
     }
+
+    db.collection("Notification").add({
+      title: "Appointment Completed",
+      body: `Your appointment on ${date} at ${TIME} has been completed`,
+      Ids: Ids.map(id => id.toString()),
+      read: false,
+      createdAt: new Date(),
+    }).then((docRef) => {
+      console.log("Document written with ID: ", docRef.id);
+    }).catch((error) => {
+      console.error("Error adding document: ", error);
+    });
+
 
     return res.status(200).json({
       success: true,
@@ -617,6 +756,12 @@ const cancelAppointment = async (req, res) => {
       await appointment.save();
 
       let sendtokens = [];
+      let Ids = [];
+
+      Ids.push(ArtistUser._id);
+      Ids.push(SalonOwner._id);
+
+
 
     if(ArtistUser.token){
       sendtokens.push(ArtistUser.token);
@@ -629,6 +774,8 @@ const cancelAppointment = async (req, res) => {
     const date = moment(appointment.appointmentDate).format("DD-MM-YYYY");
 
     sendtokens = [...new Set(sendtokens)];
+    Ids = [...new Set(Ids)];
+
 
 
         if(sendtokens.length > 0){
@@ -644,6 +791,18 @@ const cancelAppointment = async (req, res) => {
         messaging.sendEachForMulticast(message)
         
       }
+
+      db.collection("Notification").add({
+        title: "Appointment Cancelled",
+        body: `Your appointment on ${date} at ${TIME} has been cancelled`,
+        Ids: Ids.map(id => id.toString()),
+        read: false,
+        createdAt: new Date(),
+      }).then((docRef) => {
+        console.log("Document written with ID: ", docRef.id);
+      }).catch((error) => {
+        console.error("Error adding document: ", error);
+      });
 
 
       return res.status(200).json({
