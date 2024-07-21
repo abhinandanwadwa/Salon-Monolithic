@@ -13,7 +13,7 @@ import Appointmentrouter from './Routes/appointment.routes.js';
 import Salonrouter from './Routes/Salon.routes.js';
 import Offerrouter from './Routes/Offer.routes.js';
 import Reviewrouter from './Routes/Review.routes.js';
-import messaging from './Controllers/fcmClient.js';
+import {messaging} from './Controllers/fcmClient.js';
 
 
 

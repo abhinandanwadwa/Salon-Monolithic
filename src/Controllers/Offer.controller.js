@@ -3,7 +3,9 @@ import SalonModel from "../Models/Salon.js";
 import CustomerModel from "../Models/Customer.js";
 import moment from "moment";
 import ArtistModel from "../Models/Artist.js";
-import messaging from "./fcmClient.js";
+import { db,messaging } from "./fcmClient.js";
+
+
 /**
  * @desc Create Offer
  * @method POST
@@ -265,7 +267,11 @@ const testApi = async (req, res) => {
       message: "Error in sending notification",
     });
   });
+
   }
+
+ 
+
   if(user){
     return res.status(200).json({
       success: true,

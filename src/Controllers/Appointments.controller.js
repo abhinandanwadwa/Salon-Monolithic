@@ -9,8 +9,7 @@ import Service from "../Models/Services.js";
 import ServiceArtist from "../Models/ServiceArtist.js";
 import OfferModel from "../Models/Offer.js";
 import ReviewModel from "../Models/review.js";
-import messaging from "./fcmClient.js";
-import db from "./firestore.js";
+import { messaging,db } from "./fcmClient.js";
 
 moment.suppressDeprecationWarnings = true;
 
@@ -838,6 +837,10 @@ const CreateAppointment = async (req, res) => {
       Ids: Ids,
       read: false,
       createdAt: new Date(),
+    }).then((docRef) => {
+      console.log("Document written with ID: ", docRef.id);
+    }).catch((error) => {
+      console.error("Error adding document: ", error);
     });
     
   }

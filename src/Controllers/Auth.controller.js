@@ -11,7 +11,7 @@ import AppointmentModel from "../Models/Appointments.js";
 import ReviewModel from "../Models/review.js";
 import SalonModel from "../Models/Salon.js";
 import OfferModel from "../Models/Offer.js";
-import messaging from "./fcmClient.js";
+import { messaging } from "./fcmClient.js";
 import axios from "axios";
 import Statistic from "../Models/Statistics.js";
 import dotenv from "dotenv";

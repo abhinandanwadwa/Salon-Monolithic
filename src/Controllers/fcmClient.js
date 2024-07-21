@@ -11,8 +11,7 @@ const app = initializeApp({
 });
 
 const messaging = getMessaging(app);
+const db = admin.firestore();
 
 
-
-
-export default messaging;
+export { messaging, db }; 
