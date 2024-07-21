@@ -557,12 +557,15 @@ const rescheduleAppointment = async (req, res) => {
     appointment.appointmentEndTime = appointmentEndTime;
     appointment.Duration = duration;
 
-    if(user.role == "Customer"){
-      const artist = await ArtistModel.findById(appointment.artist);
+
+    const artist = await ArtistModel.findById(appointment.artist);
       const salon = await SalonModel.findById(appointment.salon);
 
       const ArtistUser = await UserModel.findById(artist.userId);
       const SalonOwner = await UserModel.findById(salon.userId);
+
+    if(user.role == "Customer"){
+      
 
       let sendtokens = [];
       let Ids = [];
@@ -602,6 +605,13 @@ const rescheduleAppointment = async (req, res) => {
     
   }
 
+  let Ids = [];
+
+  Ids.push(ArtistUser._id);
+  Ids.push(SalonOwner._id);
+
+  Ids = [...new Set(Ids)];
+  
   const date = moment(appointmentDate).format("DD-MM-YYYY");
   const TIME = moment(appointmentStartTime).format("hh:mm A");
 
