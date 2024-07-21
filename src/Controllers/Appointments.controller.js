@@ -10,6 +10,7 @@ import ServiceArtist from "../Models/ServiceArtist.js";
 import OfferModel from "../Models/Offer.js";
 import ReviewModel from "../Models/review.js";
 import messaging from "./fcmClient.js";
+import db from "./firebase.js";
 
 moment.suppressDeprecationWarnings = true;
 
@@ -802,12 +803,14 @@ const CreateAppointment = async (req, res) => {
     });
 
     let sendtokens = [];
-
+    let Ids = [];
     if(ArtistUser.token){
       sendtokens.push(ArtistUser.token);
+      Ids.push(ArtistUser._id);
     }
     if(SalonOwner.token){
       sendtokens.push(SalonOwner.token);
+      Ids.push(SalonOwner._id);
     }
 
     const TIME = moment(appointmentStartTime).format("hh:mm A");
@@ -826,6 +829,14 @@ const CreateAppointment = async (req, res) => {
     };
 
     messaging.sendEachForMulticast(message)
+
+    db.collection("Notification").add({
+      title: "New Appointment",
+      body: `You have a new appointment on ${appointmentDate} at ${TIME}`,
+      Ids: Ids,
+      read: false,
+      createdAt: new Date(),
+    });
     
   }
     
