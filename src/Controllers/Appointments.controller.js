@@ -379,7 +379,7 @@ const createAppointmentByOwner = async (req, res) => {
     body: `You have a new appointment on ${date} at ${TIME}`,
     Ids: Ids.map(id => id.toString()),
     read: false,
-    createdAt: new Date(),
+    createdAt: new Date().toISOString(),
   }).then((docRef) => {
     console.log("Document written with ID: ", docRef.id);
   }).catch((error) => {
@@ -508,7 +508,7 @@ const editAppointment = async (req, res) => {
     body: `Your appointment on ${date} at ${TIME} has been updated`,
     Ids: Ids.map(id => id.toString()),
     read: false,
-    createdAt: new Date(),
+    createdAt: new Date().toISOString(),
   }).then((docRef) => {
     console.log("Document written with ID: ", docRef.id);
   }).catch((error) => {
@@ -610,7 +610,7 @@ const rescheduleAppointment = async (req, res) => {
     body: `Your appointment on ${date} has been rescheduled to ${TIME}`,
     Ids: Ids.map(id => id.toString()),
     read: false,
-    createdAt: new Date(),
+    createdAt: new Date().toISOString(),
   }).then((docRef) => {
     console.log("Document written with ID: ", docRef.id);
   }).catch((error) => {
@@ -694,7 +694,7 @@ const CompleteAppointment = async (req, res) => {
       body: `Your appointment on ${date} at ${TIME} has been completed`,
       Ids: Ids.map(id => id.toString()),
       read: false,
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     }).then((docRef) => {
       console.log("Document written with ID: ", docRef.id);
     }).catch((error) => {
@@ -800,7 +800,7 @@ const cancelAppointment = async (req, res) => {
         body: `Your appointment on ${date} at ${TIME} has been cancelled`,
         Ids: Ids.map(id => id.toString()),
         read: false,
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
       }).then((docRef) => {
         console.log("Document written with ID: ", docRef.id);
       }).catch((error) => {
@@ -999,7 +999,7 @@ const CreateAppointment = async (req, res) => {
     body: `You have a new appointment on ${appointmentDate} at ${TIME}`,
     Ids: Ids.map(id => id.toString()),
     read: false,
-    createdAt: new Date(),
+    createdAt: new Date().toISOString(),
   }).then((docRef) => {
     console.log("Document written with ID: ", docRef.id);
   }).catch((error) => {
