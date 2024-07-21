@@ -656,10 +656,7 @@ const CompleteAppointment = async (req, res) => {
     await appointment.save();
 
     let sendtokens = [];
-    let Ids = [];
-
-    Ids.push(ArtistUser._id);
-    Ids.push(SalonOwner._id);
+    
 
     if(ArtistUser.token){
       sendtokens.push(ArtistUser.token);
@@ -673,7 +670,6 @@ const CompleteAppointment = async (req, res) => {
     const date = moment(appointment.appointmentDate).format("DD-MM-YYYY");
 
     sendtokens = [...new Set(sendtokens)];
-    Ids = [...new Set(Ids)];
 
     if(sendtokens.length > 0){
       const message = {
@@ -686,6 +682,12 @@ const CompleteAppointment = async (req, res) => {
 
       messaging.sendEachForMulticast(message)
     }
+
+    let Ids = [];
+    Ids.push(ArtistUser._id);
+    Ids.push(SalonOwner._id);
+
+    Ids = [...new Set(Ids)];
 
     db.collection("Notification").add({
       title: "Appointment Completed",
