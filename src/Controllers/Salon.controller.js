@@ -291,7 +291,7 @@ const getSalonByLocation = async (req, res) => {
         $geoNear: {
           near: { type: "Point", coordinates: [latitude, longitude] }, // Note the order: [longitude, latitude]
           distanceField: "distance",
-          maxDistance: 10000,
+          maxDistance: 100000,
           spherical: true,
         },
       },
