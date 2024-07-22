@@ -379,6 +379,7 @@ const sendOTP = async (req, res) => {
 const verifyOTP = async (req, res) => {
   try {
     const { phoneNumber, enteredOTP,role,fcmToken } = req.body;
+    console.log(fcmToken)
     const FcmTokenDetails = fcmToken ? fcmToken : null;
 
     console.log(phoneNumber, enteredOTP);
