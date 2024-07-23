@@ -528,6 +528,45 @@ const verifyOTP = async (req, res) => {
       });
     }
 
+    if(user.role === "subAdmin" && role === "Owner"){
+      user.token = FcmTokenDetails
+      await user.save();
+      generateToken(res,user);
+      return res.status(201).json({
+        success:true,
+        user: {
+          _id: user._id,
+          phoneNumber:user.phoneNumber,
+          role: user.role,
+          isSalon: user.isSalon
+        },
+      })
+    }else if(user.role === "subAdmin" && role === "Customer"){
+      const customer = await CustomerModel.findOne({ userId: user._id });
+      const artist = await ArtistModel.findOne({ userId: user._id });
+      if (!customer) {
+        const newCustomer = new CustomerModel({
+          userId: user._id,
+          phoneNumber,
+          name: artist.ArtistName,
+        });
+        await newCustomer.save();
+      }
+
+      generateToken(res, user);
+      return res.status(201).json({
+        success: true,
+        user: {
+          _id: user._id,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          name: artist.ArtistName,
+          gender: user.gender,
+          isSalon: user.isSalon,
+        },
+      });
+    }
+
     user.otp = null;
     user.otpExpiration = null;
     await user.save();
