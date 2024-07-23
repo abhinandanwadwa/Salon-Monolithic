@@ -54,6 +54,7 @@ const appointmentSchema = new mongoose.Schema({
     }, 
     gender: {
         type: String,
+        default: 'Male',
     },
     Review: {
         type: mongoose.Schema.Types.ObjectId,

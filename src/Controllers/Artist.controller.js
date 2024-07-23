@@ -309,12 +309,17 @@ const createArtist = async (req, res) => {
       const salonUserId = new mongoose.Types.ObjectId(salon.userId);
       const userId = new mongoose.Types.ObjectId(user._id);
 
-      if (!salonUserId.equals(userId)) {
+      if (!salonUserId.equals(userId) && user.isSalon === true) {
         return res.status(400).json({
           success: false,
           message:
             "User already exists with this phone number: " + PhoneNumber,
         });
+      }
+
+      if(user.isSalon === false){
+        user.role = "Artist";
+        await user.save();
       }
 
       const artist = new ArtistModel({
@@ -357,6 +362,7 @@ const createArtist = async (req, res) => {
 
     if (user && user.role === "Customer") {
       user.role = "Artist";
+      user.gender = gender;
       await user.save();
 
       const artist = new ArtistModel({
