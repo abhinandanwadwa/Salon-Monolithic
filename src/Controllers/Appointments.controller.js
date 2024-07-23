@@ -1030,12 +1030,14 @@ const CreateAppointment = async (req, res) => {
 
   }
 
+  const nameArtist = ArtistUser.name || artist.ArtistName;
+
   db.collection("Notification").add({
     title: "New Appointment",
     body: `You have a new appointment on ${appointmentDate} at ${TIME}`,
     Ids: Ids.map(id => id.toString()),
     read: false,
-    related: ArtistUser.name,
+    related: nameArtist,
     createdAt: new Date().toISOString(),
   }).then((docRef) => {
     console.log("Document written with ID: ", docRef.id);
