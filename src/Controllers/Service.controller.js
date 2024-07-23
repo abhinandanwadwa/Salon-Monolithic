@@ -214,8 +214,13 @@ const updateService = async (req, res) => {
         message: "Service not found" });
     }
 
-    const updateService = await Service.findById(serviceId)
+    const updateService = await Service.findById(serviceId);
+    const ServicArtist = await ServiceArtist.find({ Service: serviceId });
 
+    for (const sa of ServicArtist) {
+      sa.Price = ServiceCost || sa.Price;
+      await sa.save();
+    }
 
     updateService.ServiceName = ServiceName || updateService.ServiceName;
     updateService.ServiceType = ServiceType || updateService.ServiceType;
