@@ -14,6 +14,7 @@ import ReviewModel from "../Models/review.js";
 import OfferModel from "../Models/Offer.js";
 import CustomerModel from "../Models/Customer.js";
 import Statistic from "../Models/Statistics.js";
+import { messaging } from "./fcmClient.js";
 
 /**
  * @desc Create a new salon
@@ -757,7 +758,15 @@ const deleteSalon = async (req, res) => {
 
     const artists = await ArtistModel.find({ salon: salon._id });
     const artistUserIds = artists.map((artist) => artist.userId);
-  
+    
+    let SendTokens;
+
+    for (let i = 0; i < artistUserIds.length; i++) {
+      const ArtistUser = await UserModel.findById(artistUserIds[i]);
+      if(ArtistUser.token){
+        SendTokens.push(ArtistUser.token);
+      }
+    }
 
     if (artistUserIds.length) {
       await CustomerModel.deleteMany({ userId: { $in: artistUserIds } }, { session });
@@ -785,10 +794,28 @@ const deleteSalon = async (req, res) => {
 
     await SalonModel.findOneAndDelete({ userId: user }, { session });
     await CustomerModel.findOneAndDelete({ userId: user }, { session });
+    const OwnerUser = await UserModel.findById(user);
+    if(OwnerUser.token){
+      SendTokens.push(OwnerUser.token);
+    }
     await UserModel.findOneAndDelete({ _id: user }, { session });
 
     await session.commitTransaction();
     session.endSession();
+
+    SendTokens = [...new Set(SendTokens)];
+
+    if(SendTokens){
+      const message = {
+        notification: {
+          title: "Account Deleted",
+          body: "Your account has been deleted"
+        },
+        tokens: SendTokens
+      };
+
+      messaging.sendEachForMulticast(message)
+    }
 
     return res.status(200).json({
       success: true,
