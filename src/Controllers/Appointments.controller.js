@@ -617,12 +617,14 @@ const rescheduleAppointment = async (req, res) => {
   const date = moment(appointmentDate).format("DD-MM-YYYY");
   const TIME = moment(appointmentStartTime).format("hh:mm A");
 
+  const nameArtist = ArtistUser.name || artist.ArtistName;
+
   db.collection("Notification").add({
     title: "Appointment Rescheduled",
     body: `Your appointment on ${date} has been rescheduled to ${TIME}`,
     Ids: Ids.map(id => id.toString()),
     read: false,
-    related: ArtistUser.name,
+    related: nameArtist,
     createdAt: new Date().toISOString(),
   }).then((docRef) => {
     console.log("Document written with ID: ", docRef.id);
