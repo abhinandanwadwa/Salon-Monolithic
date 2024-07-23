@@ -1234,6 +1234,16 @@ const deleteOwner = async (req, res) => {
  */
 
 const logout = async (req, res) => {
+  const userId = req.user._id;
+  const user = await UserModel.findById(userId);
+
+  //remove user.token 
+
+  user.token = null;
+  await user.save();
+
+  
+
   res.cookie("jwt", "", {
     expires: new Date(0),
     httpOnly: true,
