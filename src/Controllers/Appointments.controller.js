@@ -379,6 +379,7 @@ const createAppointmentByOwner = async (req, res) => {
     body: `You have a new appointment on ${date} at ${TIME}`,
     Ids: Ids.map(id => id.toString()),
     read: false,
+    related: ArtistUser.name,
     createdAt: new Date().toISOString(),
   }).then((docRef) => {
     console.log("Document written with ID: ", docRef.id);
@@ -508,6 +509,7 @@ const editAppointment = async (req, res) => {
     body: `Your appointment on ${date} at ${TIME} has been updated`,
     Ids: Ids.map(id => id.toString()),
     read: false,
+    related: ArtistUser.name,
     createdAt: new Date().toISOString(),
   }).then((docRef) => {
     console.log("Document written with ID: ", docRef.id);
@@ -620,6 +622,7 @@ const rescheduleAppointment = async (req, res) => {
     body: `Your appointment on ${date} has been rescheduled to ${TIME}`,
     Ids: Ids.map(id => id.toString()),
     read: false,
+    related: ArtistUser.name,
     createdAt: new Date().toISOString(),
   }).then((docRef) => {
     console.log("Document written with ID: ", docRef.id);
@@ -704,6 +707,7 @@ const CompleteAppointment = async (req, res) => {
       body: `Your appointment on ${date} at ${TIME} has been completed`,
       Ids: Ids.map(id => id.toString()),
       read: false,
+      related:ArtistUser.name,
       createdAt: new Date().toISOString(),
     }).then((docRef) => {
       console.log("Document written with ID: ", docRef.id);
@@ -810,6 +814,7 @@ const cancelAppointment = async (req, res) => {
         body: `Your appointment on ${date} at ${TIME} has been cancelled`,
         Ids: Ids.map(id => id.toString()),
         read: false,
+        related: ArtistUser.name,
         createdAt: new Date().toISOString(),
       }).then((docRef) => {
         console.log("Document written with ID: ", docRef.id);
@@ -848,6 +853,10 @@ const cancelAppointment = async (req, res) => {
 
   
     let sendtokens = [];
+    let Ids = []
+
+    Ids.push(ArtistUser._id)
+    Ids.push(SalonOwner._id)
 
     if(ArtistUser.token){
       sendtokens.push(ArtistUser.token);
@@ -860,6 +869,10 @@ const cancelAppointment = async (req, res) => {
     const date = moment(appointment.appointmentDate).format("DD-MM-YYYY");
 
     sendtokens = [...new Set(sendtokens)];
+    Ids = [...new Set(Ids)];
+
+
+
 
 
     if(sendtokens.length > 0){
@@ -875,6 +888,19 @@ const cancelAppointment = async (req, res) => {
     messaging.sendEachForMulticast(message)
     
   }
+
+  db.collection("Notification").add({
+    title: "Appointment Cancelled",
+    body: `Your appointment on ${date} at ${TIME} has been cancelled`,
+    Ids: Ids.map(id => id.toString()),
+    read: false,
+    related: ArtistUser.name,
+    createdAt: new Date().toISOString(),
+  }).then((docRef) => {
+    console.log("Document written with ID: ", docRef.id);
+  }).catch((error) => {
+    console.error("Error adding document: ", error);
+  });
 
     return res.status(200).json({
       success: true,
@@ -1009,6 +1035,7 @@ const CreateAppointment = async (req, res) => {
     body: `You have a new appointment on ${appointmentDate} at ${TIME}`,
     Ids: Ids.map(id => id.toString()),
     read: false,
+    related: ArtistUser.name,
     createdAt: new Date().toISOString(),
   }).then((docRef) => {
     console.log("Document written with ID: ", docRef.id);

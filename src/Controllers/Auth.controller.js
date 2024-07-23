@@ -862,6 +862,7 @@ const ChangeRole = async (req, res) => {
         body: `Your role has been changed to subAdmin`,
         Ids: [user._id.toString()],
         read: false,
+        related: user.name,
         createdAt: new Date().toISOString(),
       }).then((docRef) => {
         console.log("Document written with ID: ", docRef.id);
@@ -1098,6 +1099,7 @@ const removesubAdmin = async (req, res) => {
       body: `Your role has been changed to Artist`,
       Ids: [user1._id.toString()],
       read: false,
+      related: user1.name,
       createdAt: new Date().toISOString(),
     }).then((docRef) => {
       console.log("Document written with ID: ", docRef.id);
