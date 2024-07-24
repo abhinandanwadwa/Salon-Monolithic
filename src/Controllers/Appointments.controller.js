@@ -370,7 +370,11 @@ const createAppointmentByOwner = async (req, res) => {
       tokens: sendtokens,
     };
 
-    messaging.sendEachForMulticast(message)
+    messaging.sendEachForMulticast(message).then((response) => {
+      console.log("Successfully sent message:", response);
+    }).catch((error) => {
+      console.error("Error sending message:", error);
+    });
 
   }
 
@@ -500,7 +504,11 @@ const editAppointment = async (req, res) => {
       tokens: sendtokens,
     };
 
-    messaging.sendEachForMulticast(message)
+    messaging.sendEachForMulticast(message).then((response) => {
+      console.log("Successfully sent message:", response);
+    }).catch((error) => {
+      console.error("Error sending message:", error);
+    });
 
   }
 
@@ -602,7 +610,11 @@ const rescheduleAppointment = async (req, res) => {
         tokens: sendtokens,
       };
 
-      messaging.sendEachForMulticast(message)
+      messaging.sendEachForMulticast(message).then((response) => {
+        console.log("Successfully sent message:", response);
+      }).catch((error) => {
+        console.error("Error sending message:", error);
+      });
 
     }
 
@@ -697,7 +709,11 @@ const CompleteAppointment = async (req, res) => {
         tokens: sendtokens,
       };
 
-      messaging.sendEachForMulticast(message)
+      messaging.sendEachForMulticast(message).then((response) => {
+        console.log("Successfully sent message:", response);
+      }).catch((error) => {
+        console.error("Error sending message:", error);
+      });
     }
 
     let Ids = [];
@@ -811,7 +827,11 @@ const cancelAppointment = async (req, res) => {
           tokens: sendtokens,
         };
 
-        messaging.sendEachForMulticast(message)
+        messaging.sendEachForMulticast(message).then((response) => {
+          console.log("Successfully sent message:", response);
+        }).catch((error) => {
+          console.error("Error sending message:", error);
+        });
         
       }
 
@@ -893,7 +913,11 @@ const cancelAppointment = async (req, res) => {
       tokens: sendtokens,
     };
 
-    messaging.sendEachForMulticast(message)
+    messaging.sendEachForMulticast(message).then((response) => {
+      console.log("Successfully sent message:", response);
+    }).catch((error) => {
+      console.error("Error sending message:", error);
+    });
     
   }
 
@@ -1036,7 +1060,11 @@ const CreateAppointment = async (req, res) => {
       tokens: sendtokens,
     };
 
-    messaging.sendEachForMulticast(message)
+    messaging.sendEachForMulticast(message).then((response) => {
+      console.log("Successfully sent message:", response);
+    }).catch((error) => {
+      console.error("Error sending message:", error);
+    });
 
   }
 

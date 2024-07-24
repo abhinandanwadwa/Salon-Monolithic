@@ -893,7 +893,11 @@ const ChangeRole = async (req, res) => {
           token: user.token,
         };
 
-        messaging.send(message);
+        messaging.send(message).then((response) => {
+          console.log("Successfully sent message:", response);
+        }).catch((error) => {
+          console.error("Error sending message:", error);
+        });
       }
 
       db.collection("Notification").add({
@@ -1130,7 +1134,11 @@ const removesubAdmin = async (req, res) => {
         token: user1.token,
       };
 
-      messaging.send(message);
+      messaging.send(message).then((response) => {
+        console.log("Successfully sent message:", response);
+      }).catch((error) => {
+        console.error("Error sending message:", error);
+      });
     }
 
     db.collection("Notification").add({
