@@ -827,7 +827,7 @@ const deleteSalon = async (req, res) => {
     session.endSession();
     return res.status(500).json({
       success: false,
-      message: "Error in deleting salon",
+      message: "Error in deleting salon" + error,
     });
   }
 };
