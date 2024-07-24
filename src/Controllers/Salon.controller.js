@@ -795,6 +795,7 @@ const deleteSalon = async (req, res) => {
     await SalonModel.findOneAndDelete({ userId: user }, { session });
     await CustomerModel.findOneAndDelete({ userId: user }, { session });
     const OwnerUser = await UserModel.findById(user);
+    console.log(OwnerUser)
     if(OwnerUser.token){
       SendTokens.push(OwnerUser.token);
     }
