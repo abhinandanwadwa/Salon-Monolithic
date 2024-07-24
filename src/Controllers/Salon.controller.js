@@ -726,7 +726,6 @@ const uploadBrochure = async (req, res) => {
  * @access Private
  * @request None
  */
-
 const deleteSalon = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -759,11 +758,11 @@ const deleteSalon = async (req, res) => {
     const artists = await ArtistModel.find({ salon: salon._id });
     const artistUserIds = artists.map((artist) => artist.userId);
     
-    let SendTokens;
+    let SendTokens = [];
 
     for (let i = 0; i < artistUserIds.length; i++) {
       const ArtistUser = await UserModel.findById(artistUserIds[i]);
-      if(ArtistUser.token){
+      if (ArtistUser && ArtistUser.token) {
         SendTokens.push(ArtistUser.token);
       }
     }
@@ -794,11 +793,12 @@ const deleteSalon = async (req, res) => {
 
     await SalonModel.findOneAndDelete({ userId: user }, { session });
     await CustomerModel.findOneAndDelete({ userId: user }, { session });
+    
     const OwnerUser = await UserModel.findById(user);
-    console.log(OwnerUser)
-    if(OwnerUser.token){
+    if (OwnerUser && OwnerUser.token) {
       SendTokens.push(OwnerUser.token);
     }
+    
     await UserModel.findOneAndDelete({ _id: user }, { session });
 
     await session.commitTransaction();
@@ -806,7 +806,7 @@ const deleteSalon = async (req, res) => {
 
     SendTokens = [...new Set(SendTokens)];
 
-    if(SendTokens){
+    if (SendTokens.length) {
       const message = {
         notification: {
           title: "Account Deleted",
@@ -815,7 +815,7 @@ const deleteSalon = async (req, res) => {
         tokens: SendTokens
       };
 
-      messaging.sendEachForMulticast(message)
+      messaging.sendEachForMulticast(message);
     }
 
     return res.status(200).json({
@@ -828,7 +828,7 @@ const deleteSalon = async (req, res) => {
     session.endSession();
     return res.status(500).json({
       success: false,
-      message: "Error in deleting salon" + error,
+      message: "Error in deleting salon: " + error,
     });
   }
 };
