@@ -34,6 +34,8 @@ const getCost = async (req, res) => {
       cost += serviceArtist.Price;
     }
 
+    const artist = await ArtistModel.findById(artistId);
+
     const allServices = await ServiceArtist.find({
       Artist: artistId,
       Service: services,
@@ -44,6 +46,7 @@ const getCost = async (req, res) => {
       .populate("Reviews");
 
     const data = {
+      name : artist.ArtistName,
       cost,
       services: allServices,
       salon,
