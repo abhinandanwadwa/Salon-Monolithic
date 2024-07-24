@@ -801,9 +801,6 @@ const deleteSalon = async (req, res) => {
     
     await UserModel.findOneAndDelete({ _id: user }, { session });
 
-    await session.commitTransaction();
-    session.endSession();
-
     SendTokens = [...new Set(SendTokens)];
 
     if (SendTokens.length) {
@@ -815,8 +812,18 @@ const deleteSalon = async (req, res) => {
         tokens: SendTokens
       };
 
-      messaging.sendEachForMulticast(message);
+      messaging.sendEachForMulticast(message).then((response) => {
+        console.log(response);
+      }).catch((error) => {
+        console.error(error);
+      });
     }
+
+
+    await session.commitTransaction();
+    session.endSession();
+
+    
 
     return res.status(200).json({
       success: true,
