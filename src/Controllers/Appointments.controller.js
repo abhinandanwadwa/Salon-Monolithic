@@ -1087,6 +1087,8 @@ const CreateAppointment = async (req, res) => {
     artist.appointments.push(appointment);
     await artist.save();
     customer.appointments.push(appointment);
+    console.log(offerId)
+    console.log(offer)
     if (offer) {
       customer.offers.push(offer);
     }
