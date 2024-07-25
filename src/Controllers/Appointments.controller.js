@@ -584,7 +584,6 @@ const rescheduleAppointment = async (req, res) => {
       const ArtistUser = await UserModel.findById(artist.userId);
       const SalonOwner = await UserModel.findById(salon.userId);
 
-    if(user.role == "Customer"){
       
 
       let sendtokens = [];
@@ -624,10 +623,9 @@ const rescheduleAppointment = async (req, res) => {
         console.error("Error sending message:", error);
       });
 
-    }
 
     
-  }
+      }
 
   let Ids = [];
 
