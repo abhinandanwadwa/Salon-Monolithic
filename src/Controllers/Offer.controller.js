@@ -285,5 +285,29 @@ const testApi = async (req, res) => {
   });
 }
 
+const getOffersofThatDay = async (req,res) => {
+  try {
+    const {day , salonId } = req.body;
 
-export { createOffer, getOffers, deleteOffer ,validateOffer,testApi };
+    const offers = await OfferModel.find({ salon: salonId });
+
+    const availableOffers = offers.filter(offer => offer.OfferDays.includes(day));
+
+    return res.status(200).json({
+      success: true,
+      data: availableOffers
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching offers"
+    });
+  }
+
+}
+
+
+
+export { createOffer, getOffers, deleteOffer ,validateOffer,testApi,getOffersofThatDay };
