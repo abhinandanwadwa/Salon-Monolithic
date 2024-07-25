@@ -627,16 +627,6 @@ const rescheduleAppointment = async (req, res) => {
     
       }
 
-  let Ids = [];
-
-  Ids.push(ArtistUser._id);
-  Ids.push(SalonOwner._id);
-
-  Ids = [...new Set(Ids)];
-  
-  const date = moment(appointmentDate).format("DD-MM-YYYY");
-  const TIME = moment(appointmentStartTime).format("hh:mm A");
-
   const nameArtist = ArtistUser.name || artist.ArtistName || "Artist";
 
   db.collection("Notification").add({
