@@ -954,7 +954,7 @@ const CreateAppointment = async (req, res) => {
       duration,
       services,
       cost,
-      offer,
+      offerId,
     } = req.body;
 
 
@@ -964,7 +964,7 @@ const CreateAppointment = async (req, res) => {
     const ArtistUser = await UserModel.findById(artist.userId);
     const salon = await SalonModel.findOne({ Artists: artistId });
     const SalonOwner = await UserModel.findById(salon.userId);
-    const offerId = await OfferModel.findOne({ OfferName: offer });
+    const offer = await OfferModel.findById(offerId);
     const user = await UserModel.findById(userId);
   
 
@@ -1087,8 +1087,8 @@ const CreateAppointment = async (req, res) => {
     artist.appointments.push(appointment);
     await artist.save();
     customer.appointments.push(appointment);
-    if (offerId) {
-      customer.offers.push(offerId._id);
+    if (offer) {
+      customer.offers.push(offer);
     }
     await customer.save();
 

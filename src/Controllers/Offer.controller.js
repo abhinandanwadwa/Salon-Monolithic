@@ -230,6 +230,7 @@ const validateOffer = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: offer.OfferDiscountinPercentage ,
+      offerId: offer._id,
       message: "Offer applied successfully",
     });
 
