@@ -11,6 +11,7 @@ import OfferModel from "../Models/Offer.js";
 import ReviewModel from "../Models/review.js";
 import { messaging,db } from "./fcmClient.js";
 
+
 moment.suppressDeprecationWarnings = true;
 
 const getCost = async (req, res) => {
@@ -409,6 +410,7 @@ const createAppointmentByOwner = async (req, res) => {
 
 const editAppointment = async (req, res) => {
   try {
+
     const {
       appointmentId,
       artistId,
@@ -418,6 +420,7 @@ const editAppointment = async (req, res) => {
     } = req.body;
  
     const appointment = await AppointmentModel.findById(appointmentId);
+    const salon = await SalonModel.findById(appointment.salon);
     const artist = await ArtistModel.findById(appointment.artist);
 
     if (!appointment) {
@@ -480,9 +483,11 @@ const editAppointment = async (req, res) => {
   
 
     const ArtistUser = await UserModel.findById(artist.userId);
-    const SalonOwner = await UserModel.findById(appointment.salon.userId);
+    const SalonOwner = await UserModel.findById(salon.userId);
+      
     Ids.push(ArtistUser._id);
     Ids.push(SalonOwner._id);
+    console.log(Ids)
     if(ArtistUser.token){
       sendtokens.push(ArtistUser.token);
     }
