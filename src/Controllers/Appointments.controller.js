@@ -957,6 +957,13 @@ const CreateAppointment = async (req, res) => {
       offerId,
     } = req.body;
 
+    //check offer id is not valid string or empty , make it null
+
+    if(offerId == "null" || offerId == ""){
+      offerId = null;
+    }
+
+
 
     const userId = req.user._id;
     const customer = await CustomerModel.findOne({ userId: userId });
@@ -964,7 +971,7 @@ const CreateAppointment = async (req, res) => {
     const ArtistUser = await UserModel.findById(artist.userId);
     const salon = await SalonModel.findOne({ Artists: artistId });
     const SalonOwner = await UserModel.findById(salon.userId);
-    const offer = await OfferModel.findById(offerId);
+    
     const user = await UserModel.findById(userId);
   
 
@@ -1088,8 +1095,8 @@ const CreateAppointment = async (req, res) => {
     await artist.save();
     customer.appointments.push(appointment);
     console.log(offerId)
-    console.log(offer)
-    if (offer) {
+    if(offerId){
+      const offer = await OfferModel.findById(offerId);
       customer.offers.push(offer);
     }
     await customer.save();
