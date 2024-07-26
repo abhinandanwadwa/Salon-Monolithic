@@ -958,9 +958,9 @@ const CreateAppointment = async (req, res) => {
     } = req.body;
 
     //check offer id is not valid string or empty , make it null
-
-    if(offerId == "null" || offerId == ""){
-      offerId = null;
+    let validOffer = true;
+    if(offerId == "null" || offerId == "" || offerId == null || offerId == undefined || offerId == " "){
+      validOffer = false;
     }
 
 
@@ -1095,7 +1095,7 @@ const CreateAppointment = async (req, res) => {
     await artist.save();
     customer.appointments.push(appointment);
     console.log(offerId)
-    if(offerId){
+    if(validOffer){
       const offer = await OfferModel.findById(offerId);
       customer.offers.push(offer);
     }
