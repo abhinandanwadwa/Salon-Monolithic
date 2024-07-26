@@ -1130,6 +1130,9 @@ const getAppointments = async (req, res) => {
       .populate({
         path: "salon",
         select: "-Artists -Services -StorePhotos -appointments",
+        populate: {
+          path: "Reviews",
+        },
       })
       .populate("Review");
 
