@@ -765,8 +765,12 @@ const deleteSalon = async (req, res) => {
       if (ArtistUser && ArtistUser.token) {
         SendTokens.push(ArtistUser.token);
       }
+      if(ArtistUser.role === "subAdmin"){
+        ArtistUser.role = "Artist";
+        await ArtistUser.save();
+      }
     }
-
+    
     if (artistUserIds.length) {
       await CustomerModel.deleteMany({ userId: { $in: artistUserIds } }, { session });
       await UserModel.deleteMany({ _id: { $in: artistUserIds } }, { session });
