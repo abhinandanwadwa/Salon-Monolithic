@@ -765,6 +765,12 @@ const deleteSalon = async (req, res) => {
       if (ArtistUser && ArtistUser.token) {
         SendTokens.push(ArtistUser.token);
       }
+
+      if(ArtistUser.role === "subAdmin") {
+        //change role to artist with transcetion
+        ArtistUser.role = "Artist";
+        await ArtistUser.save({session});
+      }
     }
 
     if (artistUserIds.length) {
