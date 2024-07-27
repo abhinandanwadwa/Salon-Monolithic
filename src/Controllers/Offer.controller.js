@@ -289,10 +289,17 @@ const testApi = async (req, res) => {
 const getOffersofThatDay = async (req,res) => {
   try {
     const {day , salonId } = req.body;
+    const userId = req.user._id;
+
+    const customer = await CustomerModel.findOne({ userId: userId });
 
     const offers = await OfferModel.find({ salon: salonId });
 
-    const availableOffers = offers.filter(offer => offer.OfferDays.includes(day));
+    let availableOffers = offers.filter(offer => offer.OfferDays.includes(day));
+
+    //filter the offers which are in customers offers array
+
+    availableOffers = availableOffers.filter(offer => !customer.offers.includes(offer._id));
 
     return res.status(200).json({
       success: true,
