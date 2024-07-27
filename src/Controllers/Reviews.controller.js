@@ -6,7 +6,7 @@ import CustomerModel from "../Models/Customer.js";
 
 const createReview = async (req, res) => {
     try {
-        const { appointmentId, rating, review } = req.body;
+        const {name, appointmentId, rating, review,date } = req.body;
         const user = req.user._id
         const appointment = await AppointmentModel.findById(appointmentId);
         if (!appointment) {
@@ -31,9 +31,11 @@ const createReview = async (req, res) => {
         const customer = await CustomerModel.findOne({ userId: user });
 
         const ReviewRating = new ReviewModel({
+            name: name,
             customerId: customer._id,
             Rating: rating,
             Review: review,
+            date: date
         });
 
         const NewReview = await ReviewRating.save();

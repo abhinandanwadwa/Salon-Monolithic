@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const Review = new mongoose.Schema({
+    name:{
+        type: String,
+        required: true
+    },
     customerId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Customer',
@@ -11,6 +15,9 @@ const Review = new mongoose.Schema({
     },
     Review: {
         type: String,
+    },
+    date: {
+        type: String
     },
 },{timestamps: true})
 
