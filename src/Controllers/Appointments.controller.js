@@ -1183,6 +1183,10 @@ const getAppointmentsById = async (req, res) => {
       _id: appointmentId,
       user: customer,
     })
+      .populate({
+        path: "artist",
+        select: "-appointments -services",
+      })
       .populate("services")
       .populate({
         path: "salon",
