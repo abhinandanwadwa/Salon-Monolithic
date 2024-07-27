@@ -403,7 +403,109 @@ const deleteCategory = async (req, res) => {
   }
 }
 
+ 
+
+const CreateServiceByExcel = async (req, res) => {
+  try {
+    const servicesData = req.body;
+    const SalonId = req.params.salonId;
+    // Validate if servicesData is an array
+    if (!Array.isArray(servicesData)) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Services data must be an array" 
+      });
+    }
+
+
+    let salon = await SalonModel.findOne({ _id: SalonId });
+
+    if (!salon) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Salon not found" 
+      });
+    }
+
     
 
+    const createdServices = [];
+    // Loop through each service data and create services
+    for (const serviceData of servicesData) {
+      const {
+        ServiceName,
+        ServiceType,
+        ServiceCost,
+        ServiceTime,
+        ServiceGender,
+      } = serviceData;
 
-export { createServices, getServices ,updateService,deleteService ,deleteCategory,createService};
+      // Validate inputs for each service
+      if (
+        !ServiceName ||
+        !ServiceType ||
+        !ServiceCost ||
+        !ServiceTime ||
+        !ServiceGender
+      ) {
+        return res.status(400).json({ 
+            success: false,
+            message: "All fields are required for each service" });
+      }
+
+      // Create the service
+      const service = new Service({
+        ServiceName,
+        ServiceType,
+        salon : salon._id,
+        ServiceCost,
+        ServiceTime,
+        ServiceGender,
+      });
+      await service.save();
+
+      // Add created service to the array
+      createdServices.push(service);
+    }
+
+    // Update the salon with the new services
+    salon.Services.push(...createdServices);
+    await salon.save();
+
+    const artists = await ArtistModel.find({ salon: salon._id });
+    if(artists){
+      for (const artist of artists) {
+
+        for (const service of createdServices) {
+          const serviceArtist = new ServiceArtist({
+            Service: service._id,
+            Artist: artist._id,
+            Price: service.ServiceCost,
+          });
+          await serviceArtist.save();
+        }
+
+        artist.services.push(...createdServices);
+        await artist.save();
+      }
+    }
+
+    return res
+      .status(201)
+      .json({
+        success: true,
+        message: "Services created successfully",
+        services: createdServices,
+      });
+  } catch (error) {
+    return res.status(500).json({ 
+        success: false,
+        message: "Error in creating services" + error ,
+     });
+  }
+};
+
+
+
+
+export { createServices, getServices ,updateService,deleteService ,deleteCategory,createService,CreateServiceByExcel};
