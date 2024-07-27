@@ -195,6 +195,7 @@ const UpdateSalon = async (req, res) => {
       endTime,
       Instagram,
       Facebook,
+      Gender
     } = req.body;
 
     const user = req.user._id;
@@ -255,6 +256,7 @@ const UpdateSalon = async (req, res) => {
     salon.salonPhoneNumber = salonPhoneNumber || salon.salonPhoneNumber;
     salon.location = location || salon.location;
     salon.workingDays = workingDays || salon.workingDays;
+    salon.Gender = Gender || salon.Gender;
     salon.startTime = startTime || salon.startTime;
     salon.endTime = endTime || salon.endTime;
     salon.Instagram = Instagram || salon.Instagram || null;
