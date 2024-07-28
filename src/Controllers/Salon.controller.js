@@ -197,6 +197,7 @@ const UpdateSalon = async (req, res) => {
       endTime,
       Instagram,
       Facebook,
+      gst,
       Gender
     } = req.body;
 
@@ -263,6 +264,7 @@ const UpdateSalon = async (req, res) => {
     salon.endTime = endTime || salon.endTime;
     salon.Instagram = Instagram || salon.Instagram || null;
     salon.Facebook = Facebook || salon.Facebook || null;
+    salon.Gst = gst || salon.Gst;
 
     await salon.save();
 
