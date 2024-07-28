@@ -108,6 +108,10 @@ const Salon = new mongoose.Schema({
     Facebook : {
         type: String,
     },
+    Gst : {
+        type: Boolean,
+        default: false
+    },
     appointments : [
         {
             type: mongoose.Schema.Types.ObjectId,

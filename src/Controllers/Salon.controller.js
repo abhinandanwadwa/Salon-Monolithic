@@ -37,6 +37,7 @@ const createSalon = async (req, res) => {
       startTime,
       endTime,
       coordinates,
+      gst
     } = req.body;
 
     let workingdaylist;
@@ -132,6 +133,7 @@ const createSalon = async (req, res) => {
       workingDays: workingdaylist,
       startTime,
       endTime,
+      Gst: gst,
       salonPhoneNumber: user.phoneNumber,
       CoverImage,
       location: locationDetails,
