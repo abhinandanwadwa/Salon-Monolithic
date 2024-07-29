@@ -50,6 +50,14 @@ const createSalon = async (req, res) => {
       });
     }
 
+    let Gstbool;
+
+    if(gst === "True") {
+      Gstbool = true;
+    } else {
+      Gstbool = false;
+    }
+
     let coordinate;
     try {
       coordinate = JSON.parse(coordinates);
@@ -133,7 +141,7 @@ const createSalon = async (req, res) => {
       workingDays: workingdaylist,
       startTime,
       endTime,
-      Gst: gst,
+      Gst: Gstbool,
       salonPhoneNumber: user.phoneNumber,
       CoverImage,
       location: locationDetails,
@@ -203,6 +211,8 @@ const UpdateSalon = async (req, res) => {
 
     const user = req.user._id;
     const salon = await SalonModel.findOne({ userId: user });
+
+    
 
     if (!salon) {
       return res.status(404).json({
