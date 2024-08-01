@@ -54,9 +54,11 @@ const createSalon = async (req, res) => {
 
     if(gst === "True") {
       Gstbool = true;
-    } else {
+    } 
+
+    if(gst === "False") {
       Gstbool = false;
-    }
+    } 
 
     let coordinate;
     try {
@@ -219,9 +221,11 @@ const UpdateSalon = async (req, res) => {
 
     if(gst === "True") {
       Gstbool = true;
-    } else {
+    } 
+
+    if(gst === "False") {
       Gstbool = false;
-    }
+    } 
 
     if (!salon) {
       return res.status(404).json({

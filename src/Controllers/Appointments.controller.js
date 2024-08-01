@@ -390,7 +390,6 @@ const createAppointmentByOwner = async (req, res) => {
     }).catch((error) => {
       console.error("Error sending message:", error);
     });
-
   }
 
   const nameArtist = ArtistUser.name || artist.ArtistName || "Artist";
