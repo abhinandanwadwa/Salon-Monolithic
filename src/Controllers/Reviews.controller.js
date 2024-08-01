@@ -31,6 +31,13 @@ const createReview = async (req, res) => {
 
         let salonTokens = [];
 
+        for(let i = 0; i < Salon.subAdmins.length; i++){
+            const subAdmin = await UserModel.findOne(Salon.subAdmins[i]);
+            if(subAdmin.token){
+                salonTokens.push(subAdmin.token);
+            }
+        }
+
         if(ArtistUser.token){
             salonTokens.push(ArtistUser.token);
         }
