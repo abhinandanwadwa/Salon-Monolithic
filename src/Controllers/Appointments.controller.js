@@ -351,6 +351,17 @@ const createAppointmentByOwner = async (req, res) => {
     const ArtistUser = await UserModel.findById(artist.userId);
     const SalonOwner = await UserModel.findById(salon.userId);
 
+    for(let i=0;i<salon.subAdmins.length;i++){
+      Ids.push(salon.subAdmins[i]);
+      const subAdmin = await UserModel.findById(salon.subAdmins[i]);
+
+      if(subAdmin.token){
+        sendtokens.push(subAdmin.token);
+      }
+    }
+
+    
+
     if(ArtistUser.token){
       sendtokens.push(ArtistUser.token);
     }
@@ -484,6 +495,16 @@ const editAppointment = async (req, res) => {
 
     const ArtistUser = await UserModel.findById(artist.userId);
     const SalonOwner = await UserModel.findById(salon.userId);
+
+    for(let i=0;i<salon.subAdmins.length;i++){
+      Ids.push(salon.subAdmins[i]);
+
+      const subAdmin = await UserModel.findById(salon.subAdmins[i]);
+
+      if(subAdmin.token){
+        sendtokens.push(subAdmin.token);
+      }
+    }
       
     Ids.push(ArtistUser._id);
     Ids.push(SalonOwner._id);
@@ -592,7 +613,15 @@ const rescheduleAppointment = async (req, res) => {
       Ids.push(ArtistUser._id);
       Ids.push(SalonOwner._id);
 
-
+      for(let i=0;i<salon.subAdmins.length;i++){
+        Ids.push(salon.subAdmins[i]);
+  
+        const subAdmin = await UserModel.findById(salon.subAdmins[i]);
+  
+        if(subAdmin.token){
+          sendtokens.push(subAdmin.token);
+        }
+      }
 
       if(ArtistUser.token){
         sendtokens.push(ArtistUser.token);
@@ -681,7 +710,16 @@ const CompleteAppointment = async (req, res) => {
     await appointment.save();
 
     let sendtokens = [];
-    
+    let Ids = [];
+
+    for(let i=0;i<salon.subAdmins.length;i++){
+      Ids.push(salon.subAdmins[i]);
+      const subAdmin = await UserModel.findById(salon.subAdmins[i]);
+
+      if(subAdmin.token){
+        sendtokens.push(subAdmin.token);
+      }
+    }
 
     if(ArtistUser.token){
       sendtokens.push(ArtistUser.token);
@@ -712,7 +750,7 @@ const CompleteAppointment = async (req, res) => {
       });
     }
 
-    let Ids = [];
+    
     Ids.push(ArtistUser._id);
     Ids.push(SalonOwner._id);
 
@@ -796,6 +834,14 @@ const cancelAppointment = async (req, res) => {
       Ids.push(ArtistUser._id);
       Ids.push(SalonOwner._id);
 
+      for(let i=0;i<salon.subAdmins.length;i++){
+        Ids.push(salon.subAdmins[i]);
+        const subAdmin = await UserModel.findById(salon.subAdmins[i]);
+  
+        if(subAdmin.token){
+          sendtokens.push(subAdmin.token);
+        }
+      }
 
 
     if(ArtistUser.token){
@@ -878,6 +924,15 @@ const cancelAppointment = async (req, res) => {
   
     let sendtokens = [];
     let Ids = []
+
+    for(let i=0;i<salon.subAdmins.length;i++){
+      Ids.push(salon.subAdmins[i]);
+      const subAdmin = await UserModel.findById(salon.subAdmins[i]);
+
+      if(subAdmin.token){
+        sendtokens.push(subAdmin.token);
+      }
+    }
 
     Ids.push(ArtistUser._id)
     Ids.push(SalonOwner._id)
@@ -1037,6 +1092,15 @@ const CreateAppointment = async (req, res) => {
 
     let sendtokens = [];
     let Ids = [];
+
+    for(let i=0;i<salon.subAdmins.length;i++){
+      Ids.push(salon.subAdmins[i]);
+      const subAdmin = await UserModel.findById(salon.subAdmins[i]);
+
+      if(subAdmin.token){
+        sendtokens.push(subAdmin.token);
+      }
+    }
 
     Ids.push(ArtistUser._id);
     Ids.push(SalonOwner._id);
