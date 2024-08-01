@@ -88,6 +88,8 @@ const createSalon = async (req, res) => {
       });
     }
 
+    
+
     const address = {
       Address1,
       Address2,

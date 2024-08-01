@@ -124,6 +124,12 @@ const Salon = new mongoose.Schema({
             ref: 'Offer'
         }
     ],
+    subAdmins : [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ]
 });
 
 

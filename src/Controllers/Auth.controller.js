@@ -18,8 +18,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-
-
 // const verifyToken = async (req, res) => {
 //   try {
 //       const {token,role} = req.body;
@@ -131,7 +129,11 @@ const verifyToken = async (req, res) => {
     const user = await UserModel.findOne({ phoneNumber });
     if (userDetailUsingToken.success) {
       if (!user) {
-        const newUser = new UserModel({ phoneNumber, role, token: FcmTokenDetails });
+        const newUser = new UserModel({
+          phoneNumber,
+          role,
+          token: FcmTokenDetails,
+        });
         await newUser.save();
 
         if (role === "Customer") {
@@ -169,7 +171,6 @@ const verifyToken = async (req, res) => {
       }
 
       if (user.role === "Artist" && role === "Owner") {
-
         user.token = FcmTokenDetails;
         await user.save();
         generateToken(res, user);
@@ -337,7 +338,7 @@ const sendOTP = async (req, res) => {
       await user.save();
     }
 
-  //   // `https://www.fast2sms.com/dev/bulkV2?authorization=&route=dlt&sender_id=MACVEN&message=171048&variables_values=${otp}%7C&flash=0&numbers=${phoneNumber}`
+    //   // `https://www.fast2sms.com/dev/bulkV2?authorization=&route=dlt&sender_id=MACVEN&message=171048&variables_values=${otp}%7C&flash=0&numbers=${phoneNumber}`
 
     const API = process.env.FAST2SMS_AUTH_KEY;
 
@@ -345,12 +346,12 @@ const sendOTP = async (req, res) => {
 
     const response = await axios.get(Url);
 
-    if(response.data.return){
-    await Statistic.findOneAndUpdate(
-      { _id: "Statistic" },
-      { $inc: { OtpCount: 1 } },
-    );
-  }
+    if (response.data.return) {
+      await Statistic.findOneAndUpdate(
+        { _id: "Statistic" },
+        { $inc: { OtpCount: 1 } }
+      );
+    }
 
     console.log("OTP sent:", otp);
 
@@ -378,8 +379,8 @@ const sendOTP = async (req, res) => {
 
 const verifyOTP = async (req, res) => {
   try {
-    const { phoneNumber, enteredOTP,role,fcmToken } = req.body;
-    console.log(fcmToken)
+    const { phoneNumber, enteredOTP, role, fcmToken } = req.body;
+    console.log(fcmToken);
     const FcmTokenDetails = fcmToken ? fcmToken : null;
 
     console.log(phoneNumber, enteredOTP);
@@ -401,7 +402,7 @@ const verifyOTP = async (req, res) => {
 
     const currentDateTime = new Date();
 
-    console.log(currentDateTime)
+    console.log(currentDateTime);
     if (currentDateTime > user.otpExpiration) {
       return res.status(400).json({
         success: false,
@@ -410,7 +411,6 @@ const verifyOTP = async (req, res) => {
     }
 
     if (user.role === "Artist" && role === "Owner") {
-
       user.token = FcmTokenDetails;
       await user.save();
       generateToken(res, user);
@@ -528,20 +528,20 @@ const verifyOTP = async (req, res) => {
       });
     }
 
-    if(user.role === "subAdmin" && role === "Owner"){
-      user.token = FcmTokenDetails
+    if (user.role === "subAdmin" && role === "Owner") {
+      user.token = FcmTokenDetails;
       await user.save();
-      generateToken(res,user);
+      generateToken(res, user);
       return res.status(201).json({
-        success:true,
+        success: true,
         user: {
           _id: user._id,
-          phoneNumber:user.phoneNumber,
+          phoneNumber: user.phoneNumber,
           role: user.role,
-          isSalon: user.isSalon
+          isSalon: user.isSalon,
         },
-      })
-    }else if(user.role === "subAdmin" && role === "Customer"){
+      });
+    } else if (user.role === "subAdmin" && role === "Customer") {
       const customer = await CustomerModel.findOne({ userId: user._id });
       const artist = await ArtistModel.findOne({ userId: user._id });
       if (!customer) {
@@ -644,13 +644,17 @@ const verifyOwner = async (req, res) => {
 
 const verifyUser = async (req, res) => {
   try {
-    const { phoneNumber, verified, role,fcmToken } = req.body;
+    const { phoneNumber, verified, role, fcmToken } = req.body;
 
     const FcmTokenDetails = fcmToken ? fcmToken : null;
 
     const user = await UserModel.findOne({ phoneNumber });
     if (!user) {
-      const newUser = new UserModel({ phoneNumber, role ,token: FcmTokenDetails});
+      const newUser = new UserModel({
+        phoneNumber,
+        role,
+        token: FcmTokenDetails,
+      });
       await newUser.save();
 
       if (role === "Customer") {
@@ -674,7 +678,6 @@ const verifyUser = async (req, res) => {
       }
 
       if (role === "Owner") {
-
         user.token = FcmTokenDetails;
         await user.save();
 
@@ -692,7 +695,6 @@ const verifyUser = async (req, res) => {
     }
 
     if (user.role === "Artist" && role === "Owner") {
-
       user.token = FcmTokenDetails;
       await user.save();
 
@@ -718,8 +720,6 @@ const verifyUser = async (req, res) => {
         await newCustomer.save();
       }
 
-
-
       generateToken(res, user);
       return res.status(201).json({
         success: true,
@@ -734,7 +734,6 @@ const verifyUser = async (req, res) => {
     }
 
     if (user.role === "Owner" && role === "Owner") {
-
       user.token = FcmTokenDetails;
       await user.save();
 
@@ -881,10 +880,12 @@ const ChangeRole = async (req, res) => {
       }
 
       user.role = "subAdmin";
+      salon.subAdmins.push(user._id);
 
       await user.save();
+      await salon.save();
 
-      if(user.token){
+      if (user.token) {
         const message = {
           notification: {
             title: "Role Changed",
@@ -893,28 +894,33 @@ const ChangeRole = async (req, res) => {
           token: user.token,
         };
 
-        messaging.send(message).then((response) => {
-          console.log("Successfully sent message:", response);
-        }).catch((error) => {
-          console.error("Error sending message:", error);
-        });
+        messaging
+          .send(message)
+          .then((response) => {
+            console.log("Successfully sent message:", response);
+          })
+          .catch((error) => {
+            console.error("Error sending message:", error);
+          });
       }
 
-      db.collection("Notification").add({
-        title: "Role Changed",
-        body: `Your role has been changed to subAdmin`,
-        Ids: [user._id.toString()],
-        read: false,
-        related: user.name,
-        createdAt: new Date().toISOString(),
-      }).then((docRef) => {
-        console.log("Document written with ID: ", docRef.id);
-      }).catch((error) => {
-        console.error("Error adding document: ", error);
-      });
+      db.collection("Notification")
+        .add({
+          title: "Role Changed",
+          body: `Your role has been changed to subAdmin`,
+          Ids: [user._id.toString()],
+          read: false,
+          related: user.name,
+          createdAt: new Date().toISOString(),
+        })
+        .then((docRef) => {
+          console.log("Document written with ID: ", docRef.id);
+        })
+        .catch((error) => {
+          console.error("Error adding document: ", error);
+        });
     }
 
-    
     // db.collection("Notification").add({
     //   title: "Appointment Completed",
     //   body: `Your appointment on ${date} at ${TIME} has been completed`,
@@ -926,8 +932,6 @@ const ChangeRole = async (req, res) => {
     // }).catch((error) => {
     //   console.error("Error adding document: ", error);
     // });
-
-    
 
     return res.status(200).json({
       success: true,
@@ -982,6 +986,7 @@ const addName = async (req, res) => {
     });
   }
 };
+
 
 const LoginAdmin = async (req, res) => {
   try {
@@ -1059,7 +1064,6 @@ const getSalonsubAdmins = async (req, res) => {
   try {
     const user = req.user._id;
     const salon = await SalonModel.findOne({ userId: user });
-   
 
     if (!salon) {
       return res.status(404).json({
@@ -1124,8 +1128,12 @@ const removesubAdmin = async (req, res) => {
     }
 
     user1.role = "Artist";
-    
-    if(user1.token){
+
+    salon.subAdmins = salon.subAdmins.filter(
+      (subAdmin) => subAdmin.toString() !== user1._id.toString()
+    );
+
+    if (user1.token) {
       const message = {
         notification: {
           title: "Role Changed",
@@ -1134,27 +1142,34 @@ const removesubAdmin = async (req, res) => {
         token: user1.token,
       };
 
-      messaging.send(message).then((response) => {
-        console.log("Successfully sent message:", response);
-      }).catch((error) => {
-        console.error("Error sending message:", error);
-      });
+      messaging
+        .send(message)
+        .then((response) => {
+          console.log("Successfully sent message:", response);
+        })
+        .catch((error) => {
+          console.error("Error sending message:", error);
+        });
     }
 
-    db.collection("Notification").add({
-      title: "Role Changed",
-      body: `Your role has been changed to Artist`,
-      Ids: [user1._id.toString()],
-      read: false,
-      related: user1.name,
-      createdAt: new Date().toISOString(),
-    }).then((docRef) => {
-      console.log("Document written with ID: ", docRef.id);
-    }).catch((error) => {
-      console.error("Error adding document: ", error);
-    });
+    db.collection("Notification")
+      .add({
+        title: "Role Changed",
+        body: `Your role has been changed to Artist`,
+        Ids: [user1._id.toString()],
+        read: false,
+        related: user1.name,
+        createdAt: new Date().toISOString(),
+      })
+      .then((docRef) => {
+        console.log("Document written with ID: ", docRef.id);
+      })
+      .catch((error) => {
+        console.error("Error adding document: ", error);
+      });
 
     await user1.save();
+    await salon.save();
 
     return res.status(200).json({
       success: true,
@@ -1245,12 +1260,10 @@ const logout = async (req, res) => {
   const userId = req.user._id;
   const user = await UserModel.findById(userId);
 
-  //remove user.token 
+  //remove user.token
 
   user.token = null;
   await user.save();
-
-  
 
   res.cookie("jwt", "", {
     expires: new Date(0),
