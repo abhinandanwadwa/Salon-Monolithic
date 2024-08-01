@@ -7,7 +7,8 @@ import serviceAccount from "../../salondekho-55d7c-firebase-adminsdk-s6yy5-768fa
 
 const app = initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    projectId: serviceAccount.project_id
+    projectId: serviceAccount.project_id,
+    ignoreUndefinedProperties: true
 });
 
 const messaging = getMessaging(app);
