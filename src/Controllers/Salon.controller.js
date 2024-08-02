@@ -227,6 +227,7 @@ const UpdateSalon = async (req, res) => {
       Gstbool = false;
     } 
 
+    console.log(Gstbool);
     if (!salon) {
       return res.status(404).json({
         success: false,
