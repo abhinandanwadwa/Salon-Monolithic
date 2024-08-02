@@ -4,7 +4,7 @@ import SalonModel from "../Models/Salon.js";
 import AppointmentModel from "../Models/Appointments.js";
 import CustomerModel from "../Models/Customer.js";
 import UserModel from "../Models/User.js";
-import { messaging } from "./fcmClient.js";
+import { messaging,db} from "./fcmClient.js";
 
 const createReview = async (req, res) => {
     try {
@@ -30,13 +30,19 @@ const createReview = async (req, res) => {
         const SalonOwner = await UserModel.findOne(Salon.userId);
 
         let salonTokens = [];
+        let Ids = [];
 
         for(let i = 0; i < Salon.subAdmins.length; i++){
             const subAdmin = await UserModel.findOne(Salon.subAdmins[i]);
             if(subAdmin.token){
                 salonTokens.push(subAdmin.token);
+                
             }
+            Ids.push(subAdmin._id);
         }
+
+        Ids.push(Salon.userId);
+        Ids.push(Artist.userId);
 
         if(ArtistUser.token){
             salonTokens.push(ArtistUser.token);
@@ -92,6 +98,24 @@ const createReview = async (req, res) => {
                 console.log('Error sending message:', error);
             });
         }
+
+        Ids = [...new Set(Ids)];
+
+        const nameArtist = Artist.name || ArtistUser.name || "Artist";
+
+        db.collection("Notification").add({
+            title: "New Review",
+            body: `You have a new review`,
+            Ids: Ids.map(id => id.toString()),
+            read: false,
+            related: nameArtist,
+            createdAt: new Date().toISOString(),
+          }).then((docRef) => {
+            console.log("Document written with ID: ", docRef.id);
+          }).catch((error) => {
+            console.error("Error adding document: ", error);
+          });
+        
         
         return res.status(201).json({ 
             success: true,
