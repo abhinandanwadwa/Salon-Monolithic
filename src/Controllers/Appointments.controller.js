@@ -275,6 +275,10 @@ const createAppointmentByOwner = async (req, res) => {
       cost += serviceArtist.Price;
     }
 
+    if(!salon.Gst){
+      cost = cost * 1.18;
+    }
+
     const appointmentDate = moment(appointmentStartTime).format("YYYY-MM-DD");
 
     const customer = await CustomerModel.findOne({ phoneNumber });
