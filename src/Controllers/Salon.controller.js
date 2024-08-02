@@ -247,9 +247,11 @@ const UpdateSalon = async (req, res) => {
       // if any artists start and end time is not in between the new start and end time then make it a subset
 
       for (let i = 0; i < artists.length; i++) {
+        const startArtistTime = artists[i].startTime.slice(11,16);
+        const endArtistTime = artists[i].endTime.slice(11,16);
         if (
-          new Date(artists[i].startTime) < new Date(startTime) ||
-          new Date(artists[i].endTime) > new Date(endTime)
+          startArtistTime < startTime ||
+          endArtistTime > endTime
         ) {
           return res.status(400).json({
             success: false,
