@@ -217,7 +217,7 @@ const UpdateSalon = async (req, res) => {
     const salon = await SalonModel.findOne({ userId: user });
 
     
-    let Gstbool;
+    let Gstbool = salon.Gst;
 
     if(gst === "True") {
       Gstbool = true;
@@ -288,7 +288,8 @@ const UpdateSalon = async (req, res) => {
     salon.endTime = endTime || salon.endTime;
     salon.Instagram = Instagram || salon.Instagram || null;
     salon.Facebook = Facebook || salon.Facebook || null;
-    salon.Gst = Gstbool || salon.Gst;
+    
+    salon.Gst = Gstbool ;
 
     await salon.save();
 
