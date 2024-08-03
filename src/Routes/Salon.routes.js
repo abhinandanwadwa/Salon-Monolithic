@@ -6,19 +6,19 @@ import express from "express";
 const Salonrouter = express.Router();
 
 Salonrouter.post("/create-salon",verify,roleAuthorization(['Owner']), upload.single("CoverImage"),createSalon);
-Salonrouter.post("/upload-brochure",verify,roleAuthorization(['Owner']),upload.array("brochurePhotos"),uploadBrochure);
+Salonrouter.post("/upload-brochure",verify,roleAuthorization(['Owner','subAdmin']),upload.array("brochurePhotos"),uploadBrochure);
 Salonrouter.get("/get-owner-salon",verify,roleAuthorization(['Owner','subAdmin']),getOwnerSalon);
 Salonrouter.post("/search-salons", searchSalons);
 Salonrouter.get("/getSalon/:id", getSalonById);
 Salonrouter.post("/getSalon", getSalonByLocation);
-Salonrouter.delete("/delete-brochure",verify,roleAuthorization(['Owner']),deleteBrochure);
-Salonrouter.delete("/delete-cover-Photo",verify,roleAuthorization(['Owner']),deleteCoverPhoto);
+Salonrouter.delete("/delete-brochure",verify,roleAuthorization(['Owner','subAdmin']),deleteBrochure);
+Salonrouter.delete("/delete-cover-Photo",verify,roleAuthorization(['Owner','subAdmin']),deleteCoverPhoto);
 Salonrouter.post("/searchSalons", searchSalonss);
 
 Salonrouter.post(
   "/add-cover-Photo",
   verify,
-  roleAuthorization(["Owner"]),
+  roleAuthorization(["Owner","subAdmin"]),
   upload.single("CoverImage"),
   AddPhotos
 );
@@ -28,14 +28,14 @@ Salonrouter.post(
 Salonrouter.post(
   "/delete-store-Photos",
   verify,
-  roleAuthorization(["Owner"]),
+  roleAuthorization(["Owner","subAdmin"]),
   deleteStorePhotos
 );
 
 Salonrouter.post(
   "/add-store-Photos",
   verify,
-  roleAuthorization(["Owner"]),
+  roleAuthorization(["Owner","subAdmin"]),
   upload.array("StorePhotos"),
   AddStorePhotos
 )

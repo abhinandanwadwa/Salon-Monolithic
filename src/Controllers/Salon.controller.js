@@ -715,6 +715,7 @@ const uploadBrochure = async (req, res) => {
   try {
     const user = req.user._id;
 
+
     const brochurePhotos = req.files;
 
     // Ensure the array is not empty
@@ -725,7 +726,12 @@ const uploadBrochure = async (req, res) => {
       });
     }
 
-    const salon = await SalonModel.findOne({ userId: user });
+    let salon = await SalonModel.findOne({ userId: user });
+    if(req.user.role === "subAdmin") {
+      salon = await SalonModel.findOne({ Artists: req.user._id });
+    }
+
+
 
     if (!salon) {
       return res.status(404).json({
@@ -890,7 +896,12 @@ const deleteSalon = async (req, res) => {
 const AddPhotos = async (req, res) => {
   try {
     const user = req.user._id;
-    const salon = await SalonModel.findOne({ userId: user });
+    let salon = await SalonModel.findOne({ userId: user });
+
+    if(req.user.role === "subAdmin") {
+      salon = await SalonModel.findOne({ Artists: req.user._id });
+    }
+
 
     const coverImageUrl = req.file.location;
     salon.CoverImage = coverImageUrl || salon.CoverImage || null;
@@ -913,7 +924,11 @@ const AddPhotos = async (req, res) => {
 const AddStorePhotos = async (req, res) => {
   try {
     const user = req.user._id;
-    const salon = await SalonModel.findOne({ userId: user });
+    let salon = await SalonModel.findOne({ userId: user });
+
+    if(req.user.role === "subAdmin") {
+      salon = await SalonModel.findOne({ Artists: req.user._id });
+    }
 
     if (!salon) {
       return res.status(404).json({
@@ -953,7 +968,13 @@ const AddStorePhotos = async (req, res) => {
 const deleteStorePhotos = async (req, res) => {
   try {
     const user = req.user._id;
-    const salon = await SalonModel.findOne({ userId: user });
+    let salon = await SalonModel.findOne({ userId: user });
+
+
+    if(req.user.role === "subAdmin") {
+      salon = await SalonModel.findOne({ Artists: req.user._id });
+    }
+
 
     if (!salon) {
       return res.status(404).json({
@@ -994,7 +1015,12 @@ const deleteStorePhotos = async (req, res) => {
 const deleteCoverPhoto = async (req, res) => {
   try {
     const user = req.user._id;
-    const salon = await SalonModel.findOne({ userId: user });
+    let salon = await SalonModel.findOne({ userId: user });
+
+    if(req.user.role === "subAdmin") {
+      salon = await SalonModel.findOne({ Artists: req.user._id });
+    }
+
 
     if (!salon) {
       return res.status(404).json({
@@ -1021,7 +1047,12 @@ const deleteCoverPhoto = async (req, res) => {
 const deleteBrochure = async (req, res) => {
   try {
     const user = req.user._id;
-    const salon = await SalonModel.findOne({ userId: user });
+    let salon = await SalonModel.findOne({ userId: user });
+
+    if(req.user.role === "subAdmin") {
+      salon = await SalonModel.findOne({ Artists: req.user._id });
+    }
+
 
     if (!salon) {
       return res.status(404).json({
