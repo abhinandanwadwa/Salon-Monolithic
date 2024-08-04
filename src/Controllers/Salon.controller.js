@@ -899,7 +899,8 @@ const AddPhotos = async (req, res) => {
     let salon = await SalonModel.findOne({ userId: user });
 
     if(req.user.role === "subAdmin") {
-      salon = await SalonModel.findOne({ Artists: req.user._id });
+      const artist = await ArtistModel.findOne({ userId: user });
+      salon = await SalonModel.findOne({ Artists: artist._id });
     }
 
 
@@ -927,7 +928,8 @@ const AddStorePhotos = async (req, res) => {
     let salon = await SalonModel.findOne({ userId: user });
 
     if(req.user.role === "subAdmin") {
-      salon = await SalonModel.findOne({ Artists: req.user._id });
+      const artist = await ArtistModel.findOne({ userId: user });
+      salon = await SalonModel.findOne({ Artists: artist._id });
     }
 
     if (!salon) {
@@ -972,7 +974,8 @@ const deleteStorePhotos = async (req, res) => {
 
 
     if(req.user.role === "subAdmin") {
-      salon = await SalonModel.findOne({ Artists: req.user._id });
+      const artist = await ArtistModel.findOne({ userId: user });
+      salon = await SalonModel.findOne({ Artists: artist._id });
     }
 
 
@@ -1018,7 +1021,8 @@ const deleteCoverPhoto = async (req, res) => {
     let salon = await SalonModel.findOne({ userId: user });
 
     if(req.user.role === "subAdmin") {
-      salon = await SalonModel.findOne({ Artists: req.user._id });
+      const artist = await ArtistModel.findOne({ userId: user });
+      salon = await SalonModel.findOne({ Artists: artist._id });
     }
 
 
@@ -1050,7 +1054,8 @@ const deleteBrochure = async (req, res) => {
     let salon = await SalonModel.findOne({ userId: user });
 
     if(req.user.role === "subAdmin") {
-      salon = await SalonModel.findOne({ Artists: req.user._id });
+      const artist = await ArtistModel.findOne({ userId: user });
+      salon = await SalonModel.findOne({ Artists: artist._id });
     }
 
 
