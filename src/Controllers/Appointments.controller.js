@@ -345,6 +345,12 @@ const createAppointmentByOwner = async (req, res) => {
       });
     }
 
+    for (let i = 0; i < services.length; i++) {
+      const service = await Service.findById(services[i]);
+      service.ServiceCount += 1;
+      await service.save();
+    }
+
     const appointment = new AppointmentModel({
       name: name,
       user: customer,
@@ -624,6 +630,16 @@ const rescheduleAppointment = async (req, res) => {
 
     const appointment = await AppointmentModel.findById(appointmentId);
 
+    if (
+      appointment.Status == "Completed" ||
+      appointment.Status == "Cancelled"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Appointment already completed or cancelled",
+      });
+    }
+
     const appointmentDate = moment(appointmentStartTime).format("YYYY-MM-DD");
 
     const appointmentEndTime = moment(appointmentStartTime)
@@ -849,6 +865,16 @@ const cancelAppointment = async (req, res) => {
         _id: appointmentId,
       });
 
+      if (
+        appointment.Status == "Completed" ||
+        appointment.Status == "Cancelled"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Appointment already completed or cancelled",
+        });
+      }
+
       const artist = await ArtistModel.findById(appointment.artist);
       const salon = await SalonModel.findById(appointment.salon);
 
@@ -949,6 +975,16 @@ const cancelAppointment = async (req, res) => {
       user: user,
     });
 
+    if (
+      appointment.Status == "Completed" ||
+      appointment.Status == "Cancelled"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Appointment already completed or cancelled",
+      });
+    }
+
     const artist = await ArtistModel.findById(appointment.artist);
     const salon = await SalonModel.findById(appointment.salon);
 
@@ -998,7 +1034,7 @@ const cancelAppointment = async (req, res) => {
       const message = {
         notification: {
           title: "Appointment Cancelled",
-          body: `Your appointment on ${date} at ${TIME} has been cancelled`,
+          body: `${appointment.name}'s appointment has been cancelled`,
         },
         tokens: sendtokens,
       };
@@ -1018,7 +1054,7 @@ const cancelAppointment = async (req, res) => {
     db.collection("Notification")
       .add({
         title: "Appointment Cancelled",
-        body: `Your appointment on ${date} at ${TIME} has been cancelled`,
+        body: `${appointment.name}'s appointment has been cancelled`,
         Ids: Ids.map((id) => id.toString()),
         read: false,
         related: nameArtist,
@@ -1119,6 +1155,12 @@ const CreateAppointment = async (req, res) => {
       });
     }
 
+    for (let i = 0; i < services.length; i++) {
+      const service = await Service.findById(services[i]);
+      service.ServiceCount += 1;
+      await service.save();
+    }
+
     const appointment = new AppointmentModel({
       name: name,
       user: customer,
@@ -1159,11 +1201,13 @@ const CreateAppointment = async (req, res) => {
 
     sendtokens = [...new Set(sendtokens)];
 
+    const nameArtist = ArtistUser.name || artist.ArtistName;
+
     if (sendtokens.length > 0) {
       const message = {
         notification: {
           title: "New Appointment",
-          body: `You have a new appointment on ${appointmentDate} at ${TIME}`,
+          body: `New appointment for ${nameArtist} on ${appointmentDate} at ${TIME}`,
         },
         tokens: sendtokens,
       };
@@ -1178,12 +1222,10 @@ const CreateAppointment = async (req, res) => {
         });
     }
 
-    const nameArtist = ArtistUser.name || artist.ArtistName;
-
     db.collection("Notification")
       .add({
         title: "New Appointment",
-        body: `You have a new appointment on ${appointmentDate} at ${TIME}`,
+        body: `New appointment for ${nameArtist} on ${appointmentDate} at ${TIME}`,
         Ids: Ids.map((id) => id.toString()),
         read: false,
         related: nameArtist,
