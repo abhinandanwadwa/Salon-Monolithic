@@ -353,7 +353,7 @@ const deleteCategory = async (req, res) => {
 
     const servicesIds = services.map((service) => service._id);
 
-    const appointments = await AppointmentModel.find({ Service: { $in: servicesIds } });
+    const appointments = await AppointmentModel.find({ services: { $in: servicesIds } });
 
     for (const appointment of appointments) {
       if(appointment.Status === 'Booked'){

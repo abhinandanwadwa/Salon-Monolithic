@@ -85,7 +85,7 @@ const createReview = async (req, res) => {
             const message = {
                 notification: {
                     title: 'New Review',
-                    body: 'You have a new review'
+                    body: `${name} gave you a rating`,
                 },
                 tokens: salonTokens
             }
@@ -105,7 +105,7 @@ const createReview = async (req, res) => {
 
         db.collection("Notification").add({
             title: "New Review",
-            body: `You have a new review`,
+            body: `${name} gave you a rating`,
             Ids: Ids.map(id => id.toString()),
             read: false,
             related: nameArtist,

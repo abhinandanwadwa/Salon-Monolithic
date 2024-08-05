@@ -9,15 +9,13 @@ import Service from "../Models/Services.js";
 import ServiceArtist from "../Models/ServiceArtist.js";
 import OfferModel from "../Models/Offer.js";
 import ReviewModel from "../Models/review.js";
-import { messaging,db } from "./fcmClient.js";
-
+import { messaging, db } from "./fcmClient.js";
 
 moment.suppressDeprecationWarnings = true;
 
 const getCost = async (req, res) => {
   try {
     const { artistId, services, salonid } = req.body;
-
 
     let cost = 0;
 
@@ -47,7 +45,7 @@ const getCost = async (req, res) => {
       .populate("Reviews");
 
     const data = {
-      name : artist.ArtistName,
+      name: artist.ArtistName,
       cost,
       services: allServices,
       salon,
@@ -76,10 +74,12 @@ const getCost = async (req, res) => {
 
 const getTimeSlots = async (req, res) => {
   try {
-    const { artistId, timePeriod, services ,appointmentId} = req.body;
+    const { artistId, timePeriod, services, appointmentId } = req.body;
 
     // Fetch artist data including appointments
-    const artist = await ArtistModel.findById(artistId).populate("appointments");
+    const artist = await ArtistModel.findById(artistId).populate(
+      "appointments"
+    );
     if (!artist) {
       return res.status(404).json({
         success: false,
@@ -103,8 +103,16 @@ const getTimeSlots = async (req, res) => {
     const endDate = moment().add(30, "days").endOf("day");
 
     // Extract the working hours (assuming they are provided as HH:mm)
-    const startTime24 = artist.startTime.split("T")[1].split(":").slice(0, 2).join(":");
-    const endTime24 = artist.endTime.split("T")[1].split(":").slice(0, 2).join(":");
+    const startTime24 = artist.startTime
+      .split("T")[1]
+      .split(":")
+      .slice(0, 2)
+      .join(":");
+    const endTime24 = artist.endTime
+      .split("T")[1]
+      .split(":")
+      .slice(0, 2)
+      .join(":");
 
     // Convert working days to numbers (0 = Sunday, 6 = Saturday)
     const workingDaysMap = {
@@ -116,11 +124,20 @@ const getTimeSlots = async (req, res) => {
       Friday: 5,
       Saturday: 6,
     };
-    const workingDaysInNumber = artist.workingDays.map(day => workingDaysMap[day]);
+    const workingDaysInNumber = artist.workingDays.map(
+      (day) => workingDaysMap[day]
+    );
 
     const currentTime = moment();
-    if (currentTime.isAfter(moment().set({ hour: endTime24.split(":")[0], minute: endTime24.split(":")[1] }))) {
-      startDate = currentTime.add(1, 'days').startOf('day');
+    if (
+      currentTime.isAfter(
+        moment().set({
+          hour: endTime24.split(":")[0],
+          minute: endTime24.split(":")[1],
+        })
+      )
+    ) {
+      startDate = currentTime.add(1, "days").startOf("day");
     }
 
     // Generate slots for each day within the date range
@@ -133,12 +150,14 @@ const getTimeSlots = async (req, res) => {
           second: 0,
           millisecond: 0,
         });
-        const dayEnd = moment(m).set({
-          hour: endTime24.split(":")[0],
-          minute: endTime24.split(":")[1],
-          second: 0,
-          millisecond: 0,
-        }).subtract(timeDuration-15, "minutes");
+        const dayEnd = moment(m)
+          .set({
+            hour: endTime24.split(":")[0],
+            minute: endTime24.split(":")[1],
+            second: 0,
+            millisecond: 0,
+          })
+          .subtract(timeDuration - 15, "minutes");
 
         let slot = moment(dayStart);
         while (slot.isBefore(dayEnd)) {
@@ -146,32 +165,36 @@ const getTimeSlots = async (req, res) => {
           slot.add(15, "minutes");
         }
         //add a extra slot at the end of day
-        
       }
     }
-    
 
     // Filter out slots that conflict with existing appointments
     const invalidSlots = new Set();
     artist.appointments.forEach((appointment) => {
       // if the appointment id is same as above appointment and then skip the iteration
-      if(appointment._id == appointmentId){
+      if (appointment._id == appointmentId) {
         return;
       }
-      if(appointment.Status === "Booked"){
-      const conflictStart = moment(appointment.appointmentStartTime).subtract(timeDuration-15, "minutes");
-      const conflictEnd = moment(appointment.appointmentEndTime);
-      for (let m = moment(conflictStart); m.isBefore(conflictEnd); m.add(15, "minutes")) {
-        invalidSlots.add(m.format("YYYY-MM-DDTHH:mm:ss.SSS"));
-      }
+      if (appointment.Status === "Booked") {
+        const conflictStart = moment(appointment.appointmentStartTime).subtract(
+          timeDuration - 15,
+          "minutes"
+        );
+        const conflictEnd = moment(appointment.appointmentEndTime);
+        for (
+          let m = moment(conflictStart);
+          m.isBefore(conflictEnd);
+          m.add(15, "minutes")
+        ) {
+          invalidSlots.add(m.format("YYYY-MM-DDTHH:mm:ss.SSS"));
+        }
       }
     });
 
     // Filter out invalid slots
-    slots = slots.filter(slot => !invalidSlots.has(slot));
+    slots = slots.filter((slot) => !invalidSlots.has(slot));
 
     // remove the time duration from the end of the day
-
 
     // Return the available slots
     return res.status(200).json({
@@ -187,7 +210,6 @@ const getTimeSlots = async (req, res) => {
     });
   }
 };
-
 
 /**
  * @desc Create Appointment By Owner
@@ -214,7 +236,7 @@ const createAppointmentByOwner = async (req, res) => {
 
     let salon = await SalonModel.findOne({ userId: owner });
 
-    if(req.user.role == "subAdmin"){
+    if (req.user.role == "subAdmin") {
       const artist = await ArtistModel.findOne({ userId: owner });
       salon = await SalonModel.findOne({ Artists: artist._id });
     }
@@ -236,9 +258,13 @@ const createAppointmentByOwner = async (req, res) => {
 
     const user = await UserModel.findOne({ phoneNumber });
 
-    if(user.role == "Artist" || user.role == "Owner" || user.role == "subAdmin"){
+    if (
+      user.role == "Artist" ||
+      user.role == "Owner" ||
+      user.role == "subAdmin"
+    ) {
       const customer = await CustomerModel.findOne({ userId: user });
-      if(!customer){
+      if (!customer) {
         const newCustomer = new CustomerModel({
           userId: user,
           name,
@@ -265,7 +291,6 @@ const createAppointmentByOwner = async (req, res) => {
         Service: services[i],
       });
 
-
       if (!serviceArtist) {
         return res.status(404).json({
           success: false,
@@ -275,7 +300,7 @@ const createAppointmentByOwner = async (req, res) => {
       cost += serviceArtist.Price;
     }
 
-    if(!salon.Gst){
+    if (!salon.Gst) {
       cost = cost * 1.18;
     }
 
@@ -355,21 +380,19 @@ const createAppointmentByOwner = async (req, res) => {
     const ArtistUser = await UserModel.findById(artist.userId);
     const SalonOwner = await UserModel.findById(salon.userId);
 
-    for(let i=0;i<salon.subAdmins.length;i++){
+    for (let i = 0; i < salon.subAdmins.length; i++) {
       Ids.push(salon.subAdmins[i]);
       const subAdmin = await UserModel.findById(salon.subAdmins[i]);
 
-      if(subAdmin.token){
+      if (subAdmin.token) {
         sendtokens.push(subAdmin.token);
       }
     }
 
-    
-
-    if(ArtistUser.token){
+    if (ArtistUser.token) {
       sendtokens.push(ArtistUser.token);
     }
-    if(SalonOwner.token){
+    if (SalonOwner.token) {
       sendtokens.push(SalonOwner.token);
     }
 
@@ -379,37 +402,42 @@ const createAppointmentByOwner = async (req, res) => {
     sendtokens = [...new Set(sendtokens)];
     Ids = [...new Set(Ids)];
 
-    if(sendtokens.length > 0){
+    const nameArtist = ArtistUser.name || artist.ArtistName || "Artist";
 
-    const message = {
-      notification: {
+    if (sendtokens.length > 0) {
+      const message = {
+        notification: {
+          title: "New Appointment",
+          body: `New appointment for ${nameArtist} on ${date} at ${TIME}`,
+        },
+        tokens: sendtokens,
+      };
+
+      messaging
+        .sendEachForMulticast(message)
+        .then((response) => {
+          console.log("Successfully sent message:", response);
+        })
+        .catch((error) => {
+          console.error("Error sending message:", error);
+        });
+    }
+
+    db.collection("Notification")
+      .add({
         title: "New Appointment",
-        body: `You have a new appointment on ${date} at ${TIME}`,
-      },
-      tokens: sendtokens,
-    };
-
-    messaging.sendEachForMulticast(message).then((response) => {
-      console.log("Successfully sent message:", response);
-    }).catch((error) => {
-      console.error("Error sending message:", error);
-    });
-  }
-
-  const nameArtist = ArtistUser.name || artist.ArtistName || "Artist";
-
-  db.collection("Notification").add({
-    title: "New Appointment",
-    body: `You have a new appointment on ${date} at ${TIME}`,
-    Ids: Ids.map(id => id.toString()),
-    read: false,
-    related: nameArtist,
-    createdAt: new Date().toISOString(),
-  }).then((docRef) => {
-    console.log("Document written with ID: ", docRef.id);
-  }).catch((error) => {
-    console.error("Error adding document: ", error);
-  });
+        body: `New appointment for ${nameArtist} on ${date} at ${TIME}`,
+        Ids: Ids.map((id) => id.toString()),
+        read: false,
+        related: nameArtist,
+        createdAt: new Date().toISOString(),
+      })
+      .then((docRef) => {
+        console.log("Document written with ID: ", docRef.id);
+      })
+      .catch((error) => {
+        console.error("Error adding document: ", error);
+      });
 
     return res.status(201).json({
       success: true,
@@ -419,14 +447,13 @@ const createAppointmentByOwner = async (req, res) => {
     console.log(error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error"+error ,
+      message: "Internal server error" + error,
     });
   }
 };
 
 const editAppointment = async (req, res) => {
   try {
-
     const {
       appointmentId,
       artistId,
@@ -434,7 +461,7 @@ const editAppointment = async (req, res) => {
       duration,
       services,
     } = req.body;
- 
+
     const appointment = await AppointmentModel.findById(appointmentId);
     const salon = await SalonModel.findById(appointment.salon);
     const artist = await ArtistModel.findById(appointment.artist);
@@ -464,6 +491,10 @@ const editAppointment = async (req, res) => {
         });
       }
       cost += serviceArtist.Price;
+    }
+
+    if (!salon.Gst) {
+      cost = cost * 1.18;
     }
 
     const appointmentDate = moment(appointmentStartTime).format("YYYY-MM-DD");
@@ -496,29 +527,27 @@ const editAppointment = async (req, res) => {
     let sendtokens = [];
     let Ids = [];
 
-  
-
     const ArtistUser = await UserModel.findById(artist.userId);
     const SalonOwner = await UserModel.findById(salon.userId);
 
-    for(let i=0;i<salon.subAdmins.length;i++){
+    for (let i = 0; i < salon.subAdmins.length; i++) {
       Ids.push(salon.subAdmins[i]);
 
       const subAdmin = await UserModel.findById(salon.subAdmins[i]);
 
-      if(subAdmin.token){
+      if (subAdmin.token) {
         sendtokens.push(subAdmin.token);
       }
     }
-      
+
     Ids.push(ArtistUser._id);
     Ids.push(SalonOwner._id);
-    console.log(Ids)
-    if(ArtistUser.token){
+    console.log(Ids);
+    if (ArtistUser.token) {
       sendtokens.push(ArtistUser.token);
     }
 
-    if(SalonOwner.token){
+    if (SalonOwner.token) {
       sendtokens.push(SalonOwner.token);
     }
 
@@ -528,39 +557,42 @@ const editAppointment = async (req, res) => {
     sendtokens = [...new Set(sendtokens)];
     Ids = [...new Set(Ids)];
 
-    if(sendtokens.length > 0){
-      
-    const message = {
-      notification: {
+    if (sendtokens.length > 0) {
+      const message = {
+        notification: {
+          title: "Appointment Updated",
+          body: `Your appointment on ${date} at ${TIME} has been updated`,
+        },
+        tokens: sendtokens,
+      };
+
+      messaging
+        .sendEachForMulticast(message)
+        .then((response) => {
+          console.log("Successfully sent message:", response);
+        })
+        .catch((error) => {
+          console.error("Error sending message:", error);
+        });
+    }
+
+    const nameArtist = ArtistUser.name || artist.ArtistName || "Artist";
+
+    db.collection("Notification")
+      .add({
         title: "Appointment Updated",
         body: `Your appointment on ${date} at ${TIME} has been updated`,
-      },
-      tokens: sendtokens,
-    };
-
-    messaging.sendEachForMulticast(message).then((response) => {
-      console.log("Successfully sent message:", response);
-    }).catch((error) => {
-      console.error("Error sending message:", error);
-    });
-
-  }
-
-  const nameArtist = ArtistUser.name || artist.ArtistName || "Artist";
-
-  db.collection("Notification").add({
-    title: "Appointment Updated",
-    body: `Your appointment on ${date} at ${TIME} has been updated`,
-    Ids: Ids.map(id => id.toString()),
-    read: false,
-    related: nameArtist,
-    createdAt: new Date().toISOString(),
-  }).then((docRef) => {
-    console.log("Document written with ID: ", docRef.id);
-  }).catch((error) => {
-    console.error("Error adding document: ", error);
-  });
-
+        Ids: Ids.map((id) => id.toString()),
+        read: false,
+        related: nameArtist,
+        createdAt: new Date().toISOString(),
+      })
+      .then((docRef) => {
+        console.log("Document written with ID: ", docRef.id);
+      })
+      .catch((error) => {
+        console.error("Error adding document: ", error);
+      });
 
     return res.status(200).json({
       success: true,
@@ -570,7 +602,7 @@ const editAppointment = async (req, res) => {
     console.log(error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error"+error,
+      message: "Internal server error" + error,
     });
   }
 };
@@ -598,87 +630,88 @@ const rescheduleAppointment = async (req, res) => {
       .add(duration, "minutes")
       .format("YYYY-MM-DDTHH:mm:ss.SSS");
 
+    let oldTime = appointment.appointmentStartTime;
+    let oldDate = appointment.appointmentDate;
+
     appointment.appointmentDate = appointmentDate;
     appointment.appointmentStartTime = appointmentStartTime;
     appointment.appointmentEndTime = appointmentEndTime;
     appointment.Duration = duration;
 
-
     const artist = await ArtistModel.findById(appointment.artist);
-      const salon = await SalonModel.findById(appointment.salon);
+    const salon = await SalonModel.findById(appointment.salon);
 
-      const ArtistUser = await UserModel.findById(artist.userId);
-      const SalonOwner = await UserModel.findById(salon.userId);
+    const ArtistUser = await UserModel.findById(artist.userId);
+    const SalonOwner = await UserModel.findById(salon.userId);
 
-      
+    let sendtokens = [];
+    let Ids = [];
 
-      let sendtokens = [];
-      let Ids = [];
+    Ids.push(ArtistUser._id);
+    Ids.push(SalonOwner._id);
 
-      Ids.push(ArtistUser._id);
-      Ids.push(SalonOwner._id);
+    for (let i = 0; i < salon.subAdmins.length; i++) {
+      Ids.push(salon.subAdmins[i]);
 
-      for(let i=0;i<salon.subAdmins.length;i++){
-        Ids.push(salon.subAdmins[i]);
-  
-        const subAdmin = await UserModel.findById(salon.subAdmins[i]);
-  
-        if(subAdmin.token){
-          sendtokens.push(subAdmin.token);
-        }
+      const subAdmin = await UserModel.findById(salon.subAdmins[i]);
+
+      if (subAdmin.token) {
+        sendtokens.push(subAdmin.token);
       }
+    }
 
-      if(ArtistUser.token){
-        sendtokens.push(ArtistUser.token);
-      }
-      if(SalonOwner.token){
-        sendtokens.push(SalonOwner.token);
-      }
+    if (ArtistUser.token) {
+      sendtokens.push(ArtistUser.token);
+    }
+    if (SalonOwner.token) {
+      sendtokens.push(SalonOwner.token);
+    }
 
-      const TIME = moment(appointmentStartTime).format("hh:mm A");
-      const date = moment(appointmentDate).format("DD-MM-YYYY");
+    const TIME = moment(appointmentStartTime).format("hh:mm A");
+    const date = moment(appointmentDate).format("DD-MM-YYYY");
+    oldTime = moment(oldTime).format("hh:mm A");
+    oldDate = moment(oldDate).format("DD-MM-YYYY");
 
-      sendtokens = [...new Set(sendtokens)];
-      Ids = [...new Set(Ids)];
+    sendtokens = [...new Set(sendtokens)];
+    Ids = [...new Set(Ids)];
 
-      if(sendtokens.length > 0){
-
+    if (sendtokens.length > 0) {
       const message = {
         notification: {
           title: "Appointment Rescheduled",
-          body: `Your appointment on ${date} has been rescheduled to ${TIME} `,
+          body: `Appointment Rescheduled from ${oldDate} at ${oldTime} to ${date} at ${TIME}`,
         },
         tokens: sendtokens,
       };
 
-      messaging.sendEachForMulticast(message).then((response) => {
-        console.log("Successfully sent message:", response);
-      }).catch((error) => {
-        console.error("Error sending message:", error);
+      messaging
+        .sendEachForMulticast(message)
+        .then((response) => {
+          console.log("Successfully sent message:", response);
+        })
+        .catch((error) => {
+          console.error("Error sending message:", error);
+        });
+    }
+
+    const nameArtist = ArtistUser.name || artist.ArtistName || "Artist";
+
+    db.collection("Notification")
+      .add({
+        title: "Appointment Rescheduled",
+        body: `Appointment Rescheduled from ${oldDate} at ${oldTime} to ${date} at ${TIME}`,
+        Ids: Ids.map((id) => id.toString()),
+        read: false,
+        related: nameArtist,
+        createdAt: new Date().toISOString(),
+      })
+      .then((docRef) => {
+        console.log("Document written with ID: ", docRef.id);
+      })
+      .catch((error) => {
+        console.error("Error adding document: ", error);
       });
-
-
-    
-      }
-
-  const nameArtist = ArtistUser.name || artist.ArtistName || "Artist";
-
-  db.collection("Notification").add({
-    title: "Appointment Rescheduled",
-    body: `Your appointment on ${date} has been rescheduled to ${TIME}`,
-    Ids: Ids.map(id => id.toString()),
-    read: false,
-    related: nameArtist,
-    createdAt: new Date().toISOString(),
-  }).then((docRef) => {
-    console.log("Document written with ID: ", docRef.id);
-  }).catch((error) => {
-    console.error("Error adding document: ", error);
-  });
     await appointment.save();
-
-   
-
 
     return res.status(200).json({
       success: true,
@@ -688,7 +721,7 @@ const rescheduleAppointment = async (req, res) => {
     console.log(error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error"+error,
+      message: "Internal server error" + error,
     });
   }
 };
@@ -717,20 +750,20 @@ const CompleteAppointment = async (req, res) => {
     let sendtokens = [];
     let Ids = [];
 
-    for(let i=0;i<salon.subAdmins.length;i++){
+    for (let i = 0; i < salon.subAdmins.length; i++) {
       Ids.push(salon.subAdmins[i]);
       const subAdmin = await UserModel.findById(salon.subAdmins[i]);
 
-      if(subAdmin.token){
+      if (subAdmin.token) {
         sendtokens.push(subAdmin.token);
       }
     }
 
-    if(ArtistUser.token){
+    if (ArtistUser.token) {
       sendtokens.push(ArtistUser.token);
     }
 
-    if(SalonOwner.token){
+    if (SalonOwner.token) {
       sendtokens.push(SalonOwner.token);
     }
 
@@ -739,7 +772,7 @@ const CompleteAppointment = async (req, res) => {
 
     sendtokens = [...new Set(sendtokens)];
 
-    if(sendtokens.length > 0){
+    if (sendtokens.length > 0) {
       const message = {
         notification: {
           title: "Appointment Completed",
@@ -748,14 +781,16 @@ const CompleteAppointment = async (req, res) => {
         tokens: sendtokens,
       };
 
-      messaging.sendEachForMulticast(message).then((response) => {
-        console.log("Successfully sent message:", response);
-      }).catch((error) => {
-        console.error("Error sending message:", error);
-      });
+      messaging
+        .sendEachForMulticast(message)
+        .then((response) => {
+          console.log("Successfully sent message:", response);
+        })
+        .catch((error) => {
+          console.error("Error sending message:", error);
+        });
     }
 
-    
     Ids.push(ArtistUser._id);
     Ids.push(SalonOwner._id);
 
@@ -763,19 +798,21 @@ const CompleteAppointment = async (req, res) => {
 
     const nameArtist = ArtistUser.name || artist.ArtistName || "Artist";
 
-    db.collection("Notification").add({
-      title: "Appointment Completed",
-      body: `Your appointment on ${date} at ${TIME} has been completed`,
-      Ids: Ids.map(id => id.toString()),
-      read: false,
-      related: nameArtist,
-      createdAt: new Date().toISOString(),
-    }).then((docRef) => {
-      console.log("Document written with ID: ", docRef.id);
-    }).catch((error) => {
-      console.error("Error adding document: ", error);
-    });
-
+    db.collection("Notification")
+      .add({
+        title: "Appointment Completed",
+        body: `Your appointment on ${date} at ${TIME} has been completed`,
+        Ids: Ids.map((id) => id.toString()),
+        read: false,
+        related: nameArtist,
+        createdAt: new Date().toISOString(),
+      })
+      .then((docRef) => {
+        console.log("Document written with ID: ", docRef.id);
+      })
+      .catch((error) => {
+        console.error("Error adding document: ", error);
+      });
 
     return res.status(200).json({
       success: true,
@@ -803,12 +840,15 @@ const cancelAppointment = async (req, res) => {
     const userId = req.user._id;
     const user = await UserModel.findById(userId);
 
-    if (user.role === "Owner" || user.role === "subAdmin" || user.role === "Artist") {
+    if (
+      user.role === "Owner" ||
+      user.role === "subAdmin" ||
+      user.role === "Artist"
+    ) {
       const appointment = await AppointmentModel.findOne({
         _id: appointmentId,
       });
 
-        
       const artist = await ArtistModel.findById(appointment.artist);
       const salon = await SalonModel.findById(appointment.salon);
 
@@ -839,64 +879,64 @@ const cancelAppointment = async (req, res) => {
       Ids.push(ArtistUser._id);
       Ids.push(SalonOwner._id);
 
-      for(let i=0;i<salon.subAdmins.length;i++){
+      for (let i = 0; i < salon.subAdmins.length; i++) {
         Ids.push(salon.subAdmins[i]);
         const subAdmin = await UserModel.findById(salon.subAdmins[i]);
-  
-        if(subAdmin.token){
+
+        if (subAdmin.token) {
           sendtokens.push(subAdmin.token);
         }
       }
 
+      if (ArtistUser.token) {
+        sendtokens.push(ArtistUser.token);
+      }
+      if (SalonOwner.token) {
+        sendtokens.push(SalonOwner.token);
+      }
 
-    if(ArtistUser.token){
-      sendtokens.push(ArtistUser.token);
-    }
-    if(SalonOwner.token){
-      sendtokens.push(SalonOwner.token);
-    }
+      const TIME = moment(appointment.appointmentStartTime).format("hh:mm A");
+      const date = moment(appointment.appointmentDate).format("DD-MM-YYYY");
 
-    const TIME = moment(appointment.appointmentStartTime).format("hh:mm A");
-    const date = moment(appointment.appointmentDate).format("DD-MM-YYYY");
+      sendtokens = [...new Set(sendtokens)];
+      Ids = [...new Set(Ids)];
 
-    sendtokens = [...new Set(sendtokens)];
-    Ids = [...new Set(Ids)];
-
-
-
-        if(sendtokens.length > 0){
-
+      if (sendtokens.length > 0) {
         const message = {
           notification: {
             title: "Appointment Cancelled",
-            body: `Your appointment on ${date} at ${TIME} has been cancelled`,
+            body: `${appointment.name}'s appointment has been cancelled`,
           },
           tokens: sendtokens,
         };
 
-        messaging.sendEachForMulticast(message).then((response) => {
-          console.log("Successfully sent message:", response);
-        }).catch((error) => {
-          console.error("Error sending message:", error);
-        });
-        
+        messaging
+          .sendEachForMulticast(message)
+          .then((response) => {
+            console.log("Successfully sent message:", response);
+          })
+          .catch((error) => {
+            console.error("Error sending message:", error);
+          });
       }
 
       const nameArtist = ArtistUser.name || artist.ArtistName || "Artist";
 
-      db.collection("Notification").add({
-        title: "Appointment Cancelled",
-        body: `Your appointment on ${date} at ${TIME} has been cancelled`,
-        Ids: Ids.map(id => id.toString()),
-        read: false,
-        related: nameArtist,
-        createdAt: new Date().toISOString(),
-      }).then((docRef) => {
-        console.log("Document written with ID: ", docRef.id);
-      }).catch((error) => {
-        console.error("Error adding document: ", error);
-      });
-
+      db.collection("Notification")
+        .add({
+          title: "Appointment Cancelled",
+          body: `${appointment.name}'s appointment has been cancelled`,
+          Ids: Ids.map((id) => id.toString()),
+          read: false,
+          related: nameArtist,
+          createdAt: new Date().toISOString(),
+        })
+        .then((docRef) => {
+          console.log("Document written with ID: ", docRef.id);
+        })
+        .catch((error) => {
+          console.error("Error adding document: ", error);
+        });
 
       return res.status(200).json({
         success: true,
@@ -926,26 +966,25 @@ const cancelAppointment = async (req, res) => {
 
     await appointment.save();
 
-  
     let sendtokens = [];
-    let Ids = []
+    let Ids = [];
 
-    for(let i=0;i<salon.subAdmins.length;i++){
+    for (let i = 0; i < salon.subAdmins.length; i++) {
       Ids.push(salon.subAdmins[i]);
       const subAdmin = await UserModel.findById(salon.subAdmins[i]);
 
-      if(subAdmin.token){
+      if (subAdmin.token) {
         sendtokens.push(subAdmin.token);
       }
     }
 
-    Ids.push(ArtistUser._id)
-    Ids.push(SalonOwner._id)
+    Ids.push(ArtistUser._id);
+    Ids.push(SalonOwner._id);
 
-    if(ArtistUser.token){
+    if (ArtistUser.token) {
       sendtokens.push(ArtistUser.token);
     }
-    if(SalonOwner.token){
+    if (SalonOwner.token) {
       sendtokens.push(SalonOwner.token);
     }
 
@@ -955,42 +994,42 @@ const cancelAppointment = async (req, res) => {
     sendtokens = [...new Set(sendtokens)];
     Ids = [...new Set(Ids)];
 
+    if (sendtokens.length > 0) {
+      const message = {
+        notification: {
+          title: "Appointment Cancelled",
+          body: `Your appointment on ${date} at ${TIME} has been cancelled`,
+        },
+        tokens: sendtokens,
+      };
 
+      messaging
+        .sendEachForMulticast(message)
+        .then((response) => {
+          console.log("Successfully sent message:", response);
+        })
+        .catch((error) => {
+          console.error("Error sending message:", error);
+        });
+    }
 
+    const nameArtist = ArtistUser.name || artist.ArtistName || "Artist";
 
-
-    if(sendtokens.length > 0){
-
-    const message = {
-      notification: {
+    db.collection("Notification")
+      .add({
         title: "Appointment Cancelled",
         body: `Your appointment on ${date} at ${TIME} has been cancelled`,
-      },
-      tokens: sendtokens,
-    };
-
-    messaging.sendEachForMulticast(message).then((response) => {
-      console.log("Successfully sent message:", response);
-    }).catch((error) => {
-      console.error("Error sending message:", error);
-    });
-    
-  }
-
-  const nameArtist = ArtistUser.name || artist.ArtistName || "Artist";
-
-  db.collection("Notification").add({
-    title: "Appointment Cancelled",
-    body: `Your appointment on ${date} at ${TIME} has been cancelled`,
-    Ids: Ids.map(id => id.toString()),
-    read: false,
-    related: nameArtist,
-    createdAt: new Date().toISOString(),
-  }).then((docRef) => {
-    console.log("Document written with ID: ", docRef.id);
-  }).catch((error) => {
-    console.error("Error adding document: ", error);
-  });
+        Ids: Ids.map((id) => id.toString()),
+        read: false,
+        related: nameArtist,
+        createdAt: new Date().toISOString(),
+      })
+      .then((docRef) => {
+        console.log("Document written with ID: ", docRef.id);
+      })
+      .catch((error) => {
+        console.error("Error adding document: ", error);
+      });
 
     return res.status(200).json({
       success: true,
@@ -1019,11 +1058,15 @@ const CreateAppointment = async (req, res) => {
 
     //check offer id is not valid string or empty , make it null
     let validOffer = true;
-    if(offerId == "null" || offerId == "" || offerId == null || offerId == undefined || offerId == " "){
+    if (
+      offerId == "null" ||
+      offerId == "" ||
+      offerId == null ||
+      offerId == undefined ||
+      offerId == " "
+    ) {
       validOffer = false;
     }
-
-
 
     const userId = req.user._id;
     const customer = await CustomerModel.findOne({ userId: userId });
@@ -1031,10 +1074,8 @@ const CreateAppointment = async (req, res) => {
     const ArtistUser = await UserModel.findById(artist.userId);
     const salon = await SalonModel.findOne({ Artists: artistId });
     const SalonOwner = await UserModel.findById(salon.userId);
-    
-    const user = await UserModel.findById(userId);
-  
 
+    const user = await UserModel.findById(userId);
 
     if (!artist) {
       return res.status(404).json({
@@ -1042,8 +1083,6 @@ const CreateAppointment = async (req, res) => {
         message: "Artist not found",
       });
     }
-
-  
 
     const appointmentEndTime = moment(appointmentStartTime)
       .add(duration, "minutes")
@@ -1081,7 +1120,7 @@ const CreateAppointment = async (req, res) => {
     }
 
     const appointment = new AppointmentModel({
-      name : name,
+      name: name,
       user: customer,
       artist: artistId,
       appointmentDate,
@@ -1090,7 +1129,7 @@ const CreateAppointment = async (req, res) => {
       appointmentEndTime,
       Duration: duration,
       services,
-      gender:customer.gender,
+      gender: customer.gender,
       appointmentCost: cost,
       Status: "Booked",
     });
@@ -1098,22 +1137,21 @@ const CreateAppointment = async (req, res) => {
     let sendtokens = [];
     let Ids = [];
 
-    for(let i=0;i<salon.subAdmins.length;i++){
+    for (let i = 0; i < salon.subAdmins.length; i++) {
       Ids.push(salon.subAdmins[i]);
       const subAdmin = await UserModel.findById(salon.subAdmins[i]);
 
-      if(subAdmin.token){
+      if (subAdmin.token) {
         sendtokens.push(subAdmin.token);
       }
     }
 
     Ids.push(ArtistUser._id);
     Ids.push(SalonOwner._id);
-    if(ArtistUser.token){
+    if (ArtistUser.token) {
       sendtokens.push(ArtistUser.token);
-      
     }
-    if(SalonOwner.token){
+    if (SalonOwner.token) {
       sendtokens.push(SalonOwner.token);
     }
 
@@ -1121,40 +1159,42 @@ const CreateAppointment = async (req, res) => {
 
     sendtokens = [...new Set(sendtokens)];
 
+    if (sendtokens.length > 0) {
+      const message = {
+        notification: {
+          title: "New Appointment",
+          body: `You have a new appointment on ${appointmentDate} at ${TIME}`,
+        },
+        tokens: sendtokens,
+      };
 
-    if(sendtokens.length > 0){
+      messaging
+        .sendEachForMulticast(message)
+        .then((response) => {
+          console.log("Successfully sent message:", response);
+        })
+        .catch((error) => {
+          console.error("Error sending message:", error);
+        });
+    }
 
-    const message = {
-      notification: {
+    const nameArtist = ArtistUser.name || artist.ArtistName;
+
+    db.collection("Notification")
+      .add({
         title: "New Appointment",
         body: `You have a new appointment on ${appointmentDate} at ${TIME}`,
-      },
-      tokens: sendtokens,
-    };
-
-    messaging.sendEachForMulticast(message).then((response) => {
-      console.log("Successfully sent message:", response);
-    }).catch((error) => {
-      console.error("Error sending message:", error);
-    });
-
-  }
-
-  const nameArtist = ArtistUser.name || artist.ArtistName;
-
-  db.collection("Notification").add({
-    title: "New Appointment",
-    body: `You have a new appointment on ${appointmentDate} at ${TIME}`,
-    Ids: Ids.map(id => id.toString()),
-    read: false,
-    related: nameArtist,
-    createdAt: new Date().toISOString(),
-  }).then((docRef) => {
-    console.log("Document written with ID: ", docRef.id);
-  }).catch((error) => {
-    console.error("Error adding document: ", error);
-  });
-    
+        Ids: Ids.map((id) => id.toString()),
+        read: false,
+        related: nameArtist,
+        createdAt: new Date().toISOString(),
+      })
+      .then((docRef) => {
+        console.log("Document written with ID: ", docRef.id);
+      })
+      .catch((error) => {
+        console.error("Error adding document: ", error);
+      });
 
     await appointment.save();
 
@@ -1163,16 +1203,12 @@ const CreateAppointment = async (req, res) => {
     artist.appointments.push(appointment);
     await artist.save();
     customer.appointments.push(appointment);
-    console.log(offerId)
-    if(validOffer){
+    console.log(offerId);
+    if (validOffer) {
       const offer = await OfferModel.findById(offerId);
       customer.offers.push(offer);
     }
     await customer.save();
-
-    
-    
-
 
     return res.status(201).json({
       success: true,
@@ -1291,7 +1327,7 @@ const getPastSalons = async (req, res) => {
     const userId = req.user._id;
     const user = await UserModel.findById(userId);
     const customer = await CustomerModel.findOne({ userId });
-    
+
     if (!customer) {
       return res.status(404).json({
         success: false,
@@ -1299,14 +1335,20 @@ const getPastSalons = async (req, res) => {
       });
     }
 
-    const appointments = await AppointmentModel.find({ user: customer })
+    const appointments = await AppointmentModel.find({ user: customer });
 
-    const salons = await SalonModel.find({appointments: { $in: appointments }, userId: { $ne: userId }}).populate("Reviews").populate("offers");
+    const salons = await SalonModel.find({
+      appointments: { $in: appointments },
+      userId: { $ne: userId },
+    })
+      .populate("Reviews")
+      .populate("offers");
 
-    //send only unique salons 
+    //send only unique salons
 
-    const uniqueSalons = salons.filter((salon, index, self) =>
-      index === self.findIndex((t) => (t._id === salon._id))
+    const uniqueSalons = salons.filter(
+      (salon, index, self) =>
+        index === self.findIndex((t) => t._id === salon._id)
     );
 
     if (!salons.length) {
@@ -1322,7 +1364,6 @@ const getPastSalons = async (req, res) => {
       data: uniqueSalons,
       message: "Salons fetched successfully",
     });
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -1331,7 +1372,6 @@ const getPastSalons = async (req, res) => {
     });
   }
 };
-
 
 export {
   getTimeSlots,
@@ -1344,7 +1384,7 @@ export {
   CreateAppointment,
   getAppointments,
   getAppointmentsById,
-  getPastSalons
+  getPastSalons,
 };
 
 // /**
