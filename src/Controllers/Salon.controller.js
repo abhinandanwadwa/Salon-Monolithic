@@ -1217,6 +1217,8 @@ const SalonsStats = async (req, res) => {
     const totalSalons = await SalonModel.countDocuments();
     const totalUsers = await UserModel.countDocuments();
     const totalAppointments = await AppointmentModel.countDocuments();
+    const totalCustomers = await CustomerModel.countDocuments();
+
 
     const today = new Date();
     //weekly bookings and user registration
@@ -1251,6 +1253,7 @@ const SalonsStats = async (req, res) => {
         totalAppointments,
         weeklyUsers,
         weeklyAppointments,
+        totalCustomers
       },
     });
   } catch (error) {
