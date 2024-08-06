@@ -765,6 +765,7 @@ const uploadBrochure = async (req, res) => {
  * @access Private
  * @request None
  */
+
 const deleteSalon = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -1219,7 +1220,6 @@ const SalonsStats = async (req, res) => {
     const totalAppointments = await AppointmentModel.countDocuments();
     const totalCustomers = await CustomerModel.countDocuments();
 
-
     const today = new Date();
     //weekly bookings and user registration
 
@@ -1238,6 +1238,11 @@ const SalonsStats = async (req, res) => {
       createdAt: { $gte: weekStart, $lte: weekEnd },
     }).countDocuments();
 
+    const weeklyCustomers = await CustomerModel.find({
+      createdAt: { $gte: weekStart, $lte: weekEnd },
+    }).countDocuments();
+
+
     const weeklyAppointments = await AppointmentModel.find({
       createdAt: { $gte: weekStart, $lte: weekEnd },
     }).countDocuments();
@@ -1253,7 +1258,8 @@ const SalonsStats = async (req, res) => {
         totalAppointments,
         weeklyUsers,
         weeklyAppointments,
-        totalCustomers
+        totalCustomers,
+        weeklyCustomers,
       },
     });
   } catch (error) {

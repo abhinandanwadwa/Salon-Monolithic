@@ -600,9 +600,13 @@ const verifyOTP = async (req, res) => {
 
 const verifyOwner = async (req, res) => {
   try {
-    const { phoneNumber, password } = req.body;
+    const { phoneNumber, password,fcmToken } = req.body;
+
+    const FcmTokenDetails = fcmToken ? fcmToken : null;
 
     const user = await UserModel.findOne({ phoneNumber });
+
+
 
     if (!user) {
       return res.status(404).json({
@@ -619,6 +623,9 @@ const verifyOwner = async (req, res) => {
         message: "Invalid password",
       });
     }
+
+    user.token = FcmTokenDetails;
+    await user.save();
 
     generateToken(res, user);
     return res.status(201).json({
