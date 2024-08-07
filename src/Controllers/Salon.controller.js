@@ -1256,21 +1256,21 @@ const SalonsStats = async (req, res) => {
    
 
     const completedAppointments = await AppointmentModel.find({
-      status: "Completed",
+      Status: "Completed",
     }).countDocuments();
 
 
     const DailyCompletedAppointments = await AppointmentModel.find({
-      status: "Completed",
+      Status: "Completed",
       createdAt: { $gte: TodayStart },
     }).countDocuments();
 
     const CancelledAppointments = await AppointmentModel.find({
-      status: "Cancelled",
+      Status: "Cancelled",
     }).countDocuments();
 
     const DailyCancelledAppointments = await AppointmentModel.find({  
-      status: "Cancelled",
+      Status: "Cancelled",
       createdAt: { $gte: TodayStart },
     }).countDocuments();
 
