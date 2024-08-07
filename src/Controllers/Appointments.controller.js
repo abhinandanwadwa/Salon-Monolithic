@@ -13,6 +13,29 @@ import { messaging, db } from "./fcmClient.js";
 
 moment.suppressDeprecationWarnings = true;
 
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const day = date.getDate();
+  const month = date.toLocaleString("default", {
+    month: "short",
+  });
+  const year = date.getFullYear();
+  const daySuffix = (day) => {
+    if (day > 3 && day < 21) return "th";
+    switch (day % 10) {
+      case 1:
+        return "st";
+      case 2:
+        return "nd";
+      case 3:
+        return "rd";
+      default:
+        return "th";
+    }
+  };
+  return `${day}${daySuffix(day)} ${month} ${year}`;
+};
+
 const getCost = async (req, res) => {
   try {
     const { artistId, services, salonid } = req.body;
@@ -403,7 +426,7 @@ const createAppointmentByOwner = async (req, res) => {
     }
 
     const TIME = moment(appointmentStartTime).format("hh:mm A");
-    const date = moment(appointmentDate).format("DD-MM-YYYY");
+    const date = formatDate(appointmentDate)
 
     sendtokens = [...new Set(sendtokens)];
     Ids = [...new Set(Ids)];
@@ -558,7 +581,7 @@ const editAppointment = async (req, res) => {
     }
 
     const TIME = moment(appointmentStartTime).format("hh:mm A");
-    const date = moment(appointmentDate).format("DD-MM-YYYY");
+    const date = formatDate(appointmentDate)
 
     sendtokens = [...new Set(sendtokens)];
     Ids = [...new Set(Ids)];
@@ -684,9 +707,9 @@ const rescheduleAppointment = async (req, res) => {
     }
 
     const TIME = moment(appointmentStartTime).format("hh:mm A");
-    const date = moment(appointmentDate).format("DD-MM-YYYY");
+    const date = formatDate(appointmentDate)
     oldTime = moment(oldTime).format("hh:mm A");
-    oldDate = moment(oldDate).format("DD-MM-YYYY");
+    oldDate = formatDate(oldDate)
 
     sendtokens = [...new Set(sendtokens)];
     Ids = [...new Set(Ids)];
@@ -784,7 +807,7 @@ const CompleteAppointment = async (req, res) => {
     }
 
     const TIME = moment(appointment.appointmentStartTime).format("hh:mm A");
-    const date = moment(appointment.appointmentDate).format("DD-MM-YYYY");
+    const date = formatDate(appointment.appointmentDate)
 
     sendtokens = [...new Set(sendtokens)];
 
@@ -922,7 +945,7 @@ const cancelAppointment = async (req, res) => {
       }
 
       const TIME = moment(appointment.appointmentStartTime).format("hh:mm A");
-      const date = moment(appointment.appointmentDate).format("DD-MM-YYYY");
+      const date = formatDate(appointment.appointmentDate)
 
       sendtokens = [...new Set(sendtokens)];
       Ids = [...new Set(Ids)];
@@ -1025,7 +1048,7 @@ const cancelAppointment = async (req, res) => {
     }
 
     const TIME = moment(appointment.appointmentStartTime).format("hh:mm A");
-    const date = moment(appointment.appointmentDate).format("DD-MM-YYYY");
+    const date = formatDate(appointment.appointmentDate)
 
     sendtokens = [...new Set(sendtokens)];
     Ids = [...new Set(Ids)];
@@ -1207,7 +1230,7 @@ const CreateAppointment = async (req, res) => {
       const message = {
         notification: {
           title: "New Appointment",
-          body: `New appointment for ${nameArtist} on ${appointmentDate} at ${TIME}`,
+          body: `New appointment for ${nameArtist} on ${formatDate(appointmentDate)} at ${TIME}`,
         },
         tokens: sendtokens,
       };
@@ -1225,7 +1248,7 @@ const CreateAppointment = async (req, res) => {
     db.collection("Notification")
       .add({
         title: "New Appointment",
-        body: `New appointment for ${nameArtist} on ${appointmentDate} at ${TIME}`,
+        body: `New appointment for ${nameArtist} on ${formatDate(appointmentDate)} at ${TIME}`,
         Ids: Ids.map((id) => id.toString()),
         read: false,
         related: nameArtist,
