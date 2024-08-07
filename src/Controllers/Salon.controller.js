@@ -1302,7 +1302,6 @@ const SalonsStats = async (req, res) => {
         totalSalons,
         totalUsers,
         totalAppointments,
-        weeklyUsers,
         weeklyAppointments,
         totalCustomers,
         AppUsers,
