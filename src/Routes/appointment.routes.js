@@ -12,7 +12,7 @@ Appointmentrouter.post("/cancelAppointment/:appointmentId",verify, cancelAppoint
 Appointmentrouter.post("/rescheduleAppointment",verify,rescheduleAppointment);
 Appointmentrouter.post("/CompleteAppointment/:appointmentId",verify,roleAuthorization(['Owner','Artist','subAdmin']),CompleteAppointment);
 Appointmentrouter.post("/editAppointment",verify,roleAuthorization(['Owner','Artist','subAdmin']),editAppointment);
-Appointmentrouter.post("/getCost",verify,getCost);
+Appointmentrouter.post("/getCost",getCost);
 Appointmentrouter.post("/CreateAppointment",verify,CreateAppointment);
 Appointmentrouter.get("/getAppointments",verify,getAppointments);
 Appointmentrouter.get("/getAppointments/:appointmentId",verify,getAppointmentsById);

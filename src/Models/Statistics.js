@@ -20,7 +20,12 @@ const Statistics = new mongoose.Schema({
     AppointmentCount : {
         type: Number,
         default: 0
-    }
+    },
+    deletedSalonCount : {
+        type: Number,
+        default: 0
+    },
+    
 });
 
 const Statistic = mongoose.model("Statistic", Statistics);

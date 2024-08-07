@@ -847,6 +847,11 @@ const deleteSalon = async (req, res) => {
     
     await UserModel.findOneAndDelete({ _id: user }, { session });
 
+    await Statistic.updateOne(
+      { _id: "Statistic" },
+      { $inc: { deletedSalonCount: 1 } },
+    )
+
     SendTokens = [...new Set(SendTokens)];
 
     if (SendTokens.length) {
@@ -866,8 +871,11 @@ const deleteSalon = async (req, res) => {
     }
 
 
+
     await session.commitTransaction();
     session.endSession();
+
+
 
     
 
@@ -1234,18 +1242,56 @@ const SalonsStats = async (req, res) => {
       today.getDate() + (6 - today.getDay())
     );
 
-    const weeklyUsers = await UserModel.find({
-      createdAt: { $gte: weekStart, $lte: weekEnd },
+    const TodayStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+
+
+    const dailyCustomers = await CustomerModel.find({
+      createdAt: { $gte: TodayStart },
     }).countDocuments();
 
-    const weeklyCustomers = await CustomerModel.find({
-      createdAt: { $gte: weekStart, $lte: weekEnd },
+   
+
+    const completedAppointments = await AppointmentModel.find({
+      status: "Completed",
     }).countDocuments();
 
+
+    const DailyCompletedAppointments = await AppointmentModel.find({
+      status: "Completed",
+      createdAt: { $gte: TodayStart },
+    }).countDocuments();
+
+    const CancelledAppointments = await AppointmentModel.find({
+      status: "Cancelled",
+    }).countDocuments();
+
+    const DailyCancelledAppointments = await AppointmentModel.find({  
+      status: "Cancelled",
+      createdAt: { $gte: TodayStart },
+    }).countDocuments();
 
     const weeklyAppointments = await AppointmentModel.find({
       createdAt: { $gte: weekStart, $lte: weekEnd },
     }).countDocuments();
+
+    const TotalRatings = await ReviewModel.find().countDocuments();
+
+    const DailyRatings = await ReviewModel.find({
+      createdAt: { $gte: TodayStart },
+    }).countDocuments();
+
+    const AppUsers = await UserModel.find({ role: { $ne: "Customer" } }).countDocuments();
+
+    const DailyAppUsers = await UserModel.find({
+      role: { $ne: "Customer" },
+      createdAt: { $gte: TodayStart },
+    }).countDocuments();
+
+
 
     const stats = await Statistic.findOne({});
 
@@ -1259,7 +1305,15 @@ const SalonsStats = async (req, res) => {
         weeklyUsers,
         weeklyAppointments,
         totalCustomers,
-        weeklyCustomers,
+        AppUsers,
+        dailyCustomers,
+        completedAppointments,
+        DailyCompletedAppointments,
+        CancelledAppointments,
+        DailyCancelledAppointments,
+        TotalRatings,
+        DailyRatings,
+        DailyAppUsers
       },
     });
   } catch (error) {
