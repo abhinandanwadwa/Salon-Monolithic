@@ -328,6 +328,7 @@ const sendOTP = async (req, res) => {
     const CaptchaResponse = await axios.post(url);
 
     if (!CaptchaResponse.data.success) {
+      console.log(CaptchaResponse.data);
       return res.status(400).json({
         success: false,
         message: "Failed to verify reCaptcha",
