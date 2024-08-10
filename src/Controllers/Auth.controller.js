@@ -318,21 +318,22 @@ const sendOTP = async (req, res) => {
     console.log(phoneNumber, role, reCaptcha);
     let user = await UserModel.findOne({ phoneNumber });
 
-    console.log(user);
 
     const secretKey = process.env.SECRET_KEY;
     console.log(secretKey);
 
     const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${reCaptcha}`;
 
-    const CaptchaResponse = await axios.post(url);
-
-    if (!CaptchaResponse.data.success) {
-      console.log(CaptchaResponse.data);
-      return res.status(400).json({
-        success: false,
-        message: "Failed to verify reCaptcha",
-      });
+    if(reCaptcha){
+      const CaptchaResponse = await axios.post(url);
+      
+      if (!CaptchaResponse.data.success) {
+        console.log(CaptchaResponse.data);
+        return res.status(400).json({
+          success: false,
+          message: "Failed to verify reCaptcha",
+        });
+      }
     }
 
     const otp = otpGenerator.generate(4, {
