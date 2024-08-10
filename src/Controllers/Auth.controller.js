@@ -314,13 +314,14 @@ const verifyToken = async (req, res) => {
 
 const sendOTP = async (req, res) => {
   try {
-    const { phoneNumber, role ,reCaptcha } = req.body;
-    console.log(phoneNumber, role);
+    const { phoneNumber, role, reCaptcha } = req.body;
+    console.log(phoneNumber, role, reCaptcha);
     let user = await UserModel.findOne({ phoneNumber });
 
     console.log(user);
 
     const secretKey = process.env.SECRET_KEY;
+    console.log(secretKey);
 
     const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${reCaptcha}`;
 
@@ -352,8 +353,6 @@ const sendOTP = async (req, res) => {
     }
 
     //   // `https://www.fast2sms.com/dev/bulkV2?authorization=&route=dlt&sender_id=MACVEN&message=171048&variables_values=${otp}%7C&flash=0&numbers=${phoneNumber}`
-
-    
 
     const API = process.env.FAST2SMS_AUTH_KEY;
 
@@ -615,13 +614,11 @@ const verifyOTP = async (req, res) => {
 
 const verifyOwner = async (req, res) => {
   try {
-    const { phoneNumber, password,fcmToken } = req.body;
+    const { phoneNumber, password, fcmToken } = req.body;
 
     const FcmTokenDetails = fcmToken ? fcmToken : null;
 
     const user = await UserModel.findOne({ phoneNumber });
-
-
 
     if (!user) {
       return res.status(404).json({
