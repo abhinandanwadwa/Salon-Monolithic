@@ -314,11 +314,24 @@ const verifyToken = async (req, res) => {
 
 const sendOTP = async (req, res) => {
   try {
-    const { phoneNumber, role } = req.body;
+    const { phoneNumber, role ,reCaptcha } = req.body;
     console.log(phoneNumber, role);
     let user = await UserModel.findOne({ phoneNumber });
 
     console.log(user);
+
+    const secretKey = process.env.SECRET_KEY;
+
+    const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${reCaptcha}`;
+
+    const CaptchaResponse = await axios.post(url);
+
+    if (!CaptchaResponse.data.success) {
+      return res.status(400).json({
+        success: false,
+        message: "Failed to verify reCaptcha",
+      });
+    }
 
     const otp = otpGenerator.generate(4, {
       upperCaseAlphabets: false,
@@ -339,6 +352,8 @@ const sendOTP = async (req, res) => {
     }
 
     //   // `https://www.fast2sms.com/dev/bulkV2?authorization=&route=dlt&sender_id=MACVEN&message=171048&variables_values=${otp}%7C&flash=0&numbers=${phoneNumber}`
+
+    
 
     const API = process.env.FAST2SMS_AUTH_KEY;
 
