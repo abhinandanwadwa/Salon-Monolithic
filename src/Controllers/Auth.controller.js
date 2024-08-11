@@ -322,7 +322,7 @@ const sendOTP = async (req, res) => {
     const secretKey = process.env.SECRET_KEY;
     console.log(secretKey);
 
-    const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${reCaptcha}`;
+    const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${reCaptcha}`;   
 
     if(reCaptcha){
       const CaptchaResponse = await axios.post(url);
