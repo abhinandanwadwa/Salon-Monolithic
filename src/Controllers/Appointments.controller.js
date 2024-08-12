@@ -1205,9 +1205,10 @@ const CreateAppointment = async (req, res) => {
     for (let i = 0; i < salon.subAdmins.length; i++) {
       Ids.push(salon.subAdmins[i]);
       const subAdmin = await UserModel.findById(salon.subAdmins[i]);
-
-      if (subAdmin.token) {
-        sendtokens.push(subAdmin.token);
+      if(subAdmin){
+        if (subAdmin.token) {
+          sendtokens.push(subAdmin.token);
+        }
       }
     }
 
