@@ -22,7 +22,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: ["https://www.salondekho.in", "https://admin.salondekho.in/"],
+    origin: ["https://www.salondekho.in", "https://admin.salondekho.in"],
     credentials: true,
   })
 );
