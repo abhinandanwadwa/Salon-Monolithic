@@ -135,19 +135,16 @@ const createSalon = async (req, res) => {
     }
     const CoverImage = req.file ? req.file.location : null;
 
-    // convert salonPhoneNumber to number
-
-    let salonNumber;
-
-    if (salonPhoneNumber) {
-      salonNumber = parseInt(salonPhoneNumber);
-    }
+    // convert salonPhoneNumber to number from string
+    console.log(salonPhoneNumber);
+    const salonNumber = parseInt(salonPhoneNumber);
+    console.log(salonNumber);
 
     const salon = new SalonModel({
       userId,
       SalonName,
       OwnerName,
-      address,
+      address,  
       BusinessType,
       Gender,
       workingDays: workingdaylist,
