@@ -136,9 +136,7 @@ const createSalon = async (req, res) => {
     const CoverImage = req.file ? req.file.location : null;
 
     // convert salonPhoneNumber to number from string
-    console.log(salonPhoneNumber);
     const salonNumber = parseInt(salonPhoneNumber);
-    console.log(salonNumber);
 
     const salon = new SalonModel({
       userId,
@@ -224,6 +222,11 @@ const UpdateSalon = async (req, res) => {
 
 
     let locationDetails;
+
+    const options = {
+      provider: "google",
+      apiKey: process.env.GOOGLE_MAPS_API_KEY,
+    };
 
     if (!coordinates && (Address1 || City || State || Country || Pincode)) {
       const geocoder = NodeGeocoder(options);
