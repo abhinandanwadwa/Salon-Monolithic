@@ -34,10 +34,11 @@ const createSalon = async (req, res) => {
       BusinessType,
       Gender,
       workingDays,
+      salonPhoneNumber,
       startTime,
       endTime,
       coordinates,
-      gst
+      gst,
     } = req.body;
 
     let workingdaylist;
@@ -52,13 +53,13 @@ const createSalon = async (req, res) => {
 
     let Gstbool;
 
-    if(gst === "True") {
+    if (gst === "True") {
       Gstbool = true;
-    } 
+    }
 
-    if(gst === "False") {
+    if (gst === "False") {
       Gstbool = false;
-    } 
+    }
 
     let coordinate;
     try {
@@ -89,8 +90,6 @@ const createSalon = async (req, res) => {
         message: "Address details are incomplete",
       });
     }
-
-    
 
     const address = {
       Address1,
@@ -146,7 +145,7 @@ const createSalon = async (req, res) => {
       startTime,
       endTime,
       Gst: Gstbool,
-      salonPhoneNumber: user.phoneNumber,
+      salonPhoneNumber: salonPhoneNumber,
       CoverImage,
       location: locationDetails,
     });
@@ -203,29 +202,71 @@ const UpdateSalon = async (req, res) => {
       SalonName,
       OwnerName,
       salonPhoneNumber,
-      location,
+      coordinates,
       workingDays,
       startTime,
       endTime,
       Instagram,
       Facebook,
       gst,
-      Gender
+      Gender,
     } = req.body;
+
+    const { Address1, Address2, Landmark, Pincode, City, State, Country } =
+      req.body;
+
+    let coordinate;
+
+    if (coordinates) {
+      try {
+        coordinate = JSON.parse(coordinates);
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid coordinates format",
+        });
+      }
+    }
+
+    let locationDetails;
+
+    if (!coordinate && (Address1 || City || State || Country || Pincode)) {
+      const geocoder = NodeGeocoder(options);
+      const mergedAddress = `${Address1} ${Address2}`;
+      const response = await geocoder.geocode(
+        `${mergedAddress} ${City} ${State} ${Country}`
+      );
+
+      if (!response.length) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid address",
+        });
+      }
+
+      locationDetails = {
+        type: "Point",
+        coordinates: [response[0].latitude, response[0].longitude],
+      };
+    } else if (coordinate) {
+      locationDetails = {
+        type: "Point",
+        coordinates: [coordinate[0], coordinate[1]],
+      };
+    }
 
     const user = req.user._id;
     const salon = await SalonModel.findOne({ userId: user });
 
-    
     let Gstbool = salon.Gst;
 
-    if(gst === "True") {
+    if (gst === "True") {
       Gstbool = true;
-    } 
+    }
 
-    if(gst === "False") {
+    if (gst === "False") {
       Gstbool = false;
-    } 
+    }
 
     console.log(Gstbool);
     if (!salon) {
@@ -247,12 +288,9 @@ const UpdateSalon = async (req, res) => {
       // if any artists start and end time is not in between the new start and end time then make it a subset
 
       for (let i = 0; i < artists.length; i++) {
-        const startArtistTime = artists[i].startTime.slice(11,16);
-        const endArtistTime = artists[i].endTime.slice(11,16);
-        if (
-          startArtistTime < startTime ||
-          endArtistTime > endTime
-        ) {
+        const startArtistTime = artists[i].startTime.slice(11, 16);
+        const endArtistTime = artists[i].endTime.slice(11, 16);
+        if (startArtistTime < startTime || endArtistTime > endTime) {
           return res.status(400).json({
             success: false,
             message:
@@ -264,13 +302,13 @@ const UpdateSalon = async (req, res) => {
 
     if (workingDays) {
       const allArtists = await ArtistModel.find({ salon: salon._id });
-      
+
       for (let i = 0; i < allArtists.length; i++) {
         const artistWorkingDays = allArtists[i].workingDays;
         const updatedWorkingDays = artistWorkingDays.filter((day) =>
           workingDays.includes(day)
         );
-    
+
         // Update the artist's working days if they have changed
         if (updatedWorkingDays.length !== artistWorkingDays.length) {
           allArtists[i].workingDays = updatedWorkingDays;
@@ -279,19 +317,27 @@ const UpdateSalon = async (req, res) => {
       }
     }
 
-    
     salon.SalonName = SalonName || salon.SalonName;
     salon.OwnerName = OwnerName || salon.OwnerName;
     salon.salonPhoneNumber = salonPhoneNumber || salon.salonPhoneNumber;
-    salon.location = location || salon.location;
+    salon.location = locationDetails || salon.location;
+    salon.address = {
+      Address1: Address1 || salon.address.Address1,
+      Address2: Address2 || salon.address.Address2,
+      Landmark: Landmark || salon.address.Landmark,
+      Pincode: Pincode || salon.address.Pincode,
+      City: City || salon.address.City,
+      State: State || salon.address.State,
+      Country: Country || salon.address.Country,
+    };
     salon.workingDays = workingDays || salon.workingDays;
     salon.Gender = Gender || salon.Gender;
     salon.startTime = startTime || salon.startTime;
     salon.endTime = endTime || salon.endTime;
     salon.Instagram = Instagram || salon.Instagram || null;
     salon.Facebook = Facebook || salon.Facebook || null;
-    
-    salon.Gst = Gstbool ;
+
+    salon.Gst = Gstbool;
 
     await salon.save();
 
@@ -343,8 +389,8 @@ const getSalonByLocation = async (req, res) => {
           localField: "Reviews",
           foreignField: "_id",
           as: "Reviews",
-        }
-      },  
+        },
+      },
     ]);
 
     return res.status(200).json({
@@ -426,9 +472,9 @@ const getOwnerSalon = async (req, res) => {
         .populate({
           path: "Reviews",
           populate: {
-            path:"customerId",
+            path: "customerId",
           },
-        })
+        });
 
       if (!salon.length) {
         return res.status(404).json({
@@ -456,9 +502,9 @@ const getOwnerSalon = async (req, res) => {
         .populate({
           path: "Reviews",
           populate: {
-            path:"customerId",
+            path: "customerId",
           },
-        })
+        });
 
       if (!salons.length) {
         return res.status(404).json({
@@ -513,7 +559,6 @@ const searchSalons = async (req, res) => {
         ),
       ];
     }
-
 
     // Handle address geocoding
     if (address) {
@@ -640,8 +685,8 @@ const searchSalonss = async (req, res) => {
             localField: "Reviews",
             foreignField: "_id",
             as: "Reviews",
-          }
-        },  
+          },
+        },
       ];
 
       const salons = await SalonModel.aggregate(aggregationPipeline);
@@ -715,7 +760,6 @@ const uploadBrochure = async (req, res) => {
   try {
     const user = req.user._id;
 
-
     const brochurePhotos = req.files;
 
     // Ensure the array is not empty
@@ -727,11 +771,9 @@ const uploadBrochure = async (req, res) => {
     }
 
     let salon = await SalonModel.findOne({ userId: user });
-    if(req.user.role === "subAdmin") {
+    if (req.user.role === "subAdmin") {
       salon = await SalonModel.findOne({ Artists: req.user._id });
     }
-
-
 
     if (!salon) {
       return res.status(404).json({
@@ -797,7 +839,7 @@ const deleteSalon = async (req, res) => {
 
     const artists = await ArtistModel.find({ salon: salon._id });
     const artistUserIds = artists.map((artist) => artist.userId);
-    
+
     let SendTokens = [];
 
     for (let i = 0; i < artistUserIds.length; i++) {
@@ -806,15 +848,18 @@ const deleteSalon = async (req, res) => {
         SendTokens.push(ArtistUser.token);
       }
 
-      if(ArtistUser.role === "subAdmin") {
+      if (ArtistUser.role === "subAdmin") {
         //change role to artist with transcetion
         ArtistUser.role = "Artist";
-        await ArtistUser.save({session});
+        await ArtistUser.save({ session });
       }
     }
 
     if (artistUserIds.length) {
-      await CustomerModel.deleteMany({ userId: { $in: artistUserIds } }, { session });
+      await CustomerModel.deleteMany(
+        { userId: { $in: artistUserIds } },
+        { session }
+      );
       await UserModel.deleteMany({ _id: { $in: artistUserIds } }, { session });
       await ArtistModel.deleteMany({ salon: salon._id }, { session });
     }
@@ -839,18 +884,18 @@ const deleteSalon = async (req, res) => {
 
     await SalonModel.findOneAndDelete({ userId: user }, { session });
     await CustomerModel.findOneAndDelete({ userId: user }, { session });
-    
+
     const OwnerUser = await UserModel.findById(user);
     if (OwnerUser && OwnerUser.token) {
       SendTokens.push(OwnerUser.token);
     }
-    
+
     await UserModel.findOneAndDelete({ _id: user }, { session });
 
     await Statistic.updateOne(
       { _id: "Statistic" },
-      { $inc: { deletedSalonCount: 1 } },
-    )
+      { $inc: { deletedSalonCount: 1 } }
+    );
 
     SendTokens = [...new Set(SendTokens)];
 
@@ -858,26 +903,23 @@ const deleteSalon = async (req, res) => {
       const message = {
         notification: {
           title: "Account Deleted",
-          body: "Your account has been deleted"
+          body: "Your account has been deleted",
         },
-        tokens: SendTokens
+        tokens: SendTokens,
       };
 
-      messaging.sendEachForMulticast(message).then((response) => {
-        console.log(response);
-      }).catch((error) => {
-        console.error(error);
-      });
+      messaging
+        .sendEachForMulticast(message)
+        .then((response) => {
+          console.log(response);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     }
-
-
 
     await session.commitTransaction();
     session.endSession();
-
-
-
-    
 
     return res.status(200).json({
       success: true,
@@ -907,11 +949,10 @@ const AddPhotos = async (req, res) => {
     const user = req.user._id;
     let salon = await SalonModel.findOne({ userId: user });
 
-    if(req.user.role === "subAdmin") {
+    if (req.user.role === "subAdmin") {
       const artist = await ArtistModel.findOne({ userId: user });
       salon = await SalonModel.findOne({ Artists: artist._id });
     }
-
 
     const coverImageUrl = req.file.location;
     salon.CoverImage = coverImageUrl || salon.CoverImage || null;
@@ -936,7 +977,7 @@ const AddStorePhotos = async (req, res) => {
     const user = req.user._id;
     let salon = await SalonModel.findOne({ userId: user });
 
-    if(req.user.role === "subAdmin") {
+    if (req.user.role === "subAdmin") {
       const artist = await ArtistModel.findOne({ userId: user });
       salon = await SalonModel.findOne({ Artists: artist._id });
     }
@@ -981,12 +1022,10 @@ const deleteStorePhotos = async (req, res) => {
     const user = req.user._id;
     let salon = await SalonModel.findOne({ userId: user });
 
-
-    if(req.user.role === "subAdmin") {
+    if (req.user.role === "subAdmin") {
       const artist = await ArtistModel.findOne({ userId: user });
       salon = await SalonModel.findOne({ Artists: artist._id });
     }
-
 
     if (!salon) {
       return res.status(404).json({
@@ -1029,11 +1068,10 @@ const deleteCoverPhoto = async (req, res) => {
     const user = req.user._id;
     let salon = await SalonModel.findOne({ userId: user });
 
-    if(req.user.role === "subAdmin") {
+    if (req.user.role === "subAdmin") {
       const artist = await ArtistModel.findOne({ userId: user });
       salon = await SalonModel.findOne({ Artists: artist._id });
     }
-
 
     if (!salon) {
       return res.status(404).json({
@@ -1062,11 +1100,10 @@ const deleteBrochure = async (req, res) => {
     const user = req.user._id;
     let salon = await SalonModel.findOne({ userId: user });
 
-    if(req.user.role === "subAdmin") {
+    if (req.user.role === "subAdmin") {
       const artist = await ArtistModel.findOne({ userId: user });
       salon = await SalonModel.findOne({ Artists: artist._id });
     }
-
 
     if (!salon) {
       return res.status(404).json({
@@ -1248,17 +1285,13 @@ const SalonsStats = async (req, res) => {
       today.getDate()
     );
 
-
     const dailyCustomers = await CustomerModel.find({
       createdAt: { $gte: TodayStart },
     }).countDocuments();
 
-   
-
     const completedAppointments = await AppointmentModel.find({
       Status: "Completed",
     }).countDocuments();
-
 
     const DailyCompletedAppointments = await AppointmentModel.find({
       Status: "Completed",
@@ -1269,7 +1302,7 @@ const SalonsStats = async (req, res) => {
       Status: "Cancelled",
     }).countDocuments();
 
-    const DailyCancelledAppointments = await AppointmentModel.find({  
+    const DailyCancelledAppointments = await AppointmentModel.find({
       Status: "Cancelled",
       createdAt: { $gte: TodayStart },
     }).countDocuments();
@@ -1284,14 +1317,14 @@ const SalonsStats = async (req, res) => {
       createdAt: { $gte: TodayStart },
     }).countDocuments();
 
-    const AppUsers = await UserModel.find({ role: { $ne: "Customer" } }).countDocuments();
+    const AppUsers = await UserModel.find({
+      role: { $ne: "Customer" },
+    }).countDocuments();
 
     const DailyAppUsers = await UserModel.find({
       role: { $ne: "Customer" },
       createdAt: { $gte: TodayStart },
     }).countDocuments();
-
-
 
     const stats = await Statistic.findOne({});
 
@@ -1312,7 +1345,7 @@ const SalonsStats = async (req, res) => {
         DailyCancelledAppointments,
         TotalRatings,
         DailyRatings,
-        DailyAppUsers
+        DailyAppUsers,
       },
     });
   } catch (error) {
