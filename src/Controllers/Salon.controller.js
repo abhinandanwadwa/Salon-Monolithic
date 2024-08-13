@@ -41,6 +41,7 @@ const createSalon = async (req, res) => {
       gst,
     } = req.body;
 
+
     let workingdaylist;
     try {
       workingdaylist = JSON.parse(workingDays);
@@ -134,6 +135,14 @@ const createSalon = async (req, res) => {
     }
     const CoverImage = req.file ? req.file.location : null;
 
+    // convert salonPhoneNumber to number
+
+    let salonNumber;
+
+    if (salonPhoneNumber) {
+      salonNumber = parseInt(salonPhoneNumber);
+    }
+
     const salon = new SalonModel({
       userId,
       SalonName,
@@ -145,7 +154,7 @@ const createSalon = async (req, res) => {
       startTime,
       endTime,
       Gst: Gstbool,
-      salonPhoneNumber: salonPhoneNumber,
+      salonPhoneNumber: salonNumber,
       CoverImage,
       location: locationDetails,
     });
