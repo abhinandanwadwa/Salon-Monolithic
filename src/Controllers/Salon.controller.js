@@ -41,7 +41,6 @@ const createSalon = async (req, res) => {
       gst,
     } = req.body;
 
-
     let workingdaylist;
     try {
       workingdaylist = JSON.parse(workingDays);
@@ -142,7 +141,7 @@ const createSalon = async (req, res) => {
       userId,
       SalonName,
       OwnerName,
-      address,  
+      address,
       BusinessType,
       Gender,
       workingDays: workingdaylist,
@@ -219,8 +218,6 @@ const UpdateSalon = async (req, res) => {
     const { Address1, Address2, Landmark, Pincode, City, State, Country } =
       req.body;
 
-
-
     let locationDetails;
 
     const options = {
@@ -231,9 +228,7 @@ const UpdateSalon = async (req, res) => {
     if (!coordinates && (Address1 || City || State || Country || Pincode)) {
       const geocoder = NodeGeocoder(options);
       const mergedAddress = `${Address1} ${Address2}`;
-      const response = await geocoder.geocode(
-        `${mergedAddress} ${City} ${State} ${Country}`
-      );
+      const response = await geocoder.geocode(`${mergedAddress} ${Country}`);
 
       if (!response.length) {
         return res.status(400).json({
