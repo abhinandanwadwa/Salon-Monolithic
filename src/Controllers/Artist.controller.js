@@ -630,6 +630,11 @@ const deleteArtist = async (req, res) => {
 
     const user = await UserModel.findById(artist.userId);
 
+    if(user.role === "subAdmin"){
+      salon.subAdmins.pull(user._id);
+      await salon.save();
+    }
+
     if(user.role === "Artist" || user.role === "subAdmin"){
       await UserModel.findByIdAndDelete(user._id);
       await CustomerModel.findOneAndDelete({userId: user._id});
