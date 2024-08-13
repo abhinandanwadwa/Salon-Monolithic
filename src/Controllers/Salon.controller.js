@@ -215,22 +215,11 @@ const UpdateSalon = async (req, res) => {
     const { Address1, Address2, Landmark, Pincode, City, State, Country } =
       req.body;
 
-    let coordinate;
 
-    if (coordinates) {
-      try {
-        coordinate = JSON.parse(coordinates);
-      } catch (error) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid coordinates format",
-        });
-      }
-    }
 
     let locationDetails;
 
-    if (!coordinate && (Address1 || City || State || Country || Pincode)) {
+    if (!coordinates && (Address1 || City || State || Country || Pincode)) {
       const geocoder = NodeGeocoder(options);
       const mergedAddress = `${Address1} ${Address2}`;
       const response = await geocoder.geocode(
@@ -248,10 +237,10 @@ const UpdateSalon = async (req, res) => {
         type: "Point",
         coordinates: [response[0].latitude, response[0].longitude],
       };
-    } else if (coordinate) {
+    } else if (coordinates) {
       locationDetails = {
         type: "Point",
-        coordinates: [coordinate[0], coordinate[1]],
+        coordinates: [coordinates[0], coordinates[1]],
       };
     }
 
