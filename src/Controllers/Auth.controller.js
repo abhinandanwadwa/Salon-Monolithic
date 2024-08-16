@@ -372,7 +372,6 @@ const sendOTP = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "OTP sent:",
-      otp,
     });
   } catch (error) {
     console.log("Error:", error);
