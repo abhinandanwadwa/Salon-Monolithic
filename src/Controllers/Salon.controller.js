@@ -668,7 +668,7 @@ const searchSalonss = async (req, res) => {
           $geoNear: {
             near: locations,
             distanceField: "distance",
-            maxDistance: 200000, // 200 kilometers
+            maxDistance: 2000000, // 200 kilometers
             spherical: true,
           },
         },
