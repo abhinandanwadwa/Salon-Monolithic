@@ -228,7 +228,7 @@ const UpdateSalon = async (req, res) => {
     if (!coordinates && (Address1 || City || State || Country || Pincode)) {
       const geocoder = NodeGeocoder(options);
       const mergedAddress = `${Address1} ${Address2}`;
-      const response = await geocoder.geocode(`${mergedAddress} ${Country}`);
+      const response = await geocoder.geocode(`${mergedAddress}  ${Country}`);
 
       if (!response.length) {
         return res.status(400).json({
@@ -327,8 +327,16 @@ const UpdateSalon = async (req, res) => {
     salon.Gender = Gender || salon.Gender;
     salon.startTime = startTime || salon.startTime;
     salon.endTime = endTime || salon.endTime;
-    salon.Instagram = Instagram || salon.Instagram || null;
-    salon.Facebook = Facebook || salon.Facebook || null;
+    if(Instagram == ""){
+      salon.Instagram = null;
+    }else{
+      salon.Instagram = Instagram || salon.Instagram;
+    }
+    if(Facebook == ""){
+      salon.Facebook = null;
+    }else{
+      salon.Facebook = Facebook || salon.Facebook;
+    }
 
     salon.Gst = Gstbool;
 
