@@ -655,13 +655,13 @@ const searchSalonss = async (req, res) => {
   try {
     const { salonName, location } = req.body;
 
+  
+
     if ((location && salonName) || location) {
       const locations = {
         type: "Point",
         coordinates: [location.latitude, location.longitude], // Corrected order: [longitude, latitude]
       };
-
-      //location has lat and long
 
       const aggregationPipeline = [
         {

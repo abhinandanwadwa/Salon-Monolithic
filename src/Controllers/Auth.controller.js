@@ -626,7 +626,10 @@ const verifyOwner = async (req, res) => {
       });
     }
 
-    const isMatch = bycrypt.compare(password, user.password);
+
+
+    const isMatch = await bycrypt.compare(password, user.password);
+
 
     if (!isMatch) {
       return res.status(400).json({
