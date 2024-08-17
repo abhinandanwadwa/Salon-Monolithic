@@ -295,12 +295,20 @@ const getOffersofThatDay = async (req,res) => {
 
     const offers = await OfferModel.find({ salon: salonId });
 
+    if(!offers){
+      return res.status(404).json({
+        success: false,
+        message: "No offers found",
+        data: []
+      });
+    }
     let availableOffers = offers.filter(offer => offer.OfferDays.includes(day));
 
     //filter the offers which are in customers offers array
-
-    availableOffers = availableOffers.filter(offer => !customer.offers.includes(offer._id));
-
+    if(availableOffers.length > 0){
+      availableOffers = availableOffers.filter(offer => !customer.offers.includes(offer._id));
+    }
+      
     return res.status(200).json({
       success: true,
       data: availableOffers
