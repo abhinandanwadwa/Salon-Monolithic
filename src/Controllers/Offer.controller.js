@@ -293,6 +293,8 @@ const getOffersofThatDay = async (req,res) => {
 
     const customer = await CustomerModel.findOne({ userId: userId });
 
+    
+
     const offers = await OfferModel.find({ salon: salonId });
 
     if(!offers){
@@ -303,6 +305,11 @@ const getOffersofThatDay = async (req,res) => {
       });
     }
     let availableOffers = offers.filter(offer => offer.OfferDays.includes(day));
+
+    console.log(availableOffers)
+    console.log(customer)
+    console.log(offers)
+    
 
     //filter the offers which are in customers offers array
     if(availableOffers.length > 0){
