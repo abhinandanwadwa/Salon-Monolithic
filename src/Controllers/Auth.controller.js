@@ -322,13 +322,20 @@ const sendOTP = async (req, res) => {
     const secretKey = process.env.SECRET_KEY;
     console.log(secretKey);
 
-    const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${reCaptcha}`;   
+    // cloudflare turnstile curl 'https://challenges.cloudflare.com/turnstile/v0/siteverify' --data 'secret=verysecret&response=<RESPONSE>'
+
+    const url = `https://www.google.com/recaptcha/api/siteverify`
 
     if(reCaptcha){
-      const CaptchaResponse = await axios.post(url);
+      const CaptchaResponse = await axios.post(url,{
+        secret: secretKey,
+        response: reCaptcha
+      });
+        //body
+
       
-      if (!CaptchaResponse.data.success) {
-        console.log(CaptchaResponse.data);
+      if (!CaptchaResponse.success) {
+        console.log(CaptchaResponse);
         return res.status(400).json({
           success: false,
           message: "Failed to verify reCaptcha",

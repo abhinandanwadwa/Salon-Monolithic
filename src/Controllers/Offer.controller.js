@@ -291,10 +291,7 @@ const getOffersofThatDay = async (req,res) => {
     const {day , salonId } = req.body;
     const userId = req.user._id;
 
-    const customer = await CustomerModel.findOne({ userId: userId });
-
-    
-
+    const customer = await CustomerModel.findOne({ userId: userId });    
     const offers = await OfferModel.find({ salon: salonId });
 
     if(!offers){
