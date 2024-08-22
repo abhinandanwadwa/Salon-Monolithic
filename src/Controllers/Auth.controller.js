@@ -326,22 +326,22 @@ const sendOTP = async (req, res) => {
 
     const url = `https://www.google.com/recaptcha/api/siteverify`
 
-    if(reCaptcha){
-      const CaptchaResponse = await axios.post(url,{
-        secret: secretKey,
-        response: reCaptcha
-      });
-        //body
+    // if(reCaptcha){
+    //   const CaptchaResponse = await axios.post(url,{
+    //     secret: secretKey,
+    //     response: reCaptcha
+    //   });
+    //     //body
 
       
-      if (!CaptchaResponse.success) {
-        console.log(CaptchaResponse);
-        return res.status(400).json({
-          success: false,
-          message: "Failed to verify reCaptcha",
-        });
-      }
-    }
+    //   if (!CaptchaResponse.success) {
+    //     console.log(CaptchaResponse);
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: "Failed to verify reCaptcha",
+    //     });
+    //   }
+    // }
 
     const otp = otpGenerator.generate(4, {
       upperCaseAlphabets: false,
