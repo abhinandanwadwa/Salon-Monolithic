@@ -5,6 +5,6 @@ import { verify } from "../middlewares/authenticated.js";
 
 const Reviewrouter = express.Router();
 
-Reviewrouter.post("/createReview",verify, createReview);
+Reviewrouter.post("/createReview", verify, createReview);
 
 export default Reviewrouter;

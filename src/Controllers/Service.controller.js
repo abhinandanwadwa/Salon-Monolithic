@@ -17,30 +17,27 @@ const createServices = async (req, res) => {
     const servicesData = req.body;
     // Validate if servicesData is an array
     if (!Array.isArray(servicesData)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "Services data must be an array" 
+        message: "Services data must be an array",
       });
     }
 
     const user = req.user._id;
 
-
     let salon = await SalonModel.findOne({ userId: user });
 
-    if(req.user.role === 'subAdmin'){
+    if (req.user.role === "subAdmin") {
       const artist = await ArtistModel.findOne({ userId: user });
       salon = await SalonModel.findOne({ Artists: artist._id });
     }
 
     if (!salon) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Salon not found" 
+        message: "Salon not found",
       });
     }
-
-    
 
     const createdServices = [];
     // Loop through each service data and create services
@@ -61,16 +58,17 @@ const createServices = async (req, res) => {
         !ServiceTime ||
         !ServiceGender
       ) {
-        return res.status(400).json({ 
-            success: false,
-            message: "All fields are required for each service" });
+        return res.status(400).json({
+          success: false,
+          message: "All fields are required for each service",
+        });
       }
 
       // Create the service
       const service = new Service({
         ServiceName,
         ServiceType,
-        salon : salon._id,
+        salon: salon._id,
         ServiceCost,
         ServiceTime,
         ServiceGender,
@@ -86,9 +84,8 @@ const createServices = async (req, res) => {
     await salon.save();
 
     const artists = await ArtistModel.find({ salon: salon._id });
-    if(artists){
+    if (artists) {
       for (const artist of artists) {
-
         for (const service of createdServices) {
           const serviceArtist = new ServiceArtist({
             Service: service._id,
@@ -103,50 +100,48 @@ const createServices = async (req, res) => {
       }
     }
 
-    return res
-      .status(201)
-      .json({
-        message: "Services created successfully",
-        services: createdServices,
-      });
+    return res.status(201).json({
+      message: "Services created successfully",
+      services: createdServices,
+    });
   } catch (error) {
-    return res.status(500).json({ 
-        success: false,
-        message: "Error in creating services" + error ,
-     });
+    return res.status(500).json({
+      success: false,
+      message: "Error in creating services" + error,
+    });
   }
 };
 
-
 const createService = async (req, res) => {
   try {
-    const {ServiceName,
-        ServiceType,
-        ServiceCost,
-        ServiceTime,
-        ServiceGender,
+    const {
+      ServiceName,
+      ServiceType,
+      ServiceCost,
+      ServiceTime,
+      ServiceGender,
     } = req.body;
 
     const user = req.user._id;
 
     let salon = await SalonModel.findOne({ userId: user });
 
-    if(req.user.role === 'subAdmin'){
+    if (req.user.role === "subAdmin") {
       const artist = await ArtistModel.findOne({ userId: user });
       salon = await SalonModel.findOne({ Artists: artist._id });
     }
 
     if (!salon) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Salon not found" 
+        message: "Salon not found",
       });
     }
 
     const service = new Service({
       ServiceName,
       ServiceType,
-      salon : salon._id,
+      salon: salon._id,
       ServiceCost,
       ServiceTime,
       ServiceGender,
@@ -160,7 +155,7 @@ const createService = async (req, res) => {
 
     const artists = await ArtistModel.find({ salon: salon._id });
 
-    if(artists){
+    if (artists) {
       for (const artist of artists) {
         const serviceArtist = new ServiceArtist({
           Service: service._id,
@@ -173,20 +168,17 @@ const createService = async (req, res) => {
       }
     }
 
-    return res.status(201).json({ 
-        success: true,
-        data: service 
+    return res.status(201).json({
+      success: true,
+      data: service,
     });
-
   } catch (error) {
-
-    return res.status(500).json({ 
-        success: false,
-        message: "Error in creating service" + error,
-     });
-
+    return res.status(500).json({
+      success: false,
+      message: "Error in creating service" + error,
+    });
   }
-}
+};
 
 /**
  * @desc Update services
@@ -196,22 +188,23 @@ const createService = async (req, res) => {
  * @requestBody { ServiceName, ServiceType, ServiceCost, ServiceTime, ServiceGender }
  */
 
-
 const updateService = async (req, res) => {
   try {
     const { serviceId } = req.params;
-    const {ServiceName,
-        ServiceType,
-        ServiceCost,
-        ServiceTime,
-        ServiceGender
-     } = req.body;
+    const {
+      ServiceName,
+      ServiceType,
+      ServiceCost,
+      ServiceTime,
+      ServiceGender,
+    } = req.body;
 
     const service = await Service.findById(serviceId);
     if (!service) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Service not found" });
+        message: "Service not found",
+      });
     }
 
     const updateService = await Service.findById(serviceId);
@@ -230,17 +223,17 @@ const updateService = async (req, res) => {
 
     await updateService.save();
 
-    return res.status(200).json({ 
-        success: true,
-        data:updateService 
+    return res.status(200).json({
+      success: true,
+      data: updateService,
     });
   } catch (error) {
-    return res.status(500).json({ 
-        success: false,
-        message: "Error in updating service"+error,
-     });
+    return res.status(500).json({
+      success: false,
+      message: "Error in updating service" + error,
+    });
   }
-}
+};
 
 /**
  * @desc Delete service
@@ -249,7 +242,6 @@ const updateService = async (req, res) => {
  * @access Private
  * @requestParams { serviceId: String }
  */
-
 
 const deleteService = async (req, res) => {
   try {
@@ -260,7 +252,7 @@ const deleteService = async (req, res) => {
     if (!service) {
       return res.status(404).json({
         success: false,
-        message: "Service not found"
+        message: "Service not found",
       });
     }
 
@@ -274,14 +266,13 @@ const deleteService = async (req, res) => {
     const appointments = await AppointmentModel.find({ services: serviceId });
 
     for (const appointment of appointments) {
-      if(appointment.Status === 'Booked'){
+      if (appointment.Status === "Booked") {
         return res.status(400).json({
           success: false,
-          message: "Service is in use"
+          message: "Service is in use",
         });
       }
     }
-
 
     // Delete all service-artist relationships
     for (const sa of serviceArtist) {
@@ -291,14 +282,18 @@ const deleteService = async (req, res) => {
     // Remove service reference from artist, if it exists
     if (artists) {
       for (const artist of artists) {
-        artist.services = artist.services.filter(id => id.toString() !== serviceId);
+        artist.services = artist.services.filter(
+          (id) => id.toString() !== serviceId
+        );
         await artist.save();
       }
     }
 
     // Remove service reference from salon, if it exists
     if (salon) {
-      salon.Services = salon.Services.filter(id => id.toString() !== serviceId);
+      salon.Services = salon.Services.filter(
+        (id) => id.toString() !== serviceId
+      );
       await salon.save();
     }
 
@@ -307,7 +302,7 @@ const deleteService = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Service deleted successfully"
+      message: "Service deleted successfully",
     });
   } catch (error) {
     return res.status(500).json({
@@ -328,47 +323,72 @@ const deleteService = async (req, res) => {
 const getServices = async (req, res) => {
   try {
     const { SalonId } = req.params;
-    const Services = await SalonModel.findOne({ _id: SalonId }).populate("Services");
+    const Services = await SalonModel.findOne({ _id: SalonId }).populate(
+      "Services"
+    );
     return res.status(200).json({ Services });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ 
-        success: false,
-        message: "Error in fetching services" 
-     });
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching services",
+    });
   }
 };
-
 
 const deleteCategory = async (req, res) => {
   try {
     const { categoryName } = req.body;
-    const services = await Service.find({ ServiceType: categoryName });
-    if (!services) {
-      return res.status(404).json({ 
+    const userId = req.user._id;
+
+    let salon2;
+
+    if(req.user.role === 'subAdmin'){
+      const artist = await ArtistModel.findOne({ userId: userId });
+      salon2 = await SalonModel.findOne({ Artists: artist._id });
+    }else{
+      salon2 = await SalonModel.findOne({ userId: userId });
+    }
+
+
+    if (!salon) {
+      return res.status(404).json({
         success: false,
-        message: "Category not found" 
+        message: "Salon not found",
+      });
+    }
+    const services = await Service.find({
+      ServiceType: categoryName,
+      salon: salon2._id,
+    });
+    if (!services) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
       });
     }
 
     const servicesIds = services.map((service) => service._id);
 
-    const appointments = await AppointmentModel.find({ services: { $in: servicesIds } });
+    const appointments = await AppointmentModel.find({
+      services: { $in: servicesIds },
+    });
 
     for (const appointment of appointments) {
-      if(appointment.Status === 'Booked'){
+      if (appointment.Status === "Booked") {
         return res.status(400).json({
           success: false,
-          message: "Category-service is in use"
+          message: "Category-service is in use",
         });
       }
     }
-    const serviceArtist = await ServiceArtist.find({ Service: { $in: servicesIds } });
+    const serviceArtist = await ServiceArtist.find({
+      Service: { $in: servicesIds },
+    });
 
     for (const service of serviceArtist) {
       await service.deleteOne();
     }
-
 
     const Artists = await ArtistModel.find({ services: { $in: servicesIds } });
 
@@ -379,7 +399,7 @@ const deleteCategory = async (req, res) => {
 
     const salon = await SalonModel.findOne({ services: { $in: servicesIds } });
 
-    if(salon){
+    if (salon) {
       salon.Services.pull(...servicesIds);
       await salon.save();
     }
@@ -388,22 +408,17 @@ const deleteCategory = async (req, res) => {
       await service.deleteOne();
     }
 
-
-
-    return res.status(200).json({ 
-        success: true,
-        message: "Category deleted successfully" 
+    return res.status(200).json({
+      success: true,
+      message: "Category deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in deleting category",
     });
   }
-  catch (error) {
-    return res.status(500).json({ 
-        success: false,
-        message: "Error in deleting category" 
-    });
-  }
-}
-
- 
+};
 
 const CreateServiceByExcel = async (req, res) => {
   try {
@@ -411,23 +426,20 @@ const CreateServiceByExcel = async (req, res) => {
     const SalonId = req.params.salonId;
     // Validate if servicesData is an array
     if (!Array.isArray(servicesData)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "Services data must be an array" 
+        message: "Services data must be an array",
       });
     }
-
 
     let salon = await SalonModel.findOne({ _id: SalonId });
 
     if (!salon) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Salon not found" 
+        message: "Salon not found",
       });
     }
-
-    
 
     const createdServices = [];
     // Loop through each service data and create services
@@ -448,16 +460,17 @@ const CreateServiceByExcel = async (req, res) => {
         !ServiceTime ||
         !ServiceGender
       ) {
-        return res.status(400).json({ 
-            success: false,
-            message: "All fields are required for each service" });
+        return res.status(400).json({
+          success: false,
+          message: "All fields are required for each service",
+        });
       }
 
       // Create the service
       const service = new Service({
         ServiceName,
         ServiceType,
-        salon : salon._id,
+        salon: salon._id,
         ServiceCost,
         ServiceTime,
         ServiceGender,
@@ -473,9 +486,8 @@ const CreateServiceByExcel = async (req, res) => {
     await salon.save();
 
     const artists = await ArtistModel.find({ salon: salon._id });
-    if(artists){
+    if (artists) {
       for (const artist of artists) {
-
         for (const service of createdServices) {
           const serviceArtist = new ServiceArtist({
             Service: service._id,
@@ -490,22 +502,89 @@ const CreateServiceByExcel = async (req, res) => {
       }
     }
 
-    return res
-      .status(201)
-      .json({
-        success: true,
-        message: "Services created successfully",
-        services: createdServices,
-      });
+    return res.status(201).json({
+      success: true,
+      message: "Services created successfully",
+      services: createdServices,
+    });
   } catch (error) {
-    return res.status(500).json({ 
-        success: false,
-        message: "Error in creating services" + error ,
-     });
+    return res.status(500).json({
+      success: false,
+      message: "Error in creating services" + error,
+    });
   }
 };
 
+const DeleteAllServices = async (req, res) => {
+  try {
+    const { SalonId } = req.params;
+    const services = await Service.find({ salon: SalonId });
+    const salon = await SalonModel.findOne({ _id: SalonId });
+
+    if (!services) {
+      return res.status(404).json({
+        success: false,
+        message: "Services not found",
+      });
+    }
+
+    const servicesIds = services.map((service) => service._id);
+
+    const appointments = await AppointmentModel.find({
+      services: { $in: servicesIds },
+    });
+
+    for (const appointment of appointments) {
+      if (appointment.Status === "Booked") {
+        return res.status(400).json({
+          success: false,
+          message: "Service is in use",
+        });
+      }
+    }
 
 
+    const Artists = await ArtistModel.find({ services: { $in: servicesIds } });
 
-export { createServices, getServices ,updateService,deleteService ,deleteCategory,createService,CreateServiceByExcel};
+    for (const artist of Artists) {
+      artist.services = [];
+      await artist.save();
+    }
+
+
+    const serviceArtist = await ServiceArtist.find({
+      Service: { $in: servicesIds },
+    });
+
+    for (const service of serviceArtist) {
+      await service.deleteOne();
+    }
+
+    salon.Services = [];
+    await salon.save();
+
+    await Service.deleteMany({ salon: SalonId });
+
+
+    return res.status(200).json({
+      success: true,
+      message: "Services deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in deleting services",
+    });
+  }
+};
+
+export {
+  createServices,
+  getServices,
+  DeleteAllServices,
+  updateService,
+  deleteService,
+  deleteCategory,
+  createService,
+  CreateServiceByExcel,
+};
