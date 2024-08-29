@@ -58,7 +58,7 @@ Servicerouter.post(
 );
 
 Servicerouter.delete(
-  "/delete-all-services",
+  "/delete-all-services/:salonId",
   verify,
   roleAuthorization(["Admin"]),
   DeleteAllServices

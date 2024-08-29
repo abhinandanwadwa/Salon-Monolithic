@@ -517,9 +517,9 @@ const CreateServiceByExcel = async (req, res) => {
 
 const DeleteAllServices = async (req, res) => {
   try {
-    const { SalonId } = req.params;
-    const services = await Service.find({ salon: SalonId });
-    const salon = await SalonModel.findOne({ _id: SalonId });
+    const { salonId } = req.params;
+    const services = await Service.find({ salon: salonId });
+    const salon = await SalonModel.findOne({ _id: salonId });
 
     if (!services) {
       return res.status(404).json({
@@ -563,7 +563,7 @@ const DeleteAllServices = async (req, res) => {
     salon.Services = [];
     await salon.save();
 
-    await Service.deleteMany({ salon: SalonId });
+    await Service.deleteMany({ salon: salonId });
 
 
     return res.status(200).json({
