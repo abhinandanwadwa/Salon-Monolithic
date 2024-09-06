@@ -318,13 +318,12 @@ const sendOTP = async (req, res) => {
     console.log(phoneNumber, role, reCaptcha);
     let user = await UserModel.findOne({ phoneNumber });
 
-
     const secretKey = process.env.SECRET_KEY;
     console.log(secretKey);
 
     // cloudflare turnstile curl 'https://challenges.cloudflare.com/turnstile/v0/siteverify' --data 'secret=verysecret&response=<RESPONSE>'
 
-    const url = `https://www.google.com/recaptcha/api/siteverify`
+    const url = `https://www.google.com/recaptcha/api/siteverify`;
 
     // if(reCaptcha){
     //   const CaptchaResponse = await axios.post(url,{
@@ -333,7 +332,6 @@ const sendOTP = async (req, res) => {
     //   });
     //     //body
 
-      
     //   if (!CaptchaResponse.success) {
     //     console.log(CaptchaResponse);
     //     return res.status(400).json({
@@ -633,10 +631,7 @@ const verifyOwner = async (req, res) => {
       });
     }
 
-
-
     const isMatch = await bycrypt.compare(password, user.password);
-
 
     if (!isMatch) {
       return res.status(400).json({
@@ -645,7 +640,6 @@ const verifyOwner = async (req, res) => {
       });
     }
 
-    user.token = FcmTokenDetails;
     await user.save();
 
     generateToken(res, user);
