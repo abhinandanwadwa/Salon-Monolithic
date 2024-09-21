@@ -988,6 +988,7 @@ const addName = async (req, res) => {
     user1.gender = gender || user1.gender;
 
     await customer.save();
+    await user1.save();
 
     return res.status(200).json({
       success: true,
