@@ -13,15 +13,21 @@ import {
   removesubAdmin,
   deleteOwner,
 } from "../Controllers/Auth.controller.js";
+import rateLimit from "express-rate-limit";
 
 import express from "express";
 import { roleAuthorization, verify } from "../middlewares/authenticated.js";
 
 const Authrouter = express.Router();
 
-Authrouter.post("/verifyUser", verifyUser);
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // limit each IP to 100 requests per windowMs
+});
 
-Authrouter.post("/send-otp", sendOTP);
+Authrouter.post("/verifyUser", verifyUser);
+//
+Authrouter.post("/send-otp", limiter, sendOTP);
 
 Authrouter.post("/verify-otp", verifyOTP);
 
