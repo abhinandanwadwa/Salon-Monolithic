@@ -1023,7 +1023,7 @@ const LoginAdmin = async (req, res) => {
         message: "User not found",
       });
     }
-    const isMatch = bycrypt.compare(password, user.password);
+    const isMatch = await bycrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.status(400).json({
