@@ -186,10 +186,15 @@ const validateOffer = async (req, res) => {
     const offerEndDate = new Date(offer.OfferEndDate);
     const currentDate = new Date(TodayDate);
 
-    if(offerStartDate > currentDate || offerEndDate < currentDate){
+    //convert current date to IST
+    currentDate.setHours(currentDate.getHours() + 5);
+    currentDate.setMinutes(currentDate.getMinutes() + 30);
+    
+
+    if(offerEndDate < currentDate){
       return res.status(400).json({
         success: false,
-        message: "Offer expired" + offerStartDate + currentDate + offerEndDate
+        message: "Offer expired";
       });
     }
 
