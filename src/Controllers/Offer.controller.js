@@ -194,7 +194,7 @@ const validateOffer = async (req, res) => {
     if(offerEndDate < currentDate){
       return res.status(400).json({
         success: false,
-        message: "Offer expired";
+        message: "Offer expired",
       });
     }
 
