@@ -308,15 +308,13 @@ const getOffersofThatDay = async (req,res) => {
     }
     let availableOffers = offers.filter(offer => offer.OfferDays.includes(day));
 
-    console.log(availableOffers)
-    console.log(customer)
-    console.log(offers)
-    
-
     //filter the offers which are in customers offers array
     if(availableOffers.length > 0){
       availableOffers = availableOffers.filter(offer => !customer.offers.includes(offer._id));
     }
+
+
+    //check if the offer has started
       
     return res.status(200).json({
       success: true,

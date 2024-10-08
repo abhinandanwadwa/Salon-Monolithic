@@ -73,6 +73,10 @@ const Salon = new mongoose.Schema(
     Brochure: {
       type: [String],
     },
+    showSalon:{
+      type: Boolean,
+      default: true,
+    },
     location: {
       type: {
         type: String,
