@@ -374,6 +374,7 @@ const getSalonByLocation = async (req, res) => {
           distanceField: "distance",
           maxDistance: 100000,
           spherical: true,
+          query: { showSalon: true },
         },
       },
       {
@@ -670,6 +671,7 @@ const searchSalonss = async (req, res) => {
             distanceField: "distance",
             maxDistance: 2000000, // 200 kilometers
             spherical: true,
+            query: { showSalon: true },
           },
         },
         {
@@ -702,7 +704,7 @@ const searchSalonss = async (req, res) => {
     if (salonName) {
       // Perform text search
       const textSearchResults = await SalonModel.find(
-        { $text: { $search: salonName } },
+        { $text: { $search: salonName }, showSalon: true },
         { score: { $meta: "textScore" } }
       )
         .sort({ score: { $meta: "textScore" } })
@@ -712,6 +714,7 @@ const searchSalonss = async (req, res) => {
       // Perform regex search
       const regexSearchResults = await SalonModel.find({
         SalonName: new RegExp(salonName, "i"),
+        showSalon: true,
       })
         .populate("offers")
         .populate("Reviews");
