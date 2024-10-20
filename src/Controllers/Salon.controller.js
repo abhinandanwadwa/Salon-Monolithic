@@ -1333,29 +1333,8 @@ const SalonsStats = async (req, res) => {
       createdAt: { $gte: TodayStart },
     }).countDocuments();
 
-    const completedAppointments = await AppointmentModel.find({
-      Status: "Completed",
-    }).countDocuments();
-
-    const DailyCompletedAppointments = await AppointmentModel.find({
-      Status: "Completed",
-      createdAt: { $gte: TodayStart },
-    }).countDocuments();
-
-
-    const CancelledAppointments = await AppointmentModel.find({
-      Status: "Cancelled",
-    }).countDocuments();
-
-    const DailyCancelledAppointments = await AppointmentModel.find({
-      Status: "Cancelled",
-      createdAt: { $gte: TodayStart },
-    }).countDocuments();
-
-    const weeklyAppointments = await AppointmentModel.find({
-      createdAt: { $gte: weekStart, $lte: weekEnd },
-    }).countDocuments();
-
+    const appointments = await AppointmentModel.find();
+    
     const TotalRatings = await ReviewModel.find().countDocuments();
 
     const DailyRatings = await ReviewModel.find({
@@ -1379,15 +1358,11 @@ const SalonsStats = async (req, res) => {
         stats,
         totalSalons,
         totalUsers,
-        totalAppointments,
-        weeklyAppointments,
         totalCustomers,
         AppUsers,
         dailyCustomers,
-        completedAppointments,
-        DailyCompletedAppointments,
-        CancelledAppointments,
-        DailyCancelledAppointments,
+        appointments,
+        totalAppointments,
         TotalRatings,
         DailyRatings,
         DailyAppUsers,
