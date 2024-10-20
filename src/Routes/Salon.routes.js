@@ -16,6 +16,7 @@ import {
   searchSalonss,
   deleteCoverPhoto,
   deleteBrochure,
+  GetSalonDetails
 } from "../Controllers/Salon.controller.js";
 import { verify, roleAuthorization } from "../middlewares/authenticated.js";
 import upload from "../utils/s3Multer.js";
@@ -124,6 +125,13 @@ Salonrouter.get(
   verify,
   roleAuthorization(["Admin"]),
   SalonsStats
+);
+
+Salonrouter.get(
+  "/get-salon-details/:id",
+  verify,
+  roleAuthorization(["Admin"]),
+  GetSalonDetails
 );
 
 export default Salonrouter;

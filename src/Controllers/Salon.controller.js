@@ -1234,10 +1234,13 @@ const getAllSalons = async (req, res) => {
   try {
     const salons = await SalonModel.find()
       .populate("Services")
-      .populate("Artists")
       .populate("userId", "phoneNumber")
-      .populate("Reviews")
-      .populate("offers");
+      .populate("appointments");
+  
+    //total appointments per salon , cancelled and completed
+
+
+
 
     if (!salons.length) {
       return res.status(404).json({
@@ -1256,6 +1259,38 @@ const getAllSalons = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error in fetching salons",
+    });
+  }
+};
+
+
+const GetSalonDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const salon = await SalonModel.findById(id)
+      .populate("Services")
+      .populate("Artists")
+      .populate("userId", "phoneNumber")
+      .populate("Reviews")
+      .populate("offers");
+
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: salon,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching salon",
     });
   }
 };
@@ -1289,6 +1324,11 @@ const SalonsStats = async (req, res) => {
       today.getDate()
     );
 
+
+
+    
+      
+
     const dailyCustomers = await CustomerModel.find({
       createdAt: { $gte: TodayStart },
     }).countDocuments();
@@ -1301,6 +1341,7 @@ const SalonsStats = async (req, res) => {
       Status: "Completed",
       createdAt: { $gte: TodayStart },
     }).countDocuments();
+
 
     const CancelledAppointments = await AppointmentModel.find({
       Status: "Cancelled",
@@ -1379,4 +1420,5 @@ export {
   deleteBrochure,
   deleteCoverPhoto,
   searchSalonss,
+  GetSalonDetails,
 };
