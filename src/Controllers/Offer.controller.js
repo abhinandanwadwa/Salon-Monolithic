@@ -308,6 +308,8 @@ const getOffersofThatDay = async (req,res) => {
     }
     let availableOffers = offers.filter(offer => offer.OfferDays.includes(day));
 
+    let usedOffers = [];
+
     //filter the offers which are in customers offers array
     if(availableOffers.length > 0){
       availableOffers = availableOffers.filter(offer => !customer.offers.includes(offer._id));
