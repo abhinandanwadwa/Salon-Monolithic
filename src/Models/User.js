@@ -42,7 +42,7 @@ const User = new mongoose.Schema({
     },
 }, { timestamps: true })
 
-UserSchema.pre('save', function (next) {
+User.pre('save', function (next) {
     if (this.isModified('lastLogin')) {
         const now = new Date();
         const IndianTime = new Date(now.getTime() + 330*60000);
