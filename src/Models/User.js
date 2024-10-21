@@ -36,7 +36,20 @@ const User = new mongoose.Schema({
     token: {
         type: String,
     },
+    lastLogin: {
+        type: Date,
+        default: Date.now,
+    },
 }, { timestamps: true })
+
+UserSchema.pre('save', function (next) {
+    if (this.isModified('lastLogin')) {
+        const now = new Date();
+        const IndianTime = new Date(now.getTime() + 330*60000);
+        this.lastLogin = IndianTime;
+    }
+    next();
+});
 
 const UserModel = mongoose.model('User', User);
 
