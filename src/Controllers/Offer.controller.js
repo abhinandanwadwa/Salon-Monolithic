@@ -312,8 +312,8 @@ const getOffersofThatDay = async (req,res) => {
 
     //filter the offers which are in customers offers array
     if(availableOffers.length > 0){
-      availableOffers = availableOffers.filter(offer => !customer.offers.includes(offer._id));
       usedOffers = availableOffers.filter(offer => customer.offers.includes(offer._id));
+      availableOffers = availableOffers.filter(offer => !customer.offers.includes(offer._id));
     }
 
 
