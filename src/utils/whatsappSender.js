@@ -1,7 +1,5 @@
 import dotenv from 'dotenv';
 import https from 'https';
-import { res } from 'express';
-import express from 'express';
 
 dotenv.config();
 
