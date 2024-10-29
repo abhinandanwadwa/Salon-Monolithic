@@ -450,6 +450,8 @@ const CreateServiceByExcel = async (req, res) => {
         ServiceCost,
         ServiceTime,
         ServiceGender,
+        isFeatured,
+        ServiceDefaultDiscount,
       } = serviceData;
 
       // Validate inputs for each service
@@ -474,6 +476,8 @@ const CreateServiceByExcel = async (req, res) => {
         ServiceCost,
         ServiceTime,
         ServiceGender,
+        isFeatured,
+        ServiceDefaultDiscount,
       });
       await service.save();
 
