@@ -10,6 +10,7 @@ import ServiceArtist from "../Models/ServiceArtist.js";
 import OfferModel from "../Models/Offer.js";
 import ReviewModel from "../Models/review.js";
 import { messaging, db } from "./fcmClient.js";
+import { SendWhatsapp } from "../utils/whatsappSender.js";
 
 moment.suppressDeprecationWarnings = true;
 
@@ -467,6 +468,12 @@ const createAppointmentByOwner = async (req, res) => {
       .catch((error) => {
         console.error("Error adding document: ", error);
       });
+
+      try {
+        await SendWhatsapp(appointment.name, customer.phoneNumber, salon.SalonName, date);
+      } catch (whatsappError) {
+        console.error('Error sending WhatsApp notification:', whatsappError);
+      }
 
     return res.status(201).json({
       success: true,
@@ -1275,6 +1282,12 @@ const CreateAppointment = async (req, res) => {
       customer.offers.push(offer);
     }
     await customer.save();
+
+    try {
+      await SendWhatsapp(appointment.name, customer.phoneNumber, salon.SalonName, date);
+    } catch (whatsappError) {
+      console.error('Error sending WhatsApp notification:', whatsappError);
+    }
 
     return res.status(201).json({
       success: true,
