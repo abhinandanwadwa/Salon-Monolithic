@@ -55,14 +55,14 @@ const SendWhatsapp = async (name,number,salonName,Date) => {
                 const body = Buffer.concat(chunks);
                 console.log('Response Status:', resPost.statusCode);
                 console.log('Response Body:', body.toString());
-                res.status(resPost.statusCode).json(JSON.parse(body.toString()));
+                // Log or handle WhatsApp response as needed
             });
 
             resPost.on("error", (error) => {
                 console.error('Request Error:', error);
-                res.status(500).json({ error: error.message });
             });
         });
+
 
         reqPost.write(postData);
         reqPost.end();
