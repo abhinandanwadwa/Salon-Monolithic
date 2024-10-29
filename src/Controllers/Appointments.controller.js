@@ -1284,7 +1284,7 @@ const CreateAppointment = async (req, res) => {
     await customer.save();
 
     try {
-      await SendWhatsapp(appointment.name, customer.phoneNumber, salon.SalonName, date);
+      await SendWhatsapp(appointment.name, customer.phoneNumber, salon.SalonName, formatDate(appointmentDate));
     } catch (whatsappError) {
       console.error('Error sending WhatsApp notification:', whatsappError);
     }
