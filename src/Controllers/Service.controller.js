@@ -325,8 +325,12 @@ const getServices = async (req, res) => {
     const { SalonId } = req.params;
     const Services = await SalonModel.findOne({ _id: SalonId }).populate(
       "Services"
-    );
-    return res.status(200).json({ Services });
+    );   
+    return res.status(200).json({ 
+      success: true,
+      message: "Services fetched successfully",
+      Services : Services.Services,
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
