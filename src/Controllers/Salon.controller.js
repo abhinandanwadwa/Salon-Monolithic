@@ -423,6 +423,8 @@ const getSalonById = async (req, res) => {
       .populate("Services")
       .populate({
         path: "Artists",
+        //remove services field from artists
+        select: "-services",
         populate: {
           path: "reviews",
         },
