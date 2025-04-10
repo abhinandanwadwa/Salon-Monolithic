@@ -657,6 +657,31 @@ const verifyOwner = async (req, res) => {
   }
 };
 
+
+const getUserDetails = async (req, res) => {
+  try {
+    const user = req.user._id;
+    const userDetails = await UserModel.findById(user).select("-password -otp -otpExpiration");
+    if (!userDetails) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      user: userDetails,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in getting user details",
+    });
+  }
+}
+
 /**
  * @desc Verify User
  * @route POST /api/auth/verifyUser
@@ -1303,6 +1328,7 @@ export {
   ChangeRole,
   logout,
   verifyOwner,
+  getUserDetails,
   sendOTP,
   verifyOTP,
   verifyToken,

@@ -12,6 +12,7 @@ import {
   getSalonsubAdmins,
   removesubAdmin,
   deleteOwner,
+  getUserDetails,
 } from "../Controllers/Auth.controller.js";
 import rateLimit from "express-rate-limit";
 
@@ -28,6 +29,8 @@ const limiter = rateLimit({
 Authrouter.post("/verifyUser", verifyUser);
 //
 Authrouter.post("/send-otp", limiter, sendOTP);
+
+Authrouter.post("/getUserDetails", verify, getUserDetails);
 
 Authrouter.post("/verify-otp", verifyOTP);
 
