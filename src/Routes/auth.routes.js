@@ -30,7 +30,7 @@ Authrouter.post("/verifyUser", verifyUser);
 //
 Authrouter.post("/send-otp", limiter, sendOTP);
 
-Authrouter.post("/getUserDetails", verify, getUserDetails);
+Authrouter.get("/getUserDetails", verify, getUserDetails);
 
 Authrouter.post("/verify-otp", verifyOTP);
 
