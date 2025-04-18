@@ -1,5 +1,6 @@
 import { createAppointmentByOwner,getTimeSlots,cancelAppointment,rescheduleAppointment,editAppointment,CompleteAppointment,getCost,CreateAppointment ,getAppointments,getAppointmentsById,getPastSalons} from "../Controllers/Appointments.controller.js";
 import { verify,roleAuthorization } from "../middlewares/authenticated.js";
+import { createAppointment,getTotalCost } from "../Controllers/newAppointmentController2.js";
 
 import express, { application } from "express";
 
@@ -17,5 +18,8 @@ Appointmentrouter.post("/CreateAppointment",verify,CreateAppointment);
 Appointmentrouter.get("/getAppointments",verify,getAppointments);
 Appointmentrouter.get("/getAppointments/:appointmentId",verify,getAppointmentsById);
 Appointmentrouter.get("/getPastSalons",verify,getPastSalons);
+
+Appointmentrouter.post("/getTotalCost",verify,getTotalCost);
+Appointmentrouter.post("/createNewAppointment",verify, createAppointment);
 
 export default Appointmentrouter;

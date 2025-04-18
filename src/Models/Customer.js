@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 
+
 const customerSchema = new mongoose.Schema({
     userId : {
         type: mongoose.Schema.Types.ObjectId,
@@ -20,6 +21,7 @@ const customerSchema = new mongoose.Schema({
     gender: {
         type: String,
     },
+    
     appointments: [
         {
             type: mongoose.Schema.Types.ObjectId,

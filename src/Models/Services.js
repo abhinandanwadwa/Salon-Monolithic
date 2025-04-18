@@ -1,5 +1,16 @@
 import mongoose from "mongoose";
 
+const CustomizationOptionSchema = new mongoose.Schema({
+  OptionName: {
+    type: String,
+    required: true,
+  },
+  OptionPrice: {
+    type: Number,
+    required: true,
+  },
+});
+
 const Services = new mongoose.Schema({
   ServiceName: {
     type: String,
@@ -25,12 +36,17 @@ const Services = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  CustomizationOptions : {
+    type: [CustomizationOptionSchema],
+    default: [],
+  },
   isFeatured: {
     type: Boolean,
     default: false,
   },
   ServiceDefaultDiscount: {
     type: Number,
+    default: 0,
   },
 });
 

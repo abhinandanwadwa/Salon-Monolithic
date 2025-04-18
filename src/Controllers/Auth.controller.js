@@ -12,6 +12,7 @@ import ReviewModel from "../Models/review.js";
 import SalonModel from "../Models/Salon.js";
 import OfferModel from "../Models/Offer.js";
 import { db, messaging } from "./fcmClient.js";
+import WalletModel from "../Models/wallet.js";
 import axios from "axios";
 import Statistic from "../Models/Statistics.js";
 import dotenv from "dotenv";
@@ -315,31 +316,7 @@ const verifyToken = async (req, res) => {
 const sendOTP = async (req, res) => {
   try {
     const { phoneNumber, role, reCaptcha } = req.body;
-    console.log(phoneNumber, role, reCaptcha);
     let user = await UserModel.findOne({ phoneNumber });
-
-    const secretKey = process.env.SECRET_KEY;
-    console.log(secretKey);
-
-    // cloudflare turnstile curl 'https://challenges.cloudflare.com/turnstile/v0/siteverify' --data 'secret=verysecret&response=<RESPONSE>'
-
-    const url = `https://www.google.com/recaptcha/api/siteverify`;
-
-    // if(reCaptcha){
-    //   const CaptchaResponse = await axios.post(url,{
-    //     secret: secretKey,
-    //     response: reCaptcha
-    //   });
-    //     //body
-
-    //   if (!CaptchaResponse.success) {
-    //     console.log(CaptchaResponse);
-    //     return res.status(400).json({
-    //       success: false,
-    //       message: "Failed to verify reCaptcha",
-    //     });
-    //   }
-    // }
 
     const otp = otpGenerator.generate(4, {
       upperCaseAlphabets: false,
@@ -359,12 +336,9 @@ const sendOTP = async (req, res) => {
       await user.save();
     }
 
-    //   // `https://www.fast2sms.com/dev/bulkV2?authorization=&route=dlt&sender_id=MACVEN&message=171048&variables_values=${otp}%7C&flash=0&numbers=${phoneNumber}`
-
     const API = process.env.FAST2SMS_AUTH_KEY;
 
     const Url = `https://www.fast2sms.com/dev/bulkV2?authorization=${API}&route=dlt&sender_id=MACVEN&message=171246&variables_values=${otp}%7C&flash=0&numbers=${phoneNumber}`;
-
     const response = await axios.get(Url);
 
     if (response.data.return) {
@@ -452,7 +426,26 @@ const verifyOTP = async (req, res) => {
           name: artist.ArtistName,
         });
         await newCustomer.save();
+        
+        // Check if user has a wallet and create one if not
+        const wallet = await WalletModel.findOne({ userId: user._id });
+        if (!wallet) {
+          // Create new wallet with 0 balance
+          const newWallet = new WalletModel({
+            userId: user._id,
+            balance: 0,
+          });
+          await newWallet.save();
+          
+          // Save wallet reference to user document
+          user.Wallet = newWallet._id;
+          console.log("New wallet created for artist as customer");
+        }
       }
+
+      // Set FCM token for artist as customer
+      user.token = FcmTokenDetails;
+      await user.save();
 
       generateToken(res, user);
       return res.status(201).json({
@@ -483,6 +476,7 @@ const verifyOTP = async (req, res) => {
       });
     } else if (user.role === "Owner" && role === "Customer") {
       const customer = await CustomerModel.findOne({ userId: user._id });
+      //create a user wallet
       if (!customer) {
         const newCustomer = new CustomerModel({
           userId: user._id,
@@ -490,7 +484,26 @@ const verifyOTP = async (req, res) => {
           name: user.name,
         });
         await newCustomer.save();
+        
+        // Check if user has a wallet and create one if not
+        const wallet = await WalletModel.findOne({ userId: user._id });
+        if (!wallet) {
+          // Create new wallet with 0 balance
+          const newWallet = new WalletModel({
+            userId: user._id,
+            balance: 0,
+          });
+          await newWallet.save();
+          
+          // Save wallet reference to user document
+          user.Wallet = newWallet._id;
+          console.log("New wallet created for owner as customer");
+        }
       }
+
+      // Set FCM token for owner as customer
+      user.token = FcmTokenDetails;
+      await user.save();
 
       generateToken(res, user);
       return res.status(201).json({
@@ -515,10 +528,27 @@ const verifyOTP = async (req, res) => {
           name: user.name,
         });
         await newCustomer.save();
+        
+        // Check if user has a wallet and create one if not
+        const wallet = await WalletModel.findOne({ userId: user._id });
+        if (!wallet) {
+          // Create new wallet with 0 balance
+          const newWallet = new WalletModel({
+            userId: user._id,
+            balance: 0,
+          });
+          await newWallet.save();
+          
+          // Save wallet reference to user document
+          user.Wallet = newWallet._id;
+          console.log("New wallet created for customer");
+        }
       }
 
+      // Set FCM token for customer
       user.token = FcmTokenDetails;
       await user.save();
+      
       generateToken(res, user);
       return res.status(201).json({
         success: true,
@@ -570,7 +600,26 @@ const verifyOTP = async (req, res) => {
           name: artist.ArtistName,
         });
         await newCustomer.save();
+        
+        // Check if user has a wallet and create one if not
+        const wallet = await WalletModel.findOne({ userId: user._id });
+        if (!wallet) {
+          // Create new wallet with 0 balance
+          const newWallet = new WalletModel({
+            userId: user._id,
+            balance: 0,
+          });
+          await newWallet.save();
+          
+          // Save wallet reference to user document
+          user.Wallet = newWallet._id;
+          console.log("New wallet created for subAdmin as customer");
+        }
       }
+
+      // Set FCM token for subAdmin as customer
+      user.token = FcmTokenDetails;
+      await user.save();
 
       generateToken(res, user);
       return res.status(201).json({
@@ -588,6 +637,8 @@ const verifyOTP = async (req, res) => {
 
     user.otp = null;
     user.otpExpiration = null;
+    // Set FCM token for any other case
+    user.token = FcmTokenDetails;
     await user.save();
 
     generateToken(res, user);
@@ -607,6 +658,223 @@ const verifyOTP = async (req, res) => {
     });
   }
 };
+
+
+// const verifyOTP = async (req, res) => {
+//   try {
+//     const { phoneNumber, enteredOTP, role, fcmToken } = req.body;
+//     console.log(req.body);
+//     console.log(fcmToken);
+//     const FcmTokenDetails = fcmToken ? fcmToken : null;
+
+//     console.log(phoneNumber, enteredOTP);
+//     const user = await UserModel.findOne({ phoneNumber });
+
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "user not found",
+//       });
+//     }
+
+//     if (enteredOTP !== user.otp) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid OTP",
+//       });
+//     }
+
+//     const currentDateTime = new Date();
+
+//     console.log(currentDateTime);
+//     if (currentDateTime > user.otpExpiration) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "OTP expired",
+//       });
+//     }
+
+//     if (user.role === "Artist" && role === "Owner") {
+//       user.token = FcmTokenDetails;
+//       await user.save();
+//       generateToken(res, user);
+//       return res.status(201).json({
+//         success: true,
+//         user: {
+//           _id: user._id,
+//           phoneNumber: user.phoneNumber,
+//           role: user.role,
+//           isSalon: user.isSalon,
+//         },
+//       });
+//     } else if (user.role === "Artist" && role === "Customer") {
+//       const customer = await CustomerModel.findOne({ userId: user._id });
+//       const artist = await ArtistModel.findOne({ userId: user._id });
+//       if (!customer) {
+//         const newCustomer = new CustomerModel({
+//           userId: user._id,
+//           phoneNumber,
+//           name: artist.ArtistName,
+//         });
+//         await newCustomer.save();
+//       }
+
+//       generateToken(res, user);
+//       return res.status(201).json({
+//         success: true,
+//         user: {
+//           _id: user._id,
+//           phoneNumber: user.phoneNumber,
+//           role: user.role,
+//           name: artist.ArtistName,
+//           gender: user.gender,
+//           isSalon: user.isSalon,
+//         },
+//       });
+//     }
+
+//     if (user.role === "Owner" && role === "Owner") {
+//       user.token = FcmTokenDetails;
+//       await user.save();
+//       generateToken(res, user);
+//       return res.status(201).json({
+//         success: true,
+//         user: {
+//           _id: user._id,
+//           phoneNumber: user.phoneNumber,
+//           role: user.role,
+//           isSalon: user.isSalon,
+//         },
+//       });
+//     } else if (user.role === "Owner" && role === "Customer") {
+//       const customer = await CustomerModel.findOne({ userId: user._id });
+//       //create a user wallet
+//       if (!customer) {
+//         const newCustomer = new CustomerModel({
+//           userId: user._id,
+//           phoneNumber,
+//           name: user.name,
+//         });
+//         await newCustomer.save();
+//       }
+
+//       generateToken(res, user);
+//       return res.status(201).json({
+//         success: true,
+//         user: {
+//           _id: user._id,
+//           phoneNumber: user.phoneNumber,
+//           role: user.role,
+//           name: user.name,
+//           gender: user.gender,
+//           isSalon: user.isSalon,
+//         },
+//       });
+//     }
+
+//     if (user.role === "Customer" && role === "Customer") {
+//       const customer = await CustomerModel.findOne({ userId: user._id });
+//       if (!customer) {
+//         const newCustomer = new CustomerModel({
+//           userId: user._id,
+//           phoneNumber,
+//           name: user.name,
+//         });
+//         await newCustomer.save();
+//       }
+
+
+
+//       user.token = FcmTokenDetails;
+//       await user.save();
+//       generateToken(res, user);
+//       return res.status(201).json({
+//         success: true,
+//         user: {
+//           _id: user._id,
+//           phoneNumber: user.phoneNumber,
+//           role: user.role,
+//           name: user.name,
+//           gender: user.gender,
+//           isSalon: user.isSalon,
+//         },
+//       });
+//     } else if (user.role === "Customer" && role === "Owner") {
+//       user.role = role;
+//       user.token = FcmTokenDetails;
+//       await user.save();
+//       generateToken(res, user);
+//       return res.status(201).json({
+//         success: true,
+//         user: {
+//           _id: user._id,
+//           phoneNumber: user.phoneNumber,
+//           role: user.role,
+//           isSalon: user.isSalon,
+//         },
+//       });
+//     }
+
+//     if (user.role === "subAdmin" && role === "Owner") {
+//       user.token = FcmTokenDetails;
+//       await user.save();
+//       generateToken(res, user);
+//       return res.status(201).json({
+//         success: true,
+//         user: {
+//           _id: user._id,
+//           phoneNumber: user.phoneNumber,
+//           role: user.role,
+//           isSalon: user.isSalon,
+//         },
+//       });
+//     } else if (user.role === "subAdmin" && role === "Customer") {
+//       const customer = await CustomerModel.findOne({ userId: user._id });
+//       const artist = await ArtistModel.findOne({ userId: user._id });
+//       if (!customer) {
+//         const newCustomer = new CustomerModel({
+//           userId: user._id,
+//           phoneNumber,
+//           name: artist.ArtistName,
+//         });
+//         await newCustomer.save();
+//       }
+
+//       generateToken(res, user);
+//       return res.status(201).json({
+//         success: true,
+//         user: {
+//           _id: user._id,
+//           phoneNumber: user.phoneNumber,
+//           role: user.role,
+//           name: artist.ArtistName,
+//           gender: user.gender,
+//           isSalon: user.isSalon,
+//         },
+//       });
+//     }
+
+//     user.otp = null;
+//     user.otpExpiration = null;
+//     await user.save();
+
+//     generateToken(res, user);
+//     return res.status(201).json({
+//       _id: user._id,
+//       phoneNumber: user.phoneNumber,
+//       role: user.role,
+//       gender: user.gender,
+//       isSalon: user.isSalon,
+//       name: user.name,
+//     });
+//   } catch (error) {
+//     console.log("Error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to verify OTP",
+//     });
+//   }
+// };
 
 /**
  * @desc Verify Owner

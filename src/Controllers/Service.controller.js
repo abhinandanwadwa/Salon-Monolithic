@@ -4,6 +4,116 @@ import ArtistModel from "../Models/Artist.js";
 import ServiceArtist from "../Models/ServiceArtist.js";
 import AppointmentModel from "../Models/Appointments.js";
 
+
+/**
+ * @desc Create services with customizations
+ * @method POST
+ * @route /api/service/create-services-with-customizations
+ * @access Private
+  * @requestBody { servicesData: [ { ServiceName, ServiceType, ServiceCost, ServiceTime, ServiceGender, CustomizationOptions } ] }
+  * CustomizationOptions: [ { OptionName, OptionPrice } ]
+  **/
+ 
+const createServicesWithCustomizations = async (req, res) => {
+  try {
+    const servicesData = req.body;
+    // Validate if servicesData is an array
+    if (!Array.isArray(servicesData)) {
+      return res.status(400).json({
+        success: false,
+        message: "Services data must be an array",
+      });
+    }
+
+    const user = req.user._id;
+
+    let salon = await SalonModel.findOne({ userId: user });
+
+    if (req.user.role === "subAdmin") {
+      const artist = await ArtistModel.findOne({ userId: user });
+      salon = await SalonModel.findOne({ Artists: artist._id });
+    }
+
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    const createdServices = [];
+    // Loop through each service data and create services
+    for (const serviceData of servicesData) {
+      const {
+        ServiceName,
+        ServiceType,
+        ServiceCost,
+        ServiceTime,
+        ServiceGender,
+        CustomizationOptions = [], // Default to empty array if not provided
+      } = serviceData;
+
+      // Validate inputs for each service
+      if (
+        !ServiceName ||
+        !ServiceType ||
+        !ServiceCost ||
+        !ServiceTime ||
+        !ServiceGender
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "All fields are required for each service",
+        });
+      }
+
+      // Validate customization options if provided
+      if (CustomizationOptions.length > 0) {
+        for (const option of CustomizationOptions) {
+          if (!option.OptionName || option.OptionPrice === undefined) {
+            return res.status(400).json({
+              success: false,
+              message: "Each customization option must have a name and price",
+            });
+          }
+        }
+      }
+
+      // Create the service
+      const service = new Service({
+        ServiceName,
+        ServiceType,
+        salon: salon._id,
+        ServiceCost,
+        ServiceTime,
+        ServiceGender,
+        CustomizationOptions,
+      });
+      
+      await service.save();
+
+      // Add created service to the array
+      createdServices.push(service);
+    }
+
+    // Update the salon with the new services
+    salon.Services.push(...createdServices.map(service => service._id));
+    await salon.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Services created successfully",
+      services: createdServices,
+    });
+  } catch (error) {
+    console.error("Error creating services:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in creating services: " + error.message,
+    });
+  }
+};
+
 /**
  * @desc Create services
  * @method POST
@@ -153,23 +263,23 @@ const createService = async (req, res) => {
 
     await salon.save();
 
-    const artists = await ArtistModel.find({ salon: salon._id });
+    // const artists = await ArtistModel.find({ salon: salon._id });
 
-    if (artists) {
-      for (const artist of artists) {
-        const serviceArtist = new ServiceArtist({
-          Service: service._id,
-          Artist: artist._id,
-          Price: service.ServiceCost,
-        });
-        await serviceArtist.save();
-        artist.services.push(service);
-        await artist.save();
-      }
-    }
+    // if (artists) {
+    //   for (const artist of artists) {
+    //     const serviceArtist = new ServiceArtist({
+    //       Service: service._id,
+    //       Artist: artist._id,
+    //       Price: service.ServiceCost,
+    //     });
+    //     await serviceArtist.save();
+    //     artist.services.push(service);
+    //     await artist.save();
+    //   }
+    // }
 
     return res.status(201).json({
-      success: true,
+      success: true,  
       data: service,
     });
   } catch (error) {
@@ -590,6 +700,7 @@ export {
   createServices,
   getServices,
   DeleteAllServices,
+  createServicesWithCustomizations,
   updateService,
   deleteService,
   deleteCategory,

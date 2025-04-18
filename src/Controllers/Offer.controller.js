@@ -31,6 +31,7 @@ const createOffer = async (req, res) => {
       OfferStartDate,
       OfferEndDate,
       OfferDiscountinPercentage,
+      offerCashbackinPercentage,
       OfferDescription,
       OfferDays,
     } = req.body;
@@ -56,6 +57,7 @@ const createOffer = async (req, res) => {
       OfferStartDate,
       OfferEndDate,
       OfferDiscountinPercentage,
+      offerCashbackinPercentage,
       OfferDescription,
       OfferDays,
       salon: salon._id,
@@ -234,7 +236,10 @@ const validateOffer = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: offer.OfferDiscountinPercentage ,
+      data: {
+        OfferDiscountinPercentage: offer.OfferDiscountinPercentage,
+        offerCashbackinPercentage: offer.offerCashbackinPercentage,
+      },
       offerId: offer._id,
       message: "Offer applied successfully",
     });

@@ -5,7 +5,9 @@ import {
   deleteService,
   deleteCategory,
   createService,
+  
   CreateServiceByExcel,
+  createServicesWithCustomizations,
   DeleteAllServices,
 } from "../Controllers/Service.controller.js";
 import { verify, roleAuthorization } from "../middlewares/authenticated.js";
@@ -21,6 +23,13 @@ Servicerouter.post(
 );
 
 Servicerouter.get("/get-services/:SalonId", getServices);
+
+Servicerouter.post(
+  "/create-services-with-customizations",
+  verify,
+  roleAuthorization(["Owner", "subAdmin"]),
+  createServicesWithCustomizations
+);
 
 Servicerouter.put(
   "/update-service/:serviceId",

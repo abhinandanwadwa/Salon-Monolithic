@@ -53,6 +53,9 @@ const Salon = new mongoose.Schema(
       type: [String],
       required: true,
     },
+    aboutSalon: {
+      type: String,
+    },
     startTime: {
       type: String,
       required: true,
@@ -68,6 +71,9 @@ const Salon = new mongoose.Schema(
       type: String,
     },
     StorePhotos: {
+      type: [String],
+    },
+    salonPhotos: {
       type: [String],
     },
     Brochure: {
@@ -109,6 +115,7 @@ const Salon = new mongoose.Schema(
     Instagram: {
       type: String,
     },
+
     Facebook: {
       type: String,
     },

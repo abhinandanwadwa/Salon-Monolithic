@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-
+import WalletModel from "./wallet.js";
 const User = new mongoose.Schema({
     phoneNumber: {
         type: String,
@@ -20,6 +20,10 @@ const User = new mongoose.Schema({
     gender: {
         type: String,
         default: 'Male',
+    },
+    Wallet:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Wallet',
     },
     password: {
         type: String,
