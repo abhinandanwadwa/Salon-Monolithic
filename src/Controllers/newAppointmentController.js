@@ -184,8 +184,7 @@ const createAppointment = async (req, res) => {
     // Create appointment
     const Appointment = await AppointmentModel.create({
       salon: salonId,
-      user: user,
-      customer: customer._id,
+      user: customer._id,
       services: services,
       appointmentDate: appointmentDate,
       appointmentStartTime: appointmentStartTime,
@@ -194,6 +193,8 @@ const createAppointment = async (req, res) => {
       appointmentDiscount: discount,
       Status: "Booked",
     });
+
+    console.log("Appointment created:", Appointment);
 
     const appointmentId = Appointment._id;
 

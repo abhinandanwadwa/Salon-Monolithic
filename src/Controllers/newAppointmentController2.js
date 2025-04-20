@@ -141,8 +141,7 @@ const createAppointment = async (req, res) => {
     // --- Create Appointment ---
     const newAppointment = await AppointmentModel.create({
       salon: salonId,
-      user: userId,
-      customer: customer._id,
+      user: customer._id,
       // Store the detailed services breakdown including options
       services: calculationResult.calculatedServices.map(s => ({
           service: s.serviceId, // Store reference to the service

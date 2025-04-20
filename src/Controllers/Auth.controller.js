@@ -339,14 +339,15 @@ const sendOTP = async (req, res) => {
     const API = process.env.FAST2SMS_AUTH_KEY;
 
     const Url = `https://www.fast2sms.com/dev/bulkV2?authorization=${API}&route=dlt&sender_id=MACVEN&message=171246&variables_values=${otp}%7C&flash=0&numbers=${phoneNumber}`;
-    const response = await axios.get(Url);
+    // const response = await axios.get(Url);
+    console.log(otp)
 
-    if (response.data.return) {
-      await Statistic.findOneAndUpdate(
-        { _id: "Statistic" },
-        { $inc: { OtpCount: 1 } }
-      );
-    }
+    // if (response.data.return) {
+    //   await Statistic.findOneAndUpdate(
+    //     { _id: "Statistic" },
+    //     { $inc: { OtpCount: 1 } }
+    //   );
+    // }
 
     return res.status(200).json({
       success: true,
