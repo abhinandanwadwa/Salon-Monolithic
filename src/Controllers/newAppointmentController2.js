@@ -220,4 +220,100 @@ const createAppointment = async (req, res) => {
   }
 };
 
-export { createAppointment, getTotalCost }; // Export refactored functions
+const acceptOrRejectAppointment = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    const { status } = req.body; // Accept or Reject
+
+    if (!appointmentId || !status) {
+      return res.status(400).json({ success: false, message: "Missing required fields." });
+    }
+
+    const appointment = await AppointmentModel.findById(appointmentId);
+    if (!appointment) {
+      return res.status(404).json({ success: false, message: "Appointment not found" });
+    }
+    if (appointment.Status !== "Booked") {
+      return res.status(400).json({ success: false, message: "Appointment already processed" });
+    }
+
+    if (status !== "Accept" && status !== "Reject") {
+      return res.status(400).json({ success: false, message: "Invalid status" });
+    }
+
+    //status are Confirmed or Rejected
+    appointment.Status = status === "Accept" ? "Confirmed" : "Rejected";
+    await appointment.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Appointment ${status}ed successfully`,
+      data: appointment,
+    });
+
+  }
+  catch (error) {
+    console.error("Error in accepting/rejecting appointment:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in processing appointment",
+      error: error.message, // Provide error message in response (optional)
+    });
+  }
+}
+
+
+const cancelAppointment = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    if (!appointmentId) {
+      return res.status(400).json({ success: false, message: "Appointment ID is required." });
+    }
+
+    const appointment = await AppointmentModel.findById(appointmentId);
+
+    if (!appointment) {
+      return res.status(404).json({ success: false, message: "Appointment not found." });
+    }
+    
+    if (appointment.Status == "Booked" && appointment.Status == "Confirmed") {
+      appointment.Status = "Cancelled";
+      await appointment.save();
+    }
+
+    // If appointment is already cancelled or completed, return appropriate message
+
+    if (appointment.Status == "Cancelled") {
+      return res.status(400).json({ success: false, message: "Appointment already cancelled." });
+    }
+    if (appointment.Status == "Completed") {
+      return res.status(400).json({ success: false, message: "Appointment already completed." });
+    }
+
+    // Update the appointment status to cancelled
+    appointment.Status = "Cancelled";
+    await appointment.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Appointment cancelled successfully.",
+      data: appointment,
+    });
+
+  }
+  catch (error) {
+    console.error("Error in cancelling appointment:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in cancelling appointment",
+      error: error.message, // Provide error message in response (optional)
+    });
+  }
+
+}
+
+
+
+
+
+export { createAppointment, getTotalCost , acceptOrRejectAppointment,cancelAppointment }; // Export refactored functions
