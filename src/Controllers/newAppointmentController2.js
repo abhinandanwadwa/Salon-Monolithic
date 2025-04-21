@@ -312,8 +312,52 @@ const cancelAppointment = async (req, res) => {
 
 }
 
+//reschedule appointment and set the status to booked
+
+const rescheduleAppointment = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    const { newDate, newStartTime } = req.body; // New date and time for rescheduling
+
+    if (!appointmentId || !newDate || !newStartTime) {
+      return res.status(400).json({ success: false, message: "Missing required fields." });
+    }
+
+    const appointment = await AppointmentModel.findById(appointmentId);
+
+    if (!appointment) {
+      return res.status(404).json({ success: false, message: "Appointment not found." });
+    }
+
+    // Update the appointment date and time
+    appointment.appointmentDate = newDate;
+    appointment.appointmentStartTime = newStartTime;
+
+    appointment.Status = "Booked"; // Reset status to booked
+
+    await appointment.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Appointment rescheduled successfully.",
+      data: appointment,
+    });
+
+  }
+  catch (error) {
+    console.error("Error in rescheduling appointment:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in rescheduling appointment",
+      error: error.message, // Provide error message in response (optional)
+    });
+  }
+}
 
 
 
 
-export { createAppointment, getTotalCost , acceptOrRejectAppointment,cancelAppointment }; // Export refactored functions
+
+
+
+export { createAppointment, getTotalCost , acceptOrRejectAppointment,cancelAppointment,rescheduleAppointment }; // Export refactored functions
