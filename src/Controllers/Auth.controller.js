@@ -930,7 +930,7 @@ const verifyOwner = async (req, res) => {
 const getUserDetails = async (req, res) => {
   try {
     const user = req.user._id;
-    const userDetails = await UserModel.findById(user).select("-password -otp -otpExpiration");
+    const userDetails = await UserModel.findById(user).select("-password -otp -otpExpiration").populate("Wallet")
     if (!userDetails) {
       return res.status(404).json({
         success: false,
