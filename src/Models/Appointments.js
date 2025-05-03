@@ -14,26 +14,25 @@ const appointmentSchema = new mongoose.Schema(
     services: [
       {
         service: {
-          // Reference to the base Service document
           type: mongoose.Schema.Types.ObjectId,
           ref: "Service",
           required: true,
         },
+        serviceName: {
+          type: String,
+          required: true,
+        },
+        serviceCustomizationName: {
+          type: String,
+        },
         selectedOption: {
-          // Store the ObjectId of the chosen CustomizationOption
-          // This ID comes from the Service.CustomizationOptions array
           type: mongoose.Schema.Types.ObjectId,
-          required: false, // An option might not always be selected
+          required: false, 
         },
         calculatedCost: {
-          // The actual cost charged for this specific service+option combo
-          // at the time of booking this appointment.
           type: Number,
           required: true,
         },
-        // You might consider adding _id: false here if you don't need unique IDs
-        // for each booked service item within the appointment document itself.
-        // _id: false
       },
     ],
     salon: {

@@ -144,6 +144,8 @@ const createAppointment = async (req, res) => {
       user: customer._id,
       // Store the detailed services breakdown including options
       services: calculationResult.calculatedServices.map(s => ({
+          serviceName : s.serviceName, // Store the name of the service
+          serviceCustomizationName : s.chosenOption ? s.chosenOption.optionName : null, // Store the name of the chosen option if any
           service: s.serviceId, // Store reference to the service
           selectedOption: s.chosenOption ? s.chosenOption.optionId : null, // Store reference to chosen option if any
           calculatedCost: s.finalCost // Store the cost used for this service item
