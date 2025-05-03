@@ -80,6 +80,7 @@ const createAppointment = async (req, res) => {
       appointmentDate,
       appointmentStartTime,
       offerCode, // Optional offer code
+      notes
     } = req.body;
     const userId = req.user._id;
 
@@ -159,6 +160,7 @@ const createAppointment = async (req, res) => {
         finalPayableAmount: finalPayableAmount, // This is the key payment amount
         offerCashbackEarned: offerCashback
     },
+      notes: notes || "", 
 
       appointmentDate: appointmentDate,
       appointmentStartTime: appointmentStartTime,
