@@ -160,7 +160,7 @@ const createAppointment = async (req, res) => {
         finalPayableAmount: finalPayableAmount, // This is the key payment amount
         offerCashbackEarned: offerCashback
     },
-      notes: notes || "", 
+      notes: notes || null,
 
       appointmentDate: appointmentDate,
       appointmentStartTime: appointmentStartTime,
