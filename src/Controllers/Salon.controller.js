@@ -108,30 +108,32 @@ const createSalon = async (req, res) => {
 
     let locationDetails;
 
-    if (!coordinate) {
-      const geocoder = NodeGeocoder(options);
-      const mergedAddress = `${Address1} ${Address2}`;
-      const response = await geocoder.geocode(
-        `${mergedAddress} ${City} ${State} ${Country}`
-      );
+    // if (!coordinate) {
+    //   const geocoder = NodeGeocoder(options);
+    //   const mergedAddress = `${Address1} ${Address2}`;
+    //   const response = await geocoder.geocode(
+    //     `${mergedAddress} ${City} ${State} ${Country}`
+    //   );
 
-      if (!response.length) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid address",
-        });
-      }
+    //   if (!response.length) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: "Invalid address",
+    //     });
+    //   }
 
-      locationDetails = {
-        type: "Point",
-        coordinates: [response[0].latitude, response[0].longitude],
-      };
-    } else {
-      locationDetails = {
-        type: "Point",
-        coordinates: [coordinate[0], coordinate[1]],
-      };
-    }
+    //   locationDetails = {
+    //     type: "Point",
+    //     coordinates: [response[0].latitude, response[0].longitude],
+    //   };
+    // } else {
+    //   locationDetails = {
+    //     type: "Point",
+    //     coordinates: [coordinate[0], coordinate[1]],
+    //   };
+    // }
+
+
     const CoverImage = req.file ? req.file.location : null;
 
     // convert salonPhoneNumber to number from string
@@ -150,7 +152,10 @@ const createSalon = async (req, res) => {
       Gst: Gstbool,
       salonPhoneNumber: salonNumber,
       CoverImage,
-      location: locationDetails,
+      location: {
+        type: "Point",
+        coordinates: ["28.6139", "77.2090"],
+      },
     });
 
     const password = otpGenerator.generate(8, {
