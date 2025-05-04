@@ -227,7 +227,7 @@ const createAppointment = async (req, res) => {
 const acceptOrRejectAppointment = async (req, res) => {
   try {
     const { appointmentId } = req.params;
-    const { status } = req.body; // Accept or Reject
+    const { status } = req.body; // Accept or Reject or Complete
 
     if (!appointmentId || !status) {
       return res.status(400).json({ success: false, message: "Missing required fields." });
@@ -241,12 +241,12 @@ const acceptOrRejectAppointment = async (req, res) => {
       return res.status(400).json({ success: false, message: "Appointment already processed" });
     }
 
-    if (status !== "Accept" && status !== "Reject") {
+    if (status !== "Accept" && status !== "Reject" && status !== "Complete") {
       return res.status(400).json({ success: false, message: "Invalid status" });
     }
 
-    //status are Confirmed or Rejected
-    appointment.Status = status === "Accept" ? "Confirmed" : "Rejected";
+    //status are Confirmed or Rejected or Completed
+    appointment.Status = status === "Accept" ? "Confirmed" : status === "Reject" ? "Rejected" : "Completed";
     await appointment.save();
 
     return res.status(200).json({
