@@ -158,28 +158,28 @@ const createSalon = async (req, res) => {
       },
     });
 
-    const password = otpGenerator.generate(8, {
-      upperCaseAlphabets: true,
-      specialChars: false,
-      lowerCaseAlphabets: true,
-    });
+    // const password = otpGenerator.generate(8, {
+    //   upperCaseAlphabets: true,
+    //   specialChars: false,
+    //   lowerCaseAlphabets: true,
+    // });
 
-    // Write the salon name , phoneNumber , OWner name and password to google sheet
-    await sheets.spreadsheets.values.append({
-      spreadsheetId,
-      range: "Sheet1!A1:D1",
-      valueInputOption: "USER_ENTERED",
-      insertDataOption: "INSERT_ROWS",
+    // // Write the salon name , phoneNumber , OWner name and password to google sheet
+    // await sheets.spreadsheets.values.append({
+    //   spreadsheetId,
+    //   range: "Sheet1!A1:D1",
+    //   valueInputOption: "USER_ENTERED",
+    //   insertDataOption: "INSERT_ROWS",
 
-      resource: {
-        values: [[SalonName, user.phoneNumber, OwnerName, password]],
-      },
-    });
+    //   resource: {
+    //     values: [[SalonName, user.phoneNumber, OwnerName, password]],
+    //   },
+    // });
 
-    const salt = await bycrypt.genSalt(10);
-    user.password = await bycrypt.hash(password, salt);
+    // const salt = await bycrypt.genSalt(10);
+    // user.password = await bycrypt.hash(password, salt);
+    // await salon.save();
     await salon.save();
-
     user.isSalon = true;
     await user.save();
 
