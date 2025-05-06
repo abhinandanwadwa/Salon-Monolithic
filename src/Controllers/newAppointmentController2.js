@@ -237,9 +237,7 @@ const acceptOrRejectAppointment = async (req, res) => {
     if (!appointment) {
       return res.status(404).json({ success: false, message: "Appointment not found" });
     }
-    if (appointment.Status !== "Booked") {
-      return res.status(400).json({ success: false, message: "Appointment already processed" });
-    }
+
 
     if (status !== "Accept" && status !== "Reject" && status !== "Complete") {
       return res.status(400).json({ success: false, message: "Invalid status" });
