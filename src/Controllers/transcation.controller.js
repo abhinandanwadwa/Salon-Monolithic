@@ -13,7 +13,7 @@ const PAYTM_MERCHANT_ID = "DIY12386817555501617";
 const PAYTM_MERCHANT_KEY = "bKMfNxPPf_QdZppa";
 const PAYTM_WEBSITE = process.env.PAYTM_WEBSITE || "WEBSTAGING"; // Or "DEFAULT" for production
 const APP_BASE_URL = process.env.APP_BASE_URL || "http://localhost:3000"; // Your frontend URL for redirects if any
-const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:5000"; // Your backend URL
+const BACKEND_API_URL = process.env.BACKEND_API_URL || "https://api.salondekho.in"; // Your backend URL
 const PAYTM_CALLBACK_URL = `${BACKEND_API_URL}/api/payment/paytm-callback`;
 
 // --- Real Paytm SDK functions ---
