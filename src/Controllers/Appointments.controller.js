@@ -427,7 +427,7 @@ const createAppointmentByOwner = async (req, res) => {
     }
 
     const TIME = moment(appointmentStartTime).format("hh:mm A");
-    const date = formatDate(appointmentDate)
+    const date = formatDate(appointmentDate);
 
     sendtokens = [...new Set(sendtokens)];
     Ids = [...new Set(Ids)];
@@ -469,11 +469,16 @@ const createAppointmentByOwner = async (req, res) => {
         console.error("Error adding document: ", error);
       });
 
-      try {
-        await SendWhatsapp(appointment.name, customer.phoneNumber, salon.SalonName, date);
-      } catch (whatsappError) {
-        console.error('Error sending WhatsApp notification:', whatsappError);
-      }
+    try {
+      await SendWhatsapp(
+        appointment.name,
+        customer.phoneNumber,
+        salon.SalonName,
+        date
+      );
+    } catch (whatsappError) {
+      console.error("Error sending WhatsApp notification:", whatsappError);
+    }
 
     return res.status(201).json({
       success: true,
@@ -588,7 +593,7 @@ const editAppointment = async (req, res) => {
     }
 
     const TIME = moment(appointmentStartTime).format("hh:mm A");
-    const date = formatDate(appointmentDate)
+    const date = formatDate(appointmentDate);
 
     sendtokens = [...new Set(sendtokens)];
     Ids = [...new Set(Ids)];
@@ -714,9 +719,9 @@ const rescheduleAppointment = async (req, res) => {
     }
 
     const TIME = moment(appointmentStartTime).format("hh:mm A");
-    const date = formatDate(appointmentDate)
+    const date = formatDate(appointmentDate);
     oldTime = moment(oldTime).format("hh:mm A");
-    oldDate = formatDate(oldDate)
+    oldDate = formatDate(oldDate);
 
     sendtokens = [...new Set(sendtokens)];
     Ids = [...new Set(Ids)];
@@ -814,7 +819,7 @@ const CompleteAppointment = async (req, res) => {
     }
 
     const TIME = moment(appointment.appointmentStartTime).format("hh:mm A");
-    const date = formatDate(appointment.appointmentDate)
+    const date = formatDate(appointment.appointmentDate);
 
     sendtokens = [...new Set(sendtokens)];
 
@@ -952,7 +957,7 @@ const cancelAppointment = async (req, res) => {
       }
 
       const TIME = moment(appointment.appointmentStartTime).format("hh:mm A");
-      const date = formatDate(appointment.appointmentDate)
+      const date = formatDate(appointment.appointmentDate);
 
       sendtokens = [...new Set(sendtokens)];
       Ids = [...new Set(Ids)];
@@ -1055,7 +1060,7 @@ const cancelAppointment = async (req, res) => {
     }
 
     const TIME = moment(appointment.appointmentStartTime).format("hh:mm A");
-    const date = formatDate(appointment.appointmentDate)
+    const date = formatDate(appointment.appointmentDate);
 
     sendtokens = [...new Set(sendtokens)];
     Ids = [...new Set(Ids)];
@@ -1212,7 +1217,7 @@ const CreateAppointment = async (req, res) => {
     for (let i = 0; i < salon.subAdmins.length; i++) {
       Ids.push(salon.subAdmins[i]);
       const subAdmin = await UserModel.findById(salon.subAdmins[i]);
-      if(subAdmin){
+      if (subAdmin) {
         if (subAdmin.token) {
           sendtokens.push(subAdmin.token);
         }
@@ -1238,7 +1243,9 @@ const CreateAppointment = async (req, res) => {
       const message = {
         notification: {
           title: "New Appointment",
-          body: `New appointment for ${nameArtist} on ${formatDate(appointmentDate)} at ${TIME}`,
+          body: `New appointment for ${nameArtist} on ${formatDate(
+            appointmentDate
+          )} at ${TIME}`,
         },
         tokens: sendtokens,
       };
@@ -1256,7 +1263,9 @@ const CreateAppointment = async (req, res) => {
     db.collection("Notification")
       .add({
         title: "New Appointment",
-        body: `New appointment for ${nameArtist} on ${formatDate(appointmentDate)} at ${TIME}`,
+        body: `New appointment for ${nameArtist} on ${formatDate(
+          appointmentDate
+        )} at ${TIME}`,
         Ids: Ids.map((id) => id.toString()),
         read: false,
         related: nameArtist,
@@ -1284,9 +1293,14 @@ const CreateAppointment = async (req, res) => {
     await customer.save();
 
     try {
-      await SendWhatsapp(appointment.name, customer.phoneNumber, salon.SalonName, formatDate(appointmentDate));
+      await SendWhatsapp(
+        appointment.name,
+        customer.phoneNumber,
+        salon.SalonName,
+        formatDate(appointmentDate)
+      );
     } catch (whatsappError) {
-      console.error('Error sending WhatsApp notification:', whatsappError);
+      console.error("Error sending WhatsApp notification:", whatsappError);
     }
 
     return res.status(201).json({
@@ -1315,19 +1329,19 @@ const getAppointments = async (req, res) => {
         message: "Customer not found",
       });
     }
-    console.log(customer)
+    console.log(customer);
     const appointments = await AppointmentModel.find({ user: customer })
       .populate("services")
       .populate({
         path: "salon",
-        select: "SalonName",
+        select: "SalonName startTime endTime",
         populate: {
           path: "Reviews",
         },
       })
       .populate("Review");
 
-    console.log(appointments)
+    console.log(appointments);
 
     if (!appointments.length) {
       return res.status(200).json({
@@ -1379,7 +1393,7 @@ const getAppointmentsById = async (req, res) => {
         populate: {
           path: "Reviews",
         },
-        select: "SalonName",
+        select: "SalonName startTime endTime",
       });
 
     if (!appointment) {
