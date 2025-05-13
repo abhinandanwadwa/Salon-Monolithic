@@ -143,6 +143,7 @@ const createAppointment = async (req, res) => {
     const newAppointment = await AppointmentModel.create({
       salon: salonId,
       user: customer._id,
+      name: customer.name,
       // Store the detailed services breakdown including options
       services: calculationResult.calculatedServices.map(s => ({
           serviceName : s.serviceName, // Store the name of the service

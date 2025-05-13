@@ -111,6 +111,9 @@ const appointmentSchema = new mongoose.Schema(
       type: String,
       default: "Male",
     },
+    name: {
+      type: String,
+    },
     Review: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Review",
