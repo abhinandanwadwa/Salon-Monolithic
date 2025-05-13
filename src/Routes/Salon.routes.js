@@ -11,6 +11,7 @@ import {
   getSalonsAppointments,
   getAllSalons,
   SalonsStats,
+  createSalonByAdmin,
   AddStorePhotos,
   deleteStorePhotos,
   searchSalonss,
@@ -31,6 +32,16 @@ Salonrouter.post(
   upload.single("CoverImage"),
   createSalon
 );
+
+Salonrouter.post(
+  "/create-salon-admin",
+  verify,
+  roleAuthorization(["Admin"]),
+  upload.single("CoverImage"),
+  createSalon
+);
+
+
 
 Salonrouter.post(
   "/upload-brochure",

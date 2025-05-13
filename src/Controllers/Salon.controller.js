@@ -196,6 +196,197 @@ const createSalon = async (req, res) => {
   }
 };
 
+
+const createSalonByAdmin = async (req, res) => {
+  try {
+    const { Address1, Address2, Landmark, Pincode, City, State, Country } =
+      req.body;
+    const {
+      SalonName,
+      OwnerName,
+      BusinessType,
+      Gender,
+      workingDays,
+      salonPhoneNumber,
+      startTime,
+      endTime,
+      phoneNumber,
+      coordinates,
+      gst,
+    } = req.body;
+
+    let workingdaylist;
+    try {
+      workingdaylist = JSON.parse(workingDays);
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid workingDays format",
+      });
+    }
+
+
+    const userExists = await UserModel.findOne({ phoneNumber: phoneNumber });
+
+    if (userExists) {
+      return res.status(400).json({
+        success: false,
+        message: "User already exists",
+      });
+    }else{
+      const newUser = new UserModel({
+        phoneNumber: phoneNumber,
+        role: "Owner",
+        name: OwnerName
+      });
+      await newUser.save();
+      user = newUser;
+    }
+
+    let Gstbool;
+
+    if (gst === "True") {
+      Gstbool = true;
+    }
+
+    if (gst === "False") {
+      Gstbool = false;
+    }
+
+    let coordinate;
+    try {
+      coordinate = JSON.parse(coordinates);
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid coordinates format",
+      });
+    }
+
+    const user = await UserModel.findOne({ phoneNumber: phoneNumber });
+    user.name = OwnerName;
+
+    const isSalon = await SalonModel.findOne({ userId });
+    if (isSalon) {
+      return res.status(400).json({
+        success: false,
+        message: "User is already a salon owner",
+      });
+    }
+
+    if (!Address1 || !City || !State || !Country || !Pincode) {
+      return res.status(400).json({
+        success: false,
+        message: "Address details are incomplete",
+      });
+    }
+
+    const address = {
+      Address1,
+      Address2,
+      Landmark,
+      Pincode,
+      City,
+      State,
+      Country,
+    };
+
+    const options = {
+      provider: "google",
+      apiKey: process.env.GOOGLE_MAPS_API_KEY,
+    };
+
+    let locationDetails;
+
+    // if (!coordinate) {
+    //   const geocoder = NodeGeocoder(options);
+    //   const mergedAddress = `${Address1} ${Address2}`;
+    //   const response = await geocoder.geocode(
+    //     `${mergedAddress} ${City} ${State} ${Country}`
+    //   );
+
+    //   if (!response.length) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: "Invalid address",
+    //     });
+    //   }
+
+    //   locationDetails = {
+    //     type: "Point",
+    //     coordinates: [response[0].latitude, response[0].longitude],
+    //   };
+    // } else {
+    //   locationDetails = {
+    //     type: "Point",
+    //     coordinates: [coordinate[0], coordinate[1]],
+    //   };
+    // }
+
+
+    const CoverImage = req.file ? req.file.location : null;
+
+    // convert salonPhoneNumber to number from string
+    const salonNumber = parseInt(salonPhoneNumber);
+
+    const salon = new SalonModel({
+      userId,
+      SalonName,
+      OwnerName,
+      address,
+      BusinessType,
+      Gender,
+      workingDays: workingdaylist,
+      startTime,
+      endTime,
+      Gst: Gstbool,
+      salonPhoneNumber: salonNumber,
+      CoverImage,
+      location: {
+        type: "Point",
+        coordinates: ["28.6139", "77.2090"],
+      },
+    });
+
+    // const password = otpGenerator.generate(8, {
+    //   upperCaseAlphabets: true,
+    //   specialChars: false,
+    //   lowerCaseAlphabets: true,
+    // });
+
+    // // Write the salon name , phoneNumber , OWner name and password to google sheet
+    // await sheets.spreadsheets.values.append({
+    //   spreadsheetId,
+    //   range: "Sheet1!A1:D1",
+    //   valueInputOption: "USER_ENTERED",
+    //   insertDataOption: "INSERT_ROWS",
+
+    //   resource: {
+    //     values: [[SalonName, user.phoneNumber, OwnerName, password]],
+    //   },
+    // });
+
+    // const salt = await bycrypt.genSalt(10);
+    // user.password = await bycrypt.hash(password, salt);
+    // await salon.save();
+    await salon.save();
+    user.isSalon = true;
+    await user.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Salon created successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in creating salon" + error,
+    });
+  }
+};
+
+
 /**
  * @desc Update salon
  * @method PUT
@@ -1393,6 +1584,7 @@ export {
   getOwnerSalon,
   uploadBrochure,
   deleteSalon,
+  createSalonByAdmin,
   UpdateSalon,
   getSalonsAppointments,
   AddPhotos,
