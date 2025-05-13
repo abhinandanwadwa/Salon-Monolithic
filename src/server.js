@@ -14,7 +14,6 @@ import Salonrouter from "./Routes/Salon.routes.js";
 import Adminrouter from "./Routes/admin.routes.js";
 import Offerrouter from "./Routes/Offer.routes.js";
 import Reviewrouter from "./Routes/Review.routes.js";
-import PaymentRouter from "./Routes/payment.routes.js";
 import { messaging } from "./Controllers/fcmClient.js";
 
 const app = express();
@@ -50,7 +49,6 @@ app.use("/api/salon", Salonrouter);
 app.use("/api/offer", Offerrouter);
 app.use("/api/review", Reviewrouter);
 app.use("/api/admin", Adminrouter);
-app.use("/api/payment", PaymentRouter);
 
 app.post("/api/notification", async (req, res) => {
   try {
