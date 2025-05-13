@@ -1279,7 +1279,8 @@ const GetSalonDetails = async (req, res) => {
       .populate("Artists")
       .populate("userId", "phoneNumber")
       .populate("Reviews")
-      .populate("offers");
+      .populate("offers")
+      .populate("appointments");
 
     if (!salon) {
       return res.status(404).json({
