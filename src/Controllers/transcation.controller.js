@@ -11,6 +11,7 @@ const instance = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+
 // --- Create Razorpay Order ---
 // Expects appointmentId in req.body to fetch details
 export const createRazorpayOrder = async (req, res) => {
