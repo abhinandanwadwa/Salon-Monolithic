@@ -12,6 +12,7 @@ const instance = new Razorpay({
 });
 
 
+
 // --- Create Razorpay Order ---
 // Expects appointmentId in req.body to fetch details
 export const createRazorpayOrder = async (req, res) => {
