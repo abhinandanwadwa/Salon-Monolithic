@@ -22,8 +22,6 @@ import { razorpayWebhook } from "./Controllers/transcation.controller.js";
 
 const app = express();
 
-app.use(bodyParser.json({ limit: "50mb" }));
-app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 app.post(
   "/api/payments/razorpay-webhook",
@@ -31,6 +29,10 @@ app.post(
   razorpayWebhook
 );
 
+
+
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 
 app.use(express.json());  
