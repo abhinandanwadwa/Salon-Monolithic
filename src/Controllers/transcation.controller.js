@@ -91,6 +91,17 @@ export const razorpayWebhook = async (req, res) => {
   const receivedSignature = req.headers["x-razorpay-signature"];
   const requestBodyString = req.body.toString(); // req.body is raw buffer due to express.raw()
 
+  console.log(
+    "Received Razorpay Webhook Signature:",
+    receivedSignature
+  );
+
+  console.log("requestBodyString", requestBodyString);
+  console.log("req.body", req.body);
+
+  // Validate the webhook signature
+  // Note: Ensure you have the raw body middleware set up in your express app
+
   
 
   const isSignatureValid = Razorpay.validateWebhookSignature(
