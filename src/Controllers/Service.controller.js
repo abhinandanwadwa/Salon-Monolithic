@@ -519,7 +519,7 @@ const deleteCategory = async (req, res) => {
 };
 
 
-export const CreateServiceByExcel = async (req, res) => {
+const CreateServiceByExcel = async (req, res) => {
   try {
     const servicesData = req.body; // Expecting an array of service objects
     const SalonId = req.params.salonId;

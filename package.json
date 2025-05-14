@@ -38,6 +38,7 @@
     "otp-generator": "^4.0.1",
     "otpless-node-js-auth-sdk": "^1.0.8",
     "paytmchecksum": "^1.5.1",
+    "razorpay": "^2.9.6",
     "slot-generator": "^1.0.7"
   }
 }
