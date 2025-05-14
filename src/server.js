@@ -1,11 +1,12 @@
+import dotenv from "dotenv";
+dotenv.config(); // Load environment variables at the very top
+
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import ConnectDB from "./DB/index.js";
 import { errorHandler, notfound } from "./middlewares/error.js";
-import { razorpayWebhook } from "./Controllers/transcation.controller.js";
 
 import Authrouter from "./Routes/auth.routes.js";
 import Artistrouter from "./Routes/Artist.routes.js";
@@ -17,9 +18,12 @@ import Offerrouter from "./Routes/Offer.routes.js";
 import Reviewrouter from "./Routes/Review.routes.js";
 import { messaging } from "./Controllers/fcmClient.js";
 import paymentRouter from "./Routes/payment.routes.js";
+import { razorpayWebhook } from "./Controllers/transcation.controller.js";
 
 const app = express();
-dotenv.config();
+
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 app.post(
   "/api/payments/razorpay-webhook",
@@ -42,8 +46,6 @@ app.use(
     credentials: true,
   })
 );
-app.use(bodyParser.json({ limit: "50mb" }));
-app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 // app.use(function(req, res, next) {
 //     res.header('Access-Control-Allow-Origin', ['https://www.salondekho.in','http://localhost:5173']);
