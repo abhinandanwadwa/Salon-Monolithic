@@ -91,11 +91,22 @@ export const razorpayWebhook = async (req, res) => {
   const receivedSignature = req.headers["x-razorpay-signature"];
   const requestBodyString = req.body.toString(); // req.body is raw buffer due to express.raw()
 
+  
+  console.log(requestBodyString)
+  console.log(receivedSignature)
+
   const isSignatureValid = Razorpay.validateWebhookSignature(
     requestBodyString,
     receivedSignature,
     secret
   );
+
+  const issignature = crypto
+    .createHmac("sha256", secret)
+    .update(requestBodyString)
+    .digest("hex") === receivedSignature;
+  console.log("Signature Valid:", issignature);
+  console.log("Received Signature:", receivedSignature);
 
   if (isSignatureValid) {
     const event = JSON.parse(requestBodyString);
