@@ -19,11 +19,7 @@ paymentRouter.post(
 
 // Ensure express.raw() is used for this route for signature verification
 // This is a common pattern: define the raw body parser just for this route.
-paymentRouter.post(
-  "/razorpay-webhook",
-  express.raw({ type: "application/json" }),
-  transactionController.razorpayWebhook
-);
+
 
 paymentRouter.get(
   "/payment-status/:paymentId",

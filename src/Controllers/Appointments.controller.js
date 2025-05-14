@@ -1329,7 +1329,6 @@ const getAppointments = async (req, res) => {
         message: "Customer not found",
       });
     }
-    console.log(customer);
     const appointments = await AppointmentModel.find({ user: customer })
       .populate("services")
       .populate({
@@ -1341,7 +1340,6 @@ const getAppointments = async (req, res) => {
       })
       .populate("Review");
 
-    console.log(appointments);
 
     if (!appointments.length) {
       return res.status(200).json({

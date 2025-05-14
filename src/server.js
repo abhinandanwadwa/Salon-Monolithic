@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import ConnectDB from "./DB/index.js";
 import { errorHandler, notfound } from "./middlewares/error.js";
+import { razorpayWebhook } from "./Controllers/transcation.controller.js";
 
 import Authrouter from "./Routes/auth.routes.js";
 import Artistrouter from "./Routes/Artist.routes.js";
@@ -19,7 +20,16 @@ import paymentRouter from "./Routes/payment.routes.js";
 
 const app = express();
 dotenv.config();
-app.use(express.json());
+
+app.post(
+  "/api/payments/razorpay-webhook",
+  express.raw({ type: "application/json" }),
+  razorpayWebhook
+);
+
+
+
+app.use(express.json());  
 app.use(cookieParser());
 
 app.use(
