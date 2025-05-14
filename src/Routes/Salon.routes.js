@@ -38,7 +38,7 @@ Salonrouter.post(
   verify,
   roleAuthorization(["Admin"]),
   upload.single("CoverImage"),
-  createSalon
+  createSalonByAdmin
 );
 
 

@@ -15,6 +15,7 @@ import Adminrouter from "./Routes/admin.routes.js";
 import Offerrouter from "./Routes/Offer.routes.js";
 import Reviewrouter from "./Routes/Review.routes.js";
 import { messaging } from "./Controllers/fcmClient.js";
+import paymentRouter from "./Routes/payment.routes.js";
 
 const app = express();
 dotenv.config();
@@ -49,6 +50,7 @@ app.use("/api/salon", Salonrouter);
 app.use("/api/offer", Offerrouter);
 app.use("/api/review", Reviewrouter);
 app.use("/api/admin", Adminrouter);
+app.use("/api/payments", paymentRouter);
 
 app.post("/api/notification", async (req, res) => {
   try {

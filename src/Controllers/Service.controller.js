@@ -367,11 +367,9 @@ const deleteService = async (req, res) => {
     }
 
     // Find artist and salon that reference this service
-    const artists = await ArtistModel.find({ services: serviceId });
     const salon = await SalonModel.findOne({ Services: serviceId });
 
     // Find all service-artist relationships
-    const serviceArtist = await ServiceArtist.find({ Service: serviceId });
 
     const appointments = await AppointmentModel.find({ services: serviceId });
 
@@ -385,20 +383,6 @@ const deleteService = async (req, res) => {
     }
 
     // Delete all service-artist relationships
-    for (const sa of serviceArtist) {
-      await sa.deleteOne();
-    }
-
-    // Remove service reference from artist, if it exists
-    if (artists) {
-      for (const artist of artists) {
-        artist.services = artist.services.filter(
-          (id) => id.toString() !== serviceId
-        );
-        await artist.save();
-      }
-    }
-
     // Remove service reference from salon, if it exists
     if (salon) {
       salon.Services = salon.Services.filter(
@@ -534,19 +518,29 @@ const deleteCategory = async (req, res) => {
   }
 };
 
-const CreateServiceByExcel = async (req, res) => {
+
+export const CreateServiceByExcel = async (req, res) => {
   try {
-    const servicesData = req.body;
+    const servicesData = req.body; // Expecting an array of service objects
     const SalonId = req.params.salonId;
-    // Validate if servicesData is an array
-    if (!Array.isArray(servicesData)) {
+
+    // Validate SalonId
+    if (!mongoose.Types.ObjectId.isValid(SalonId)) {
       return res.status(400).json({
         success: false,
-        message: "Services data must be an array",
+        message: "Invalid Salon ID format",
       });
     }
 
-    let salon = await SalonModel.findOne({ _id: SalonId });
+    // Validate if servicesData is an array and not empty
+    if (!Array.isArray(servicesData) || servicesData.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Services data must be a non-empty array",
+      });
+    }
+
+    const salon = await SalonModel.findById(SalonId);
 
     if (!salon) {
       return res.status(404).json({
@@ -556,79 +550,130 @@ const CreateServiceByExcel = async (req, res) => {
     }
 
     const createdServices = [];
+    const errors = []; // To collect any validation errors per service
+
     // Loop through each service data and create services
-    for (const serviceData of servicesData) {
+    for (let i = 0; i < servicesData.length; i++) {
+      const serviceData = servicesData[i];
       const {
         ServiceName,
         ServiceType,
         ServiceCost,
         ServiceTime,
         ServiceGender,
-        isFeatured,
-        ServiceDefaultDiscount,
+        isFeatured, // Optional, defaults to false in schema
+        ServiceDefaultDiscount, // Optional, defaults to 0 in schema
+        CustomizationOptions, // This is new, expect an array of { OptionName, OptionPrice }
       } = serviceData;
 
-      // Validate inputs for each service
       if (
         !ServiceName ||
         !ServiceType ||
-        !ServiceCost ||
-        !ServiceTime ||
+        ServiceCost === undefined || // Check for undefined as 0 is a valid cost
+        ServiceTime === undefined || // Check for undefined as 0 might be a (though unlikely) valid time
         !ServiceGender
       ) {
-        return res.status(400).json({
-          success: false,
-          message: "All fields are required for each service",
+        errors.push({
+          index: i,
+          message: `Service at index ${i}: Missing required fields (ServiceName, ServiceType, ServiceCost, ServiceTime, ServiceGender).`,
+          data: serviceData,
         });
+        continue; // Skip this service and try the next one
       }
 
-      // Create the service
-      const service = new Service({
+      // Validate CustomizationOptions if provided
+      let processedCustomizationOptions = [];
+      if (CustomizationOptions && Array.isArray(CustomizationOptions)) {
+        for (const opt of CustomizationOptions) {
+          if (
+            !opt.OptionName ||
+            typeof opt.OptionName !== "string" ||
+            opt.OptionPrice === undefined ||
+            typeof opt.OptionPrice !== "number"
+          ) {
+            errors.push({
+              index: i,
+              message: `Service at index ${i} ('${ServiceName}'): Invalid CustomizationOption. Each option must have OptionName (string) and OptionPrice (number).`,
+              optionData: opt,
+            });
+            // If one option is bad, you might want to invalidate all options for this service
+            // or skip this service entirely. For now, let's make options invalid for this service.
+            processedCustomizationOptions = undefined; // Mark as invalid
+            break; // Stop processing options for this service
+          }
+          processedCustomizationOptions.push({
+            OptionName: opt.OptionName,
+            OptionPrice: opt.OptionPrice,
+          });
+        }
+        if(processedCustomizationOptions === undefined) continue; // Skip service due to bad option
+      }
+
+
+      // Create the service payload
+      const servicePayload = {
         ServiceName,
         ServiceType,
-        salon: salon._id,
+        salon: salon._id, // Link to the salon
         ServiceCost,
         ServiceTime,
         ServiceGender,
-        isFeatured,
-        ServiceDefaultDiscount,
-      });
-      await service.save();
+        isFeatured: isFeatured !== undefined ? isFeatured : false, // Use provided or schema default
+        ServiceDefaultDiscount: ServiceDefaultDiscount !== undefined ? ServiceDefaultDiscount : 0, // Use provided or schema default
+        CustomizationOptions: processedCustomizationOptions || [], // Use processed or default to empty array
+        // ServiceCount will default to 0 as per schema
+      };
 
-      // Add created service to the array
-      createdServices.push(service);
+      try {
+        const service = new Service(servicePayload);
+        await service.save();
+        createdServices.push(service);
+      } catch (saveError) {
+        // Catch Mongoose validation errors (e.g., enum validation for ServiceGender)
+        errors.push({
+          index: i,
+          message: `Service at index ${i} ('${ServiceName}'): Error saving - ${saveError.message}`,
+          data: serviceData,
+        });
+      }
     }
 
-    // Update the salon with the new services
-    salon.Services.push(...createdServices);
-    await salon.save();
+    // If there were errors processing some services but others were successful
+    if (errors.length > 0 && createdServices.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Failed to create any services due to validation errors.",
+        errors: errors,
+      });
+    }
+    
+    // Update the salon with the new services (assuming salon.Services stores ObjectIds)
+    if (createdServices.length > 0) {
+      salon.Services.push(...createdServices.map((s) => s._id));
+      await salon.save();
+    }
 
-    const artists = await ArtistModel.find({ salon: salon._id });
-    if (artists) {
-      for (const artist of artists) {
-        for (const service of createdServices) {
-          const serviceArtist = new ServiceArtist({
-            Service: service._id,
-            Artist: artist._id,
-            Price: service.ServiceCost,
-          });
-          await serviceArtist.save();
-        }
-
-        artist.services.push(...createdServices);
-        await artist.save();
-      }
+    if (errors.length > 0) {
+      // Partial success
+      return res.status(207).json({ // 207 Multi-Status
+        success: true, // Operation partially succeeded
+        message: "Some services created successfully, but some had errors.",
+        services: createdServices,
+        errors: errors,
+      });
     }
 
     return res.status(201).json({
       success: true,
-      message: "Services created successfully",
+      message: "All services created successfully",
       services: createdServices,
     });
+
   } catch (error) {
+    console.error("Error in CreateServiceByExcel:", error); // Log the full error for debugging
     return res.status(500).json({
       success: false,
-      message: "Error in creating services" + error,
+      message: "Server error while creating services. " + error.message, // Send a cleaner error message
     });
   }
 };
@@ -661,22 +706,6 @@ const DeleteAllServices = async (req, res) => {
       }
     }
 
-
-    const Artists = await ArtistModel.find({ services: { $in: servicesIds } });
-
-    for (const artist of Artists) {
-      artist.services = [];
-      await artist.save();
-    }
-
-
-    const serviceArtist = await ServiceArtist.find({
-      Service: { $in: servicesIds },
-    });
-
-    for (const service of serviceArtist) {
-      await service.deleteOne();
-    }
 
     salon.Services = [];
     await salon.save();
