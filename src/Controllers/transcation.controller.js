@@ -278,7 +278,7 @@ export const razorpayWebhook = async (req, res) => {
 
         // TODO: Send booking confirmation (email/SMS) to the user and salon.
       } else if (paymentStatus === "FAILURE") {
-        appointment.paymentStatus = "Pending"; // Or "Failed" if you have such a status
+        appointment.paymentStatus = "Failed"; // Or "Failed" if you have such a status
         // appointment.Status = 'Payment Failed'; // Or revert to a previous status
         await appointment.save();
         console.log(
