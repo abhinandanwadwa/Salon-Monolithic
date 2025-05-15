@@ -5,10 +5,11 @@ import {
   deleteService,
   deleteCategory,
   createService,
-  
+  deleteServiceByAdmin,
   CreateServiceByExcel,
   createServicesWithCustomizations,
   DeleteAllServices,
+  createCustomizedServiceByAdmin,
 } from "../Controllers/Service.controller.js";
 import { verify, roleAuthorization } from "../middlewares/authenticated.js";
 import express from "express";
@@ -20,6 +21,20 @@ Servicerouter.post(
   verify,
   roleAuthorization(["Owner", "subAdmin"]),
   createServices
+);
+
+Servicerouter.post(
+  "/delete-service-by-admin/:serviceId",
+  verify,
+  roleAuthorization(["Admin"]),
+  deleteServiceByAdmin
+);
+
+Servicerouter.post(
+  "/create-customized-service-by-admin/:salonId",
+  verify,
+  roleAuthorization(["Admin"]),
+  createCustomizedServiceByAdmin
 );
 
 Servicerouter.get("/get-services/:SalonId", getServices);

@@ -382,8 +382,6 @@ const deleteService = async (req, res) => {
       }
     }
 
-    // Delete all service-artist relationships
-    // Remove service reference from salon, if it exists
     if (salon) {
       salon.Services = salon.Services.filter(
         (id) => id.toString() !== serviceId
@@ -725,6 +723,164 @@ const DeleteAllServices = async (req, res) => {
   }
 };
 
+
+
+const deleteServiceByAdmin = async (req, res) => {
+  try {
+    const { serviceId } = req.params;
+    const { salonId } = req.body;
+
+    // Find the service by ID
+    const service = await Service.findById(serviceId);
+    if (!service) {
+      return res.status(404).json({
+        success: false,
+        message: "Service not found",
+      });
+    }
+
+    // Find artist and salon that reference this service
+    const salon = await SalonModel.findById(salonId);
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    // Find all service-artist relationships
+
+    const appointments = await AppointmentModel.find({ services: serviceId });
+
+    for (const appointment of appointments) {
+      if (appointment.Status === "Booked") {
+        return res.status(400).json({
+          success: false,
+          message: "Service is in use",
+        });
+      }
+    }
+
+    if (salon) {
+      salon.Services = salon.Services.filter(
+        (id) => id.toString() !== serviceId
+      );
+      await salon.save();
+    }
+
+    // Delete the service
+    await service.deleteOne();
+
+    return res.status(200).json({
+      success: true,
+      message: "Service deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in deleting service: " + error,
+    });
+  }
+};
+
+
+const createCustomizedServiceByAdmin = async (req, res) => {
+  try {
+    const { 
+      ServiceName,
+      ServiceType,
+      ServiceCost,
+      ServiceTime,
+      ServiceGender,
+      isFeatured,
+      ServiceDefaultDiscount,
+      customizationOptions
+    } = req.body;
+
+    const { salonId } = req.params;
+
+    // Validate salonId
+    const salon = await SalonModel.findById(salonId);
+
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    // Validate inputs
+    if (
+      !ServiceName ||
+      !ServiceType ||
+      ServiceCost === undefined || // Check for undefined as 0 is a valid cost
+      ServiceTime === undefined || // Check for undefined as 0 might be a (though unlikely) valid time
+      !ServiceGender
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    // Validate customization options
+
+    let processedCustomizationOptions = [];
+    if (customizationOptions && Array.isArray(customizationOptions)) {
+      for (const opt of customizationOptions) {
+        if (
+          !opt.OptionName ||
+          typeof opt.OptionName !== "string" ||
+          opt.OptionPrice === undefined ||
+          typeof opt.OptionPrice !== "number"
+        ) {
+          return res.status(400).json({
+            success: false,
+            message: "Each customization option must have OptionName (string) and OptionPrice (number).",
+          });
+        }
+        processedCustomizationOptions.push({
+          OptionName: opt.OptionName,
+          OptionPrice: opt.OptionPrice,
+        });
+      }
+    }
+
+    // Create the service
+
+    const service = new Service({
+      ServiceName,
+      ServiceType,
+      salon: salon._id,
+      ServiceCost,
+      ServiceTime,
+      ServiceGender,
+      isFeatured: isFeatured !== undefined ? isFeatured : false, // Use provided or schema default
+      ServiceDefaultDiscount: ServiceDefaultDiscount !== undefined ? ServiceDefaultDiscount : 0, // Use provided or schema default
+      CustomizationOptions: processedCustomizationOptions || [], // Use processed or default to empty array
+    });
+
+    await service.save();
+
+    // Update the salon with the new service
+    salon.Services.push(service._id);
+    await salon.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Service created successfully",
+      service,
+    });
+
+  }
+  catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in creating service" + error,
+    });
+  }
+}
+
 export {
   createServices,
   getServices,
@@ -735,4 +891,6 @@ export {
   deleteCategory,
   createService,
   CreateServiceByExcel,
+  deleteServiceByAdmin,
+  createCustomizedServiceByAdmin,
 };

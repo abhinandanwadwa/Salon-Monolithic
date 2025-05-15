@@ -127,13 +127,10 @@ const getOffers = async (req, res) => {
 const deleteOffer = async (req, res) => {
   try {
     const { offerId } = req.params;
-    const user = req.user._id;
-    let salon = await SalonModel.findOne({ userId: user });
+    const { salonId } = req.body;
 
-    if(req.user.role === 'subAdmin'){
-      const artist = await ArtistModel.findOne({ userId: user });
-      salon = await SalonModel.findOne({ Artists: artist._id });
-    }
+    const salon = await SalonModel.findById(salonId);
+ 
     if (!salon) {
       return res.status(404).json({ 
         success: false,
@@ -342,4 +339,60 @@ const getOffersofThatDay = async (req,res) => {
 
 
 
-export { createOffer, getOffers, deleteOffer ,validateOffer,testApi,getOffersofThatDay };
+const createOfferbyAdmin = async (req, res) => {
+  try {
+    const {
+      OfferName,
+      OfferStartDate,
+      OfferEndDate,
+      OfferDiscountinPercentage,
+      offerCashbackinPercentage,
+      OfferDescription,
+      OfferDays,
+      salonId,
+    } = req.body;
+
+    let salon = await SalonModel.findById(salonId);
+
+
+    if (!salon) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Salon not found" 
+      });
+    }
+
+    const offerCode = OfferName.toUpperCase();
+
+    const offer = new OfferModel({
+      OfferName : offerCode,
+      OfferStartDate,
+      OfferEndDate,
+      OfferDiscountinPercentage,
+      offerCashbackinPercentage,
+      OfferDescription,
+      OfferDays,
+      salon: salon._id,
+    });
+    await offer.save();
+
+    salon.offers.push(offer);
+    await salon.save();
+
+    return res.status(201).json({
+      success: true,
+      data: offer,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in creating offer",
+    });
+  }
+};
+
+
+
+
+export { createOffer, getOffers, deleteOffer ,validateOffer,testApi,getOffersofThatDay ,createOfferbyAdmin};

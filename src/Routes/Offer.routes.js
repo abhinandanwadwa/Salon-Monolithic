@@ -5,6 +5,7 @@ import {
   validateOffer,
   testApi,
   getOffersofThatDay,
+  createOfferbyAdmin
 } from "../Controllers/Offer.controller.js";
 
 import express from "express";
@@ -19,6 +20,14 @@ Offerrouter.post(
   createOffer
 );
 
+Offerrouter.post(
+  "/create-offer-by-admin",
+  verify,
+  roleAuthorization(["Owner", "subAdmin"]),
+  createOfferbyAdmin
+);
+
+
 Offerrouter.get(
   "/get",
   verify,
@@ -29,7 +38,7 @@ Offerrouter.get(
 Offerrouter.delete(
   "/delete-offer/:offerId",
   verify,
-  roleAuthorization(["Owner", "subAdmin"]),
+  roleAuthorization(["Admin"]),
   deleteOffer
 );
 
