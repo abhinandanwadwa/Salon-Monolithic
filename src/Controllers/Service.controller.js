@@ -4,16 +4,15 @@ import ArtistModel from "../Models/Artist.js";
 import ServiceArtist from "../Models/ServiceArtist.js";
 import AppointmentModel from "../Models/Appointments.js";
 
-
 /**
  * @desc Create services with customizations
  * @method POST
  * @route /api/service/create-services-with-customizations
  * @access Private
-  * @requestBody { servicesData: [ { ServiceName, ServiceType, ServiceCost, ServiceTime, ServiceGender, CustomizationOptions } ] }
-  * CustomizationOptions: [ { OptionName, OptionPrice } ]
-  **/
- 
+ * @requestBody { servicesData: [ { ServiceName, ServiceType, ServiceCost, ServiceTime, ServiceGender, CustomizationOptions } ] }
+ * CustomizationOptions: [ { OptionName, OptionPrice } ]
+ **/
+
 const createServicesWithCustomizations = async (req, res) => {
   try {
     const servicesData = req.body;
@@ -89,7 +88,7 @@ const createServicesWithCustomizations = async (req, res) => {
         ServiceGender,
         CustomizationOptions,
       });
-      
+
       await service.save();
 
       // Add created service to the array
@@ -97,7 +96,7 @@ const createServicesWithCustomizations = async (req, res) => {
     }
 
     // Update the salon with the new services
-    salon.Services.push(...createdServices.map(service => service._id));
+    salon.Services.push(...createdServices.map((service) => service._id));
     await salon.save();
 
     return res.status(201).json({
@@ -279,7 +278,7 @@ const createService = async (req, res) => {
     // }
 
     return res.status(201).json({
-      success: true,  
+      success: true,
       data: service,
     });
   } catch (error) {
@@ -417,11 +416,11 @@ const getServices = async (req, res) => {
     const { SalonId } = req.params;
     const Services = await SalonModel.findOne({ _id: SalonId }).populate(
       "Services"
-    );   
-    return res.status(200).json({ 
+    );
+    return res.status(200).json({
       success: true,
       message: "Services fetched successfully",
-      Services : Services.Services,
+      Services: Services.Services,
     });
   } catch (error) {
     console.error(error);
@@ -439,13 +438,12 @@ const deleteCategory = async (req, res) => {
 
     let salon2;
 
-    if(req.user.role === 'subAdmin'){
+    if (req.user.role === "subAdmin") {
       const artist = await ArtistModel.findOne({ userId: userId });
       salon2 = await SalonModel.findOne({ Artists: artist._id });
-    }else{
+    } else {
       salon2 = await SalonModel.findOne({ userId: userId });
     }
-
 
     if (!salon) {
       return res.status(404).json({
@@ -515,7 +513,6 @@ const deleteCategory = async (req, res) => {
     });
   }
 };
-
 
 const CreateServiceByExcel = async (req, res) => {
   try {
@@ -604,9 +601,8 @@ const CreateServiceByExcel = async (req, res) => {
             OptionPrice: opt.OptionPrice,
           });
         }
-        if(processedCustomizationOptions === undefined) continue; // Skip service due to bad option
+        if (processedCustomizationOptions === undefined) continue; // Skip service due to bad option
       }
-
 
       // Create the service payload
       const servicePayload = {
@@ -617,7 +613,8 @@ const CreateServiceByExcel = async (req, res) => {
         ServiceTime,
         ServiceGender,
         isFeatured: isFeatured !== undefined ? isFeatured : false, // Use provided or schema default
-        ServiceDefaultDiscount: ServiceDefaultDiscount !== undefined ? ServiceDefaultDiscount : 0, // Use provided or schema default
+        ServiceDefaultDiscount:
+          ServiceDefaultDiscount !== undefined ? ServiceDefaultDiscount : 0, // Use provided or schema default
         CustomizationOptions: processedCustomizationOptions || [], // Use processed or default to empty array
         // ServiceCount will default to 0 as per schema
       };
@@ -644,7 +641,7 @@ const CreateServiceByExcel = async (req, res) => {
         errors: errors,
       });
     }
-    
+
     // Update the salon with the new services (assuming salon.Services stores ObjectIds)
     if (createdServices.length > 0) {
       salon.Services.push(...createdServices.map((s) => s._id));
@@ -653,7 +650,8 @@ const CreateServiceByExcel = async (req, res) => {
 
     if (errors.length > 0) {
       // Partial success
-      return res.status(207).json({ // 207 Multi-Status
+      return res.status(207).json({
+        // 207 Multi-Status
         success: true, // Operation partially succeeded
         message: "Some services created successfully, but some had errors.",
         services: createdServices,
@@ -666,7 +664,6 @@ const CreateServiceByExcel = async (req, res) => {
       message: "All services created successfully",
       services: createdServices,
     });
-
   } catch (error) {
     console.error("Error in CreateServiceByExcel:", error); // Log the full error for debugging
     return res.status(500).json({
@@ -704,12 +701,10 @@ const DeleteAllServices = async (req, res) => {
       }
     }
 
-
     salon.Services = [];
     await salon.save();
 
     await Service.deleteMany({ salon: salonId });
-
 
     return res.status(200).json({
       success: true,
@@ -723,72 +718,62 @@ const DeleteAllServices = async (req, res) => {
   }
 };
 
-
-
 const deleteServiceByAdmin = async (req, res) => {
   try {
     const { serviceId } = req.params;
     const { salonId } = req.body;
 
-    // Find the service by ID
+    // Find the service
     const service = await Service.findById(serviceId);
     if (!service) {
-      return res.status(404).json({
-        success: false,
-        message: "Service not found",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Service not found" });
     }
 
-    // Find artist and salon that reference this service
+    // Ensure salon exists
     const salon = await SalonModel.findById(salonId);
     if (!salon) {
-      return res.status(404).json({
-        success: false,
-        message: "Salon not found",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Salon not found" });
     }
 
-    // Find all service-artist relationships
-
-      const appointments = await AppointmentModel.find({ 
-      'services.service': serviceId  // Use dot notation to match on service ID within services array
+    // Check for booked appointments
+    const appointments = await AppointmentModel.find({
+      "services.service": serviceId,
     });
-
-    for (const appointment of appointments) {
-      if (appointment.Status === "Booked") {
-        return res.status(400).json({
-          success: false,
-          message: "Service is in use",
-        });
+    for (const appt of appointments) {
+      if (appt.Status === "Booked") {
+        return res
+          .status(400)
+          .json({ success: false, message: "Service is in use" });
       }
     }
 
-    if (salon) {
-      salon.Services = salon.Services.filter(
-        (id) => id.toString() !== serviceId
-      );
-      await salon.save();
-    }
+    // Atomic pull to avoid version conflicts
+    await SalonModel.updateOne(
+      { _id: salonId },
+      { $pull: { Services: serviceId } }
+    );
 
     // Delete the service
     await service.deleteOne();
 
-    return res.status(200).json({
-      success: true,
-      message: "Service deleted successfully",
-    });
+    return res
+      .status(200)
+      .json({ success: true, message: "Service deleted successfully" });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Error in deleting service: " + error,
+      message: "Error in deleting service: " + error.message,
     });
   }
 };
 
-
 const createCustomizedServiceByAdmin = async (req, res) => {
   try {
-    const { 
+    const {
       ServiceName,
       ServiceType,
       ServiceCost,
@@ -796,7 +781,7 @@ const createCustomizedServiceByAdmin = async (req, res) => {
       ServiceGender,
       isFeatured,
       ServiceDefaultDiscount,
-      customizationOptions
+      customizationOptions,
     } = req.body;
 
     const { salonId } = req.params;
@@ -838,7 +823,8 @@ const createCustomizedServiceByAdmin = async (req, res) => {
         ) {
           return res.status(400).json({
             success: false,
-            message: "Each customization option must have OptionName (string) and OptionPrice (number).",
+            message:
+              "Each customization option must have OptionName (string) and OptionPrice (number).",
           });
         }
         processedCustomizationOptions.push({
@@ -858,7 +844,8 @@ const createCustomizedServiceByAdmin = async (req, res) => {
       ServiceTime,
       ServiceGender,
       isFeatured: isFeatured !== undefined ? isFeatured : false, // Use provided or schema default
-      ServiceDefaultDiscount: ServiceDefaultDiscount !== undefined ? ServiceDefaultDiscount : 0, // Use provided or schema default
+      ServiceDefaultDiscount:
+        ServiceDefaultDiscount !== undefined ? ServiceDefaultDiscount : 0, // Use provided or schema default
       CustomizationOptions: processedCustomizationOptions || [], // Use processed or default to empty array
     });
 
@@ -873,15 +860,13 @@ const createCustomizedServiceByAdmin = async (req, res) => {
       message: "Service created successfully",
       service,
     });
-
-  }
-  catch (error) {
+  } catch (error) {
     return res.status(500).json({
       success: false,
       message: "Error in creating service" + error,
     });
   }
-}
+};
 
 export {
   createServices,
