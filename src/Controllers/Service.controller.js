@@ -750,7 +750,9 @@ const deleteServiceByAdmin = async (req, res) => {
 
     // Find all service-artist relationships
 
-    const appointments = await AppointmentModel.find({ services: serviceId });
+      const appointments = await AppointmentModel.find({ 
+      'services.service': serviceId  // Use dot notation to match on service ID within services array
+    });
 
     for (const appointment of appointments) {
       if (appointment.Status === "Booked") {
