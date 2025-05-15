@@ -23,7 +23,7 @@ Servicerouter.post(
   createServices
 );
 
-Servicerouter.post(
+Servicerouter.delete(
   "/delete-service-by-admin/:serviceId",
   verify,
   roleAuthorization(["Admin"]),
