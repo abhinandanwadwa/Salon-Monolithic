@@ -66,7 +66,7 @@ const getTotalCost = async (req, res) => {
       data: {
         serviceCost: TotalCost[0].totalCost,
         WalletSavings: walletCashAvailable,
-        platformFee: 10,
+        platformFee: 0,
         approxBill: approxBill,
       },
     });

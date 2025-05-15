@@ -6,7 +6,7 @@ import OfferModel from "../Models/Offer.js";
 import CustomerModel from "../Models/Customer.js";
 import WalletModel from "../Models/wallet.js";
 
-const PLATFORM_FEE = 10;
+const PLATFORM_FEE = 0;
 
 // Define specific error codes for offer validation issues
 const OfferErrorCodes = {

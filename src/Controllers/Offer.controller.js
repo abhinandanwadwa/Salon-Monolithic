@@ -199,12 +199,12 @@ const validateOffer = async (req, res) => {
 
     console.log(Costumer)
 
-    if(Costumer.offers.includes(offer._id)){
-      return res.status(400).json({
-        success: false,
-        message: "Offer already Used"
-      });
-    }
+    // if(Costumer.offers.includes(offer._id)){
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Offer already Used"
+    //   });
+    // }
 
 
 
@@ -313,10 +313,10 @@ const getOffersofThatDay = async (req,res) => {
     let usedOffers = [];
 
     //filter the offers which are in customers offers array
-    if(availableOffers.length > 0){
-      usedOffers = availableOffers.filter(offer => customer.offers.includes(offer._id));
-      availableOffers = availableOffers.filter(offer => !customer.offers.includes(offer._id));
-    }
+    // if(availableOffers.length > 0){
+    //   usedOffers = availableOffers.filter(offer => customer.offers.includes(offer._id));
+    //   availableOffers = availableOffers.filter(offer => !customer.offers.includes(offer._id));
+    // }
 
 
     //check if the offer has started

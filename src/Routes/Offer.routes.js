@@ -23,7 +23,7 @@ Offerrouter.post(
 Offerrouter.post(
   "/create-offer-by-admin",
   verify,
-  roleAuthorization(["Owner", "subAdmin"]),
+  roleAuthorization(["Admin"]),
   createOfferbyAdmin
 );
 
