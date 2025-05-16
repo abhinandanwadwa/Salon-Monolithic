@@ -240,7 +240,6 @@ const createSalonByAdmin = async (req, res) => {
         name: OwnerName
       });
       await newUser.save();
-      user = newUser;
     }
 
     let Gstbool;
@@ -266,7 +265,7 @@ const createSalonByAdmin = async (req, res) => {
     const user = await UserModel.findOne({ phoneNumber: phoneNumber });
     user.name = OwnerName;
 
-    const isSalon = await SalonModel.findOne({ userId });
+    const isSalon = await SalonModel.findOne({ userId: user._id });
     if (isSalon) {
       return res.status(400).json({
         success: false,
@@ -344,7 +343,7 @@ const createSalonByAdmin = async (req, res) => {
       CoverImage,
       location: {
         type: "Point",
-        coordinates: ["28.6139", "77.2090"],
+        coordinates: [coordinate[0], coordinate[1]],
       },
     });
 
