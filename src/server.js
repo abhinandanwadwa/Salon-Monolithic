@@ -44,6 +44,7 @@ app.use(
       "https://www.salondekho.in",
       "https://admin.salondekho.in",
       "http://localhost:5173",
+      "https://admin.jsondev.in",
     ],
     credentials: true,
   })
