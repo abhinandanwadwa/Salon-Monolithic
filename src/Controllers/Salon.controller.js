@@ -329,7 +329,7 @@ const createSalonByAdmin = async (req, res) => {
     const salonNumber = parseInt(salonPhoneNumber);
 
     const salon = new SalonModel({
-      userId,
+      userId: user._id,
       SalonName,
       OwnerName,
       address,
