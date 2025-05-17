@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import CustomerModel from "../Models/Customer.js";
 
 
+
 /**
  * @desc Create an artist with all services
  * @method POST
