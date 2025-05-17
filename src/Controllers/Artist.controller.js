@@ -16,6 +16,7 @@ import CustomerModel from "../Models/Customer.js";
  * @access Private
  * @requestBody { artistData: Array }
  * @requestBodyExample { artistData: [{ ArtistName: String, PhoneNumber: Number, ArtistType: String, workingDays: Array of Strings, startTime: String, endTime: String, ArtistPhoto: String }] }
+ * 
  */
 
 const CreateArtistWithAllServices = async (req, res) => {
