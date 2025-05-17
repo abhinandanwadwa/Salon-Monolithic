@@ -67,28 +67,28 @@ app.use("/api/review", Reviewrouter);
 app.use("/api/admin", Adminrouter);
 app.use("/api/payments", paymentRouter);
 
-// Example route to send a WhatsApp message (for testing)
-app.post("/api/whatsapp/send", async (req, res) => {
-  try {
-    const { to, message } = req.body; // to should be like "91xxxxxxxxxx"
-    if (!to || !message) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Missing 'to' or 'message' in request body",
-        });
-    }
-    const recipientJid = `${to}@s.whatsapp.net`;
-    await sendWhatsAppMessage(recipientJid, message);
-    res
-      .status(200)
-      .json({ success: true, message: "WhatsApp message sending initiated." });
-  } catch (error) {
-    console.error("Error in /api/whatsapp/send:", error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+// // Example route to send a WhatsApp message (for testing)
+// app.post("/api/whatsapp/send", async (req, res) => {
+//   try {
+//     const { to, message } = req.body; // to should be like "91xxxxxxxxxx"
+//     if (!to || !message) {
+//       return res
+//         .status(400)
+//         .json({
+//           success: false,
+//           message: "Missing 'to' or 'message' in request body",
+//         });
+//     }
+//     const recipientJid = `${to}@s.whatsapp.net`;
+//     await sendWhatsAppMessage(recipientJid, message);
+//     res
+//       .status(200)
+//       .json({ success: true, message: "WhatsApp message sending initiated." });
+//   } catch (error) {
+//     console.error("Error in /api/whatsapp/send:", error);
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// });
 
 app.post("/api/notification", async (req, res) => {
   try {
