@@ -17,7 +17,11 @@ import {
   searchSalonss,
   deleteCoverPhoto,
   deleteBrochure,
-  GetSalonDetails
+  GetSalonDetails,
+  AddStorePhotosbyAdmin,
+  AddsalonPhotosbyAdmin,
+  deleteSalonPhotosByAdmin,
+  deleteStorePhotosByAdmin,
 } from "../Controllers/Salon.controller.js";
 import { verify, roleAuthorization } from "../middlewares/authenticated.js";
 import upload from "../utils/s3Multer.js";
@@ -144,5 +148,36 @@ Salonrouter.get(
   roleAuthorization(["Admin"]),
   GetSalonDetails
 );
+
+Salonrouter.post(
+  "/add-store-Photos-by-admin/:salonId",
+  verify,
+  roleAuthorization(["Admin"]),
+  upload.array("StorePhotos"),
+  AddStorePhotosbyAdmin
+);
+
+Salonrouter.post(
+  "/add-salon-Photos-by-admin/:salonId",
+  verify,
+  roleAuthorization(["Admin"]),
+  upload.array("StorePhotos"),
+  AddsalonPhotosbyAdmin
+);
+
+Salonrouter.post(
+  "/delete-salon-Photos-by-admin/:salonId",
+  verify,
+  roleAuthorization(["Admin"]),
+  deleteSalonPhotosByAdmin
+);
+
+Salonrouter.post(
+  "/delete-store-Photos-by-admin/:salonId",
+  verify,
+  roleAuthorization(["Admin"]),
+  deleteStorePhotosByAdmin
+);
+
 
 export default Salonrouter;

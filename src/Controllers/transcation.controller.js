@@ -3,6 +3,9 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import AppointmentModel from "../Models/Appointments.js";
 import TransactionModel from "../Models/transaction.js"; // Assuming this is the correct path and model name
+import WalletModel from "../Models/wallet.js";
+import SalonModel from "../Models/Salon.js";
+import UserModel from "../Models/User.js";
 
 // Initialize Razorpay instance
 // Ensure these environment variables are set
@@ -10,8 +13,6 @@ const instance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
-
-
 
 // --- Create Razorpay Order ---
 // Expects appointmentId in req.body to fetch details
@@ -91,10 +92,7 @@ export const razorpayWebhook = async (req, res) => {
   const receivedSignature = req.headers["x-razorpay-signature"];
   const requestBodyString = req.body.toString(); // req.body is raw buffer due to express.raw()
 
-  console.log(
-    "Received Razorpay Webhook Signature:",
-    receivedSignature
-  );
+  console.log("Received Razorpay Webhook Signature:", receivedSignature);
 
   console.log("requestBodyString", requestBodyString);
   console.log("req.body", req.body);
@@ -102,14 +100,11 @@ export const razorpayWebhook = async (req, res) => {
   // Validate the webhook signature
   // Note: Ensure you have the raw body middleware set up in your express app
 
-  
-
   const isSignatureValid = Razorpay.validateWebhookSignature(
     requestBodyString,
     receivedSignature,
     secret
   );
-
 
   if (isSignatureValid) {
     const event = JSON.parse(requestBodyString);
@@ -126,6 +121,7 @@ export const razorpayWebhook = async (req, res) => {
     let razorpayPaymentId;
     let paidAmount; // in paisa
     let paymentStatus;
+    let userId;
 
     if (event.event === "payment.captured") {
       if (!paymentEntity) {
@@ -135,6 +131,7 @@ export const razorpayWebhook = async (req, res) => {
         return res.status(400).send("Webhook Error: Missing payment entity");
       }
       appointmentId = paymentEntity.notes?.appointmentId;
+      userId = paymentEntity.notes?.userId;
       razorpayOrderId = paymentEntity.order_id;
       razorpayPaymentId = paymentEntity.id;
       paidAmount = paymentEntity.amount; // Amount in paisa
@@ -244,8 +241,6 @@ export const razorpayWebhook = async (req, res) => {
           `Webhook Warning: Transaction record not found for orderId ${razorpayOrderId} and appointmentId ${appointmentId}. This might indicate an issue or a race condition if the webhook arrived before the createOrder DB write completed, though unlikely.`
         );
         // Optionally, create it if it's missing, though it implies an issue in the flow.
-
-
       }
 
       if (paymentStatus === "SUCCESS") {
@@ -263,6 +258,52 @@ export const razorpayWebhook = async (req, res) => {
         }
 
         appointment.paymentStatus = "Paid";
+
+        const wallet = await WalletModel.findOne({
+          userId: appointment.user,
+        });
+
+        if (appointment.billingDetails.offerCashbackEarned > 0) {
+          // Add cashback to wallet
+          wallet.balance += appointment.billingDetails.offerCashbackEarned;
+          await wallet.save();
+          console.log(
+            `Added cashback of ${appointment.billingDetails.offerCashbackEarned} to user ${appointment.user}'s wallet.`
+          );
+        }
+
+        const Salon = await SalonModel.findById(appointment.salon);
+        const Customer = await SalonModel.findById(appointment.user);
+
+        const SalonOwner = await UserModel.findById(Salon.userId);
+        const User = await UserModel.findById(Customer.userId);
+
+        const tokens = [];
+        if (SalonOwner.token) tokens.push(SalonOwner.token);
+        if (User.token) tokens.push(User.token);
+
+        const TIME = moment(appointment.appointmentStartTime).format("hh:mm A");
+        const date = formatDate(appointment.appointmentDate);
+
+        if (tokens.length > 0) {
+          const message = {
+            notification: {
+              title: "Appointment Completed",
+              body: `Appointment on ${date} at ${TIME} has been Completed`,
+            },
+            tokens: tokens,
+          };
+
+          messaging
+            .sendEachForMulticast(message)
+            .then((response) => {
+              console.log("Successfully sent message:", response);
+            })
+            .catch((error) => {
+              console.error("Error sending message:", error);
+            });
+        }
+
         appointment.isPaid = true;
         // Optionally, update main appointment status if payment is the final step for confirmation
         if (

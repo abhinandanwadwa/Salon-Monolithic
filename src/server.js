@@ -13,15 +13,18 @@ import Artistrouter from "./Routes/Artist.routes.js";
 import Servicerouter from "./Routes/Services.routes.js";
 import Appointmentrouter from "./Routes/appointment.routes.js";
 import Salonrouter from "./Routes/Salon.routes.js";
-import Adminrouter from "./Routes/admin.routes.js";
+import Adminrouter from "./Routes/Admin.routes.js";
 import Offerrouter from "./Routes/Offer.routes.js";
 import Reviewrouter from "./Routes/Review.routes.js";
 import { messaging } from "./Controllers/fcmClient.js";
 import paymentRouter from "./Routes/payment.routes.js";
 import { razorpayWebhook } from "./Controllers/transcation.controller.js";
+import {
+  connectToWhatsApp,
+  sendWhatsAppMessage,
+} from "./services/whatsappService.js"; // Import Baileys functions
 
 const app = express();
-
 
 app.post(
   "/api/payments/razorpay-webhook",
@@ -29,13 +32,10 @@ app.post(
   razorpayWebhook
 );
 
-
-
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
-
-app.use(express.json());  
+app.use(express.json());
 app.use(cookieParser());
 
 app.use(
@@ -67,6 +67,29 @@ app.use("/api/review", Reviewrouter);
 app.use("/api/admin", Adminrouter);
 app.use("/api/payments", paymentRouter);
 
+// Example route to send a WhatsApp message (for testing)
+app.post("/api/whatsapp/send", async (req, res) => {
+  try {
+    const { to, message } = req.body; // to should be like "91xxxxxxxxxx"
+    if (!to || !message) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Missing 'to' or 'message' in request body",
+        });
+    }
+    const recipientJid = `${to}@s.whatsapp.net`;
+    await sendWhatsAppMessage(recipientJid, message);
+    res
+      .status(200)
+      .json({ success: true, message: "WhatsApp message sending initiated." });
+  } catch (error) {
+    console.error("Error in /api/whatsapp/send:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 app.post("/api/notification", async (req, res) => {
   try {
     const { token, title, body } = req.body;
@@ -92,6 +115,10 @@ ConnectDB()
   .then(() => {
     app.listen(process.env.PORT, () => {
       console.log(`Server is running on port ${process.env.PORT}`);
+      // Initialize WhatsApp connection when server starts
+      // connectToWhatsApp().catch((err) =>
+      //   console.error("Failed to connect to WhatsApp:", err)
+      // );
     });
   })
   .catch((error) => {

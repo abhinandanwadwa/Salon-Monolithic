@@ -373,11 +373,9 @@ const sendOTP = async (req, res) => {
 const verifyOTP = async (req, res) => {
   try {
     const { phoneNumber, enteredOTP, role, fcmToken } = req.body;
-    console.log(req.body);
-    console.log(fcmToken);
+
     const FcmTokenDetails = fcmToken ? fcmToken : null;
 
-    console.log(phoneNumber, enteredOTP);
     const user = await UserModel.findOne({ phoneNumber });
 
     if (!user) {
@@ -404,66 +402,88 @@ const verifyOTP = async (req, res) => {
       });
     }
 
-    if (user.role === "Artist" && role === "Owner") {
-      user.token = FcmTokenDetails;
-      await user.save();
-      generateToken(res, user);
-      return res.status(201).json({
-        success: true,
-        user: {
-          _id: user._id,
-          phoneNumber: user.phoneNumber,
-          role: user.role,
-          isSalon: user.isSalon,
-        },
-      });
-    } else if (user.role === "Artist" && role === "Customer") {
-      const customer = await CustomerModel.findOne({ userId: user._id });
-      const artist = await ArtistModel.findOne({ userId: user._id });
-      if (!customer) {
-        const newCustomer = new CustomerModel({
-          userId: user._id,
-          phoneNumber,
-          name: artist.ArtistName,
-        });
-        await newCustomer.save();
+    // if (user.role === "Artist" && role === "Owner") {
+    //   user.token = FcmTokenDetails;
+    //   await user.save();
+    //   generateToken(res, user);
+    //   return res.status(201).json({
+    //     success: true,
+    //     user: {
+    //       _id: user._id,
+    //       phoneNumber: user.phoneNumber,
+    //       role: user.role,
+    //       isSalon: user.isSalon,
+    //     },
+    //   });
+    // } else if (user.role === "Artist" && role === "Customer") {
+    //   const customer = await CustomerModel.findOne({ userId: user._id });
+    //   const artist = await ArtistModel.findOne({ userId: user._id });
+    //   if (!customer) {
+    //     const newCustomer = new CustomerModel({
+    //       userId: user._id,
+    //       phoneNumber,
+    //       name: artist.ArtistName,
+    //     });
+    //     await newCustomer.save();
         
-        // Check if user has a wallet and create one if not
-        const wallet = await WalletModel.findOne({ userId: user._id });
-        if (!wallet) {
-          // Create new wallet with 0 balance
-          const newWallet = new WalletModel({
-            userId: user._id,
-            balance: 0,
-          });
-          await newWallet.save();
+    //     // Check if user has a wallet and create one if not
+    //     const wallet = await WalletModel.findOne({ userId: user._id });
+    //     if (!wallet) {
+    //       // Create new wallet with 0 balance
+    //       const newWallet = new WalletModel({
+    //         userId: user._id,
+    //         balance: 0,
+    //       });
+    //       await newWallet.save();
           
-          // Save wallet reference to user document
-          user.Wallet = newWallet._id;
-          console.log("New wallet created for artist as customer");
-        }
-      }
+    //       // Save wallet reference to user document
+    //       user.Wallet = newWallet._id;
+    //       console.log("New wallet created for artist as customer");
+    //     }
+    //   }
 
-      // Set FCM token for artist as customer
-      user.token = FcmTokenDetails;
-      await user.save();
+    //   // Set FCM token for artist as customer
+    //   user.token = FcmTokenDetails;
+    //   await user.save();
 
-      generateToken(res, user);
-      return res.status(201).json({
-        success: true,
-        user: {
-          _id: user._id,
-          phoneNumber: user.phoneNumber,
-          role: user.role,
-          name: artist.ArtistName,
-          gender: user.gender,
-          isSalon: user.isSalon,
-        },
-      });
-    }
+    //   generateToken(res, user);
+    //   return res.status(201).json({
+    //     success: true,
+    //     user: {
+    //       _id: user._id,
+    //       phoneNumber: user.phoneNumber,
+    //       role: user.role,
+    //       name: artist.ArtistName,
+    //       gender: user.gender,
+    //       isSalon: user.isSalon,
+    //     },
+    //   });
+    // }
 
     if (user.role === "Owner" && role === "Owner") {
-      user.token = FcmTokenDetails;
+
+      if(user.token !== FcmTokenDetails){
+        user.token = FcmTokenDetails;
+
+        messaging.subscribeToTopic(FcmTokenDetails, "owners")
+        .then((response) => {
+          console.log("Successfully subscribed to topic:", response);
+        })
+        .catch((error) => {
+          console.log("Error subscribing to topic:", error);
+        });
+
+        messaging.subscribeToTopic(FcmTokenDetails, "all_users")
+        .then((response) => {
+          console.log("Successfully subscribed to topic:", response);
+        })
+        .catch((error) => {
+          console.log("Error subscribing to topic:", error);
+        });
+
+      }
+
+
       await user.save();
       generateToken(res, user);
       return res.status(201).json({
@@ -503,7 +523,27 @@ const verifyOTP = async (req, res) => {
       }
 
       // Set FCM token for owner as customer
-      user.token = FcmTokenDetails;
+      
+      if(user.token !== FcmTokenDetails){
+        user.token = FcmTokenDetails;
+
+        messaging.subscribeToTopic(FcmTokenDetails, "customers")
+        .then((response) => {
+          console.log("Successfully subscribed to topic:", response);
+        })
+        .catch((error) => {
+          console.log("Error subscribing to topic:", error);
+        });
+
+        messaging.subscribeToTopic(FcmTokenDetails, "all_users")
+        .then((response) => {
+          console.log("Successfully subscribed to topic:", response);
+        })
+        .catch((error) => {
+          console.log("Error subscribing to topic:", error);
+        });
+      }
+
       await user.save();
 
       generateToken(res, user);
@@ -547,7 +587,25 @@ const verifyOTP = async (req, res) => {
       }
 
       // Set FCM token for customer
-      user.token = FcmTokenDetails;
+      if(user.token !== FcmTokenDetails){
+        user.token = FcmTokenDetails;
+
+        messaging.subscribeToTopic(FcmTokenDetails, "customers")
+        .then((response) => {
+          console.log("Successfully subscribed to topic:", response);
+        })
+        .catch((error) => {
+          console.log("Error subscribing to topic:", error);
+        });
+
+        messaging.subscribeToTopic(FcmTokenDetails, "all_users")
+        .then((response) => {
+          console.log("Successfully subscribed to topic:", response);
+        })
+        .catch((error) => {
+          console.log("Error subscribing to topic:", error);
+        });
+      }
       await user.save();
       
       generateToken(res, user);
@@ -564,64 +622,26 @@ const verifyOTP = async (req, res) => {
       });
     } else if (user.role === "Customer" && role === "Owner") {
       user.role = role;
-      user.token = FcmTokenDetails;
-      await user.save();
-      generateToken(res, user);
-      return res.status(201).json({
-        success: true,
-        user: {
-          _id: user._id,
-          phoneNumber: user.phoneNumber,
-          role: user.role,
-          isSalon: user.isSalon,
-        },
-      });
-    }
+        if(user.token !== FcmTokenDetails){
+        user.token = FcmTokenDetails;
 
-    if (user.role === "subAdmin" && role === "Owner") {
-      user.token = FcmTokenDetails;
-      await user.save();
-      generateToken(res, user);
-      return res.status(201).json({
-        success: true,
-        user: {
-          _id: user._id,
-          phoneNumber: user.phoneNumber,
-          role: user.role,
-          isSalon: user.isSalon,
-        },
-      });
-    } else if (user.role === "subAdmin" && role === "Customer") {
-      const customer = await CustomerModel.findOne({ userId: user._id });
-      const artist = await ArtistModel.findOne({ userId: user._id });
-      if (!customer) {
-        const newCustomer = new CustomerModel({
-          userId: user._id,
-          phoneNumber,
-          name: artist.ArtistName,
+        messaging.subscribeToTopic(FcmTokenDetails, "owners")
+        .then((response) => {
+          console.log("Successfully subscribed to topic:", response);
+        })
+        .catch((error) => {
+          console.log("Error subscribing to topic:", error);
         });
-        await newCustomer.save();
-        
-        // Check if user has a wallet and create one if not
-        const wallet = await WalletModel.findOne({ userId: user._id });
-        if (!wallet) {
-          // Create new wallet with 0 balance
-          const newWallet = new WalletModel({
-            userId: user._id,
-            balance: 0,
-          });
-          await newWallet.save();
-          
-          // Save wallet reference to user document
-          user.Wallet = newWallet._id;
-          console.log("New wallet created for subAdmin as customer");
-        }
+
+        messaging.subscribeToTopic(FcmTokenDetails, "all_users")
+        .then((response) => {
+          console.log("Successfully subscribed to topic:", response);
+        })
+        .catch((error) => {
+          console.log("Error subscribing to topic:", error);
+        });
       }
-
-      // Set FCM token for subAdmin as customer
-      user.token = FcmTokenDetails;
       await user.save();
-
       generateToken(res, user);
       return res.status(201).json({
         success: true,
@@ -629,12 +649,67 @@ const verifyOTP = async (req, res) => {
           _id: user._id,
           phoneNumber: user.phoneNumber,
           role: user.role,
-          name: artist.ArtistName,
-          gender: user.gender,
           isSalon: user.isSalon,
         },
       });
     }
+
+    // if (user.role === "subAdmin" && role === "Owner") {
+    //   user.token = FcmTokenDetails;
+    //   await user.save();
+    //   generateToken(res, user);
+    //   return res.status(201).json({
+    //     success: true,
+    //     user: {
+    //       _id: user._id,
+    //       phoneNumber: user.phoneNumber,
+    //       role: user.role,
+    //       isSalon: user.isSalon,
+    //     },
+    //   });
+    // } else if (user.role === "subAdmin" && role === "Customer") {
+    //   const customer = await CustomerModel.findOne({ userId: user._id });
+    //   const artist = await ArtistModel.findOne({ userId: user._id });
+    //   if (!customer) {
+    //     const newCustomer = new CustomerModel({
+    //       userId: user._id,
+    //       phoneNumber,
+    //       name: artist.ArtistName,
+    //     });
+    //     await newCustomer.save();
+        
+    //     // Check if user has a wallet and create one if not
+    //     const wallet = await WalletModel.findOne({ userId: user._id });
+    //     if (!wallet) {
+    //       // Create new wallet with 0 balance
+    //       const newWallet = new WalletModel({
+    //         userId: user._id,
+    //         balance: 0,
+    //       });
+    //       await newWallet.save();
+          
+    //       // Save wallet reference to user document
+    //       user.Wallet = newWallet._id;
+    //       console.log("New wallet created for subAdmin as customer");
+    //     }
+    //   }
+
+    //   // Set FCM token for subAdmin as customer
+    //   await user.save();
+
+    //   generateToken(res, user);
+    //   return res.status(201).json({
+    //     success: true,
+    //     user: {
+    //       _id: user._id,
+    //       phoneNumber: user.phoneNumber,
+    //       role: user.role,
+    //       name: artist.ArtistName,
+    //       gender: user.gender,
+    //       isSalon: user.isSalon,
+    //     },
+    //   });
+    // }
 
     user.otp = null;
     user.otpExpiration = null;

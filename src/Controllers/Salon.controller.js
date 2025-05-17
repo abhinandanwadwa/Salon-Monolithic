@@ -207,6 +207,7 @@ const createSalonByAdmin = async (req, res) => {
       BusinessType,
       Gender,
       workingDays,
+      aboutSalon,
       salonPhoneNumber,
       startTime,
       endTime,
@@ -341,6 +342,7 @@ const createSalonByAdmin = async (req, res) => {
       Gst: Gstbool,
       salonPhoneNumber: salonNumber,
       CoverImage,
+      aboutSalon,
       location: {
         type: "Point",
         coordinates: [coordinate[0], coordinate[1]],
@@ -1014,9 +1016,11 @@ const deleteSalon = async (req, res) => {
   session.startTransaction();
 
   try {
-    const user = req.user._id;
+    const { salonId } = req.params;
 
-    const salon = await SalonModel.findOne({ userId: user });
+    const salon = await SalonModel.findById(salonId)
+
+    const user = await UserModel.findById(salon.userId);
 
     if (!salon) {
       await session.abortTransaction();
@@ -1027,42 +1031,8 @@ const deleteSalon = async (req, res) => {
       });
     }
 
-    const services = await Service.find({ salon: salon._id });
-    const serviceIds = services.map((service) => service._id);
-
-    if (serviceIds.length) {
-      await ServiceArtist.deleteMany(
-        { Service: { $in: serviceIds } },
-        { session }
-      );
-      await Service.deleteMany({ _id: { $in: serviceIds } }, { session });
-    }
-
-    const artists = await ArtistModel.find({ salon: salon._id });
-    const artistUserIds = artists.map((artist) => artist.userId);
-
-    let SendTokens = [];
-
-    for (let i = 0; i < artistUserIds.length; i++) {
-      const ArtistUser = await UserModel.findById(artistUserIds[i]);
-      if (ArtistUser && ArtistUser.token) {
-        SendTokens.push(ArtistUser.token);
-      }
-
-      if (ArtistUser.role === "subAdmin") {
-        //change role to artist with transcetion
-        ArtistUser.role = "Artist";
-        await ArtistUser.save({ session });
-      }
-    }
-
-    if (artistUserIds.length) {
-      await CustomerModel.deleteMany(
-        { userId: { $in: artistUserIds } },
-        { session }
-      );
-      await UserModel.deleteMany({ _id: { $in: artistUserIds } }, { session });
-      await ArtistModel.deleteMany({ salon: salon._id }, { session });
+    if (salon.Services.length) {
+      await Service.deleteMany({ _id: { $in: salon.Services } }, { session });
     }
 
     if (salon.appointments.length) {
@@ -1083,41 +1053,15 @@ const deleteSalon = async (req, res) => {
       await OfferModel.deleteMany({ _id: { $in: salon.offers } }, { session });
     }
 
-    await SalonModel.findOneAndDelete({ userId: user }, { session });
-    await CustomerModel.findOneAndDelete({ userId: user }, { session });
+    await SalonModel.findOneAndDelete({ userId: user._id }, { session });
 
-    const OwnerUser = await UserModel.findById(user);
-    if (OwnerUser && OwnerUser.token) {
-      SendTokens.push(OwnerUser.token);
-    }
 
-    await UserModel.findOneAndDelete({ _id: user }, { session });
+    await UserModel.findOneAndDelete({ _id: user._id }, { session });
 
     await Statistic.updateOne(
       { _id: "Statistic" },
       { $inc: { deletedSalonCount: 1 } }
     );
-
-    SendTokens = [...new Set(SendTokens)];
-
-    if (SendTokens.length) {
-      const message = {
-        notification: {
-          title: "Account Deleted",
-          body: "Your account has been deleted",
-        },
-        tokens: SendTokens,
-      };
-
-      messaging
-        .sendEachForMulticast(message)
-        .then((response) => {
-          console.log(response);
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-    }
 
     await session.commitTransaction();
     session.endSession();
@@ -1575,6 +1519,169 @@ const SalonsStats = async (req, res) => {
   }
 };
 
+const AddStorePhotosbyAdmin = async (req, res) => {
+  try {
+    const { salonId } = req.params;
+    let salon = await SalonModel.findById(salonId);
+
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    const storephotos = req.files;
+
+    // Ensure the array is not empty
+    if (!storephotos || storephotos.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No photos were uploaded",
+      });
+    }
+
+    storephotos.forEach((file) => {
+      salon.StorePhotos.push(file.location); // or file.filename depending on how you want to store the reference
+    });
+
+    await salon.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Photos uploaded successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in uploading photos",
+    });
+  }
+};
+
+const deleteStorePhotosByAdmin = async (req, res) => {
+  try {
+    const { salonId } = req.params;
+    let salon = await SalonModel.findById(salonId);
+
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    const storePhotos = req.body.storePhotos;
+
+    if (!storePhotos || storePhotos.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No photos were deleted",
+      });
+    }
+
+    storePhotos.forEach((photo) => {
+      salon.StorePhotos = salon.StorePhotos.filter(
+        (storePhoto) => storePhoto !== photo
+      );
+    });
+
+    await salon.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Photos deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in deleting photos",
+    });
+  }
+};
+
+
+const AddsalonPhotosbyAdmin = async (req, res) => {
+  try {
+    const { salonId } = req.params;
+    let salon = await SalonModel.findById(salonId);
+
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    const salonPhotos = req.files;
+
+    // Ensure the array is not empty
+    if (!salonPhotos || salonPhotos.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No photos were uploaded",
+      });
+    }
+
+    salonPhotos.forEach((file) => {
+      salon.salonPhotos.push(file.location); // or file.filename depending on how you want to store the reference
+    });
+
+    await salon.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Photos uploaded successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in uploading photos",
+    });
+  }
+};
+
+const deleteSalonPhotosByAdmin = async (req, res) => {
+  try {
+    const { salonId } = req.params;
+    let salon = await SalonModel.findById(salonId);
+
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    const salonPhotos = req.body.salonPhotos;
+
+    if (!salonPhotos || salonPhotos.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No photos were deleted",
+      });
+    }
+
+    salonPhotos.forEach((photo) => {
+      salon.salonPhotos = salon.salonPhotos.filter(
+        (storePhoto) => storePhoto !== photo
+      );
+    });
+
+    await salon.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Photos deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in deleting photos",
+    });
+  }
+};
+
 export {
   createSalon,
   getSalonById,
@@ -1595,4 +1702,8 @@ export {
   deleteCoverPhoto,
   searchSalonss,
   GetSalonDetails,
+  AddStorePhotosbyAdmin,
+  AddsalonPhotosbyAdmin,
+  deleteSalonPhotosByAdmin,
+  deleteStorePhotosByAdmin,
 };
