@@ -11,6 +11,29 @@ import Service from "../Models/Services.js";
 import { messaging } from "./fcmClient.js";
 import WalletModel from "../Models/wallet.js";
 
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const day = date.getDate();
+  const month = date.toLocaleString("default", {
+    month: "short",
+  });
+  const year = date.getFullYear();
+  const daySuffix = (day) => {
+    if (day > 3 && day < 21) return "th";
+    switch (day % 10) {
+      case 1:
+        return "st";
+      case 2:
+        return "nd";
+      case 3:
+        return "rd";
+      default:
+        return "th";
+    }
+  };
+  return `${day}${daySuffix(day)} ${month} ${year}`;
+};
+
 const getTotalCost = async (req, res) => {
   try {
     // Expects: { services: [{ serviceId, selectedOptionId? }], offerCode?, salonId }
