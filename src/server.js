@@ -19,10 +19,10 @@ import Reviewrouter from "./Routes/Review.routes.js";
 import { messaging } from "./Controllers/fcmClient.js";
 import paymentRouter from "./Routes/payment.routes.js";
 import { razorpayWebhook } from "./Controllers/transcation.controller.js";
-import {
-  connectToWhatsApp,
-  sendWhatsAppMessage,
-} from "./services/whatsappService.js"; // Import Baileys functions
+// import {
+//   connectToWhatsApp,
+//   sendWhatsAppMessage,
+// } from "./services/whatsappService.js"; // Import Baileys functions
 
 const app = express();
 
