@@ -153,7 +153,7 @@ Salonrouter.get(
 Salonrouter.get(
   "/get-salon-all-photos/:salonId",
   verify,
-  roleAuthorization(["Owner", "subAdmin"]),
+  roleAuthorization(["Admin"]),
   getSalonAllPhotos
 );
 
