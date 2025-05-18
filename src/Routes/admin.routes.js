@@ -25,7 +25,7 @@ Adminrouter.get(
   GetAllAppointments
 );
 
-Adminrouter.get(
+Adminrouter.post(
   "/send-notification",
   verify,
   roleAuthorization(["Admin"]),
@@ -41,6 +41,7 @@ Adminrouter.post(
 
 Adminrouter.get(
   "/get-all-banners",
+
   verify,
   roleAuthorization(["Admin"]),
   GetAllBanners
