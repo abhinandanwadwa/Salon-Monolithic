@@ -1682,6 +1682,35 @@ const deleteSalonPhotosByAdmin = async (req, res) => {
   }
 };
 
+const getSalonAllPhotos = async (req, res) => {
+  try {
+    const { salonId } = req.params;
+    let salon = await SalonModel.findById(salonId);
+    if (!salon) {
+      return res.status(404).json({
+        success: false,
+        message: "Salon not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        salonPhotos: salon.salonPhotos,
+        StorePhotos: salon.StorePhotos,
+        CoverImage: salon.CoverImage,
+        Brochure: salon.Brochure,
+      },
+    });
+  }
+  catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching photos",
+    });
+  }
+}
+
 export {
   createSalon,
   getSalonById,
@@ -1706,4 +1735,5 @@ export {
   AddsalonPhotosbyAdmin,
   deleteSalonPhotosByAdmin,
   deleteStorePhotosByAdmin,
+  getSalonAllPhotos,
 };

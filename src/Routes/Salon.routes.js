@@ -20,6 +20,7 @@ import {
   GetSalonDetails,
   AddStorePhotosbyAdmin,
   AddsalonPhotosbyAdmin,
+  getSalonAllPhotos,
   deleteSalonPhotosByAdmin,
   deleteStorePhotosByAdmin,
 } from "../Controllers/Salon.controller.js";
@@ -147,6 +148,13 @@ Salonrouter.get(
   verify,
   roleAuthorization(["Admin"]),
   GetSalonDetails
+);
+
+Salonrouter.get(
+  "/get-salon-all-photos/:salonId",
+  verify,
+  roleAuthorization(["Owner", "subAdmin"]),
+  getSalonAllPhotos
 );
 
 Salonrouter.post(
