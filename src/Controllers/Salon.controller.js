@@ -1571,7 +1571,7 @@ const deleteStorePhotosByAdmin = async (req, res) => {
       });
     }
 
-    const storePhotos = req.body.storePhotos;
+    const storePhotos = req.body.photoUrl;
 
     if (!storePhotos || storePhotos.length === 0) {
       return res.status(400).json({
@@ -1580,11 +1580,20 @@ const deleteStorePhotosByAdmin = async (req, res) => {
       });
     }
 
-    storePhotos.forEach((photo) => {
+    //single photo delte
+    if (typeof storePhotos === "string") {
       salon.StorePhotos = salon.StorePhotos.filter(
-        (storePhoto) => storePhoto !== photo
+        (photo) => photo !== storePhotos
       );
-    });
+    }
+    else {
+      //multiple photos delete
+      storePhotos.forEach((photo) => {
+        salon.StorePhotos = salon.StorePhotos.filter(
+          (storePhoto) => storePhoto !== photo
+        );
+      });
+    }
 
     await salon.save();
 
