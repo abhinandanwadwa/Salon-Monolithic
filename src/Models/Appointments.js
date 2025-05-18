@@ -47,6 +47,12 @@ const appointmentSchema = new mongoose.Schema(
         required: true,
         default: 0,
       },
+      gst: {
+        // GST applied on totalServiceCost
+        type: Number,
+        required: true,
+        default: 0,
+      },
       walletSavingsUsed: {
         // Amount deducted from wallet
         type: Number,

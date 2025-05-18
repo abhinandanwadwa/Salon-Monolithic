@@ -5,6 +5,7 @@ import ServiceModel from "../Models/Services.js";
 import OfferModel from "../Models/Offer.js";
 import CustomerModel from "../Models/Customer.js";
 import WalletModel from "../Models/wallet.js";
+import SalonModel from "../Models/Salon.js";
 
 const PLATFORM_FEE = 0;
 
@@ -25,6 +26,7 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
     const customer = await CustomerModel.findOne({ userId }).populate("offers");
     const wallet = await WalletModel.findOne({ userId });
 
+
     // Basic data validation
     if (!customer) return { success: false, isOfferError: false, message: "Customer not found", errorCode: "CUSTOMER_NOT_FOUND" };
     if (!wallet) return { success: false, isOfferError: false, message: "Wallet not found", errorCode: "WALLET_NOT_FOUND" };
@@ -32,6 +34,8 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
          return { success: false, isOfferError: false, message: "No services selected", errorCode: "SERVICES_REQUIRED" };
     }
 
+
+    const salon = await SalonModel.findById(salonId);
     const currentWalletBalance = wallet.balance;
 
     // --- 2. Calculate Base Service & Customization Cost ---
@@ -72,6 +76,25 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
             chosenOption: chosenOption
         });
     }
+
+    // ---  Salon GST and GST Calculation ---
+    let gst;
+    if(salon && salon.Gst) {
+        const gstPercentage = 0.18; // Assuming GST is 18%
+        const gstAmount = (totalServiceCost * gstPercentage) / 100;
+        gst = gstAmount;
+        // Add GST to total service cost
+        totalServiceCost += gstAmount;
+    }else{
+        //consider inclusive GST
+        const gstPercentage = 0.18; // Assuming GST is 18%
+        // Calculate GST amount based on the total service cost
+        // GST is included in the total service cost, so we need to extract it
+        const gstAmount = (totalServiceCost * gstPercentage) / (100 + gstPercentage);
+        gst = gstAmount;
+    }
+
+
 
     // --- 3. Apply Wallet Deduction FIRST ---
     const walletSavingsUsed = Math.min(totalServiceCost, currentWalletBalance);
@@ -117,16 +140,16 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
         }
 
         // 2. Usage Check
-        const hasUsedOffer = customer.offers.some(usedOffer => usedOffer._id.equals(offer._id));
-        if (hasUsedOffer) {
-             // --- Offer Already Used Error ---
-            return {
-                success: false,
-                isOfferError: true,
-                errorCode: OfferErrorCodes.ALREADY_USED,
-                message: "You have already used this offer code."
-            };
-        }
+        // const hasUsedOffer = customer.offers.some(usedOffer => usedOffer._id.equals(offer._id));
+        // if (hasUsedOffer) {
+        //      // --- Offer Already Used Error ---
+        //     return {
+        //         success: false,
+        //         isOfferError: true,
+        //         errorCode: OfferErrorCodes.ALREADY_USED,
+        //         message: "You have already used this offer code."
+        //     };
+        // }
 
         // 3. Day Check (Requires validationDate derived from appointmentDate)
         if (offer.OfferDays && offer.OfferDays.length > 0) {
@@ -190,6 +213,7 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
       isOfferError: false, // Explicitly false on success
       costs: {
         totalServiceCost: totalServiceCost,
+        gst: gst,
         walletSavingsUsed: walletSavingsUsed,
         platformFee: PLATFORM_FEE,
         billBeforeDiscount: billBeforeDiscount,

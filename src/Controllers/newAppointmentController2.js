@@ -190,6 +190,7 @@ const createAppointment = async (req, res) => {
       walletSavingsUsed,
       offerCashback,
       finalPayableAmount,
+      gst,
       discountAmount,
       billBeforeDiscount,
       platformFee,
@@ -223,6 +224,7 @@ const createAppointment = async (req, res) => {
       })),
       billingDetails: {
         totalServiceCost: totalServiceCost,
+        gst: gst,
         walletSavingsUsed: walletSavingsUsed,
         platformFee: platformFee,
         billBeforeDiscount: billBeforeDiscount,
@@ -355,7 +357,7 @@ const acceptOrRejectAppointment = async (req, res) => {
         : "Completed";
 
     await appointment.save();
-    const customer = await UserModel.findById(appointment.user);
+    const customer = await CustomerModel.findById(appointment.user);
     const user = await UserModel.findById(customer.userId);
 
     if (user && user.token && status != "Complete") {
