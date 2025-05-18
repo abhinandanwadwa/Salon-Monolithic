@@ -1,10 +1,13 @@
 import {
   GetAllCustomers,
   GetAllAppointments,
+  sendNotifications,
+  AddBanner,
+  DelteBanner,
+  GetAllBanners,
 } from "../Controllers/Admin.controller.js";
 import express from "express";
 import { verify, roleAuthorization } from "../middlewares/authenticated.js";
-import sendNotifications from "../Controllers/salondekho.controller.js";
 
 const Adminrouter = express.Router();
 
@@ -28,5 +31,29 @@ Adminrouter.get(
   roleAuthorization(["Admin"]),
   sendNotifications
 );
+
+Adminrouter.post(
+  "/add-banner",
+  verify,
+  roleAuthorization(["Admin"]),
+  AddBanner
+);
+
+Adminrouter.get(
+  "/get-all-banners",
+  verify,
+  roleAuthorization(["Admin"]),
+  GetAllBanners
+);
+
+Adminrouter.delete(
+  "/delete-banner/:id",
+  verify,
+  roleAuthorization(["Admin"]),
+  DelteBanner
+);
+
+// Adminrouter.post(
+
 
 export default Adminrouter;

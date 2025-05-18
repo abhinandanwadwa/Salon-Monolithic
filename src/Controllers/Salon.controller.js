@@ -1653,7 +1653,7 @@ const deleteSalonPhotosByAdmin = async (req, res) => {
       });
     }
 
-    const salonPhotos = req.body.salonPhotos;
+    const salonPhotos = req.body.photoUrl;
 
     if (!salonPhotos || salonPhotos.length === 0) {
       return res.status(400).json({
@@ -1662,11 +1662,19 @@ const deleteSalonPhotosByAdmin = async (req, res) => {
       });
     }
 
-    salonPhotos.forEach((photo) => {
+    //single photo delte
+    if (typeof salonPhotos === "string") {
       salon.salonPhotos = salon.salonPhotos.filter(
-        (storePhoto) => storePhoto !== photo
+        (photo) => photo !== salonPhotos
       );
-    });
+    } else {
+      //multiple photos delete
+      salonPhotos.forEach((photo) => {
+        salon.salonPhotos = salon.salonPhotos.filter(
+          (salonPhoto) => salonPhoto !== photo
+        );
+      });
+    }
 
     await salon.save();
 
