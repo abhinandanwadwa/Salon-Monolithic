@@ -52,6 +52,10 @@ const appointmentSchema = new mongoose.Schema(
         type: Number,
         required: true,
         default: 0,
+        // do toFixed(2)
+        
+
+
       },
       walletSavingsUsed: {
         // Amount deducted from wallet

@@ -223,14 +223,14 @@ const createAppointment = async (req, res) => {
         calculatedCost: s.finalCost, // Store the cost used for this service item
       })),
       billingDetails: {
-        totalServiceCost: totalServiceCost,
-        gst: gst,
-        walletSavingsUsed: walletSavingsUsed,
-        platformFee: platformFee,
-        billBeforeDiscount: billBeforeDiscount,
-        discountAmount: discountAmount,
-        finalPayableAmount: finalPayableAmount, // This is the key payment amount
-        offerCashbackEarned: offerCashback,
+        totalServiceCost: totalServiceCost.toFixed(2),
+        gst: gst.toFixed(2), // GST applied on totalServiceCost
+        walletSavingsUsed: walletSavingsUsed.toFixed(2), // Amount deducted from wallet
+        platformFee: platformFee.toFixed(2),
+        billBeforeDiscount: billBeforeDiscount.toFixed(2),
+        discountAmount: discountAmount.toFixed(2),
+        finalPayableAmount: finalPayableAmount.toFixed(2), // This is the key payment amount
+        offerCashbackEarned: offerCashback.toFixed(2),
       },
       notes: notes || null,
 
