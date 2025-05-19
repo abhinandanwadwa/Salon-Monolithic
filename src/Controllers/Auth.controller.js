@@ -466,19 +466,27 @@ const verifyOTP = async (req, res) => {
         user.token = FcmTokenDetails;
 
         messaging.subscribeToTopic(FcmTokenDetails, "owners")
-        .then((response) => {
-          console.log("Successfully subscribed to topic:", response);
+         .then((response) => {
+          if (response.successCount > 0) {
+            console.log("Successfully subscribed to topic:", response);
+          } else {
+            console.error("Failed to subscribe to topic:", response.errors);
+          }
         })
         .catch((error) => {
-          console.log("Error subscribing to topic:", error);
+         console.log("Error subscribing to topic:", error);
         });
 
         messaging.subscribeToTopic(FcmTokenDetails, "all_users")
         .then((response) => {
-          console.log("Successfully subscribed to topic:", response);
+          if (response.successCount > 0) {
+            console.log("Successfully subscribed to topic:", response);
+          } else {
+            console.error("Failed to subscribe to topic:", response.errors);
+          }
         })
         .catch((error) => {
-          console.log("Error subscribing to topic:", error);
+         console.log("Error subscribing to topic:", error);
         });
 
       }
@@ -529,18 +537,26 @@ const verifyOTP = async (req, res) => {
 
         messaging.subscribeToTopic(FcmTokenDetails, "customers")
         .then((response) => {
-          console.log("Successfully subscribed to topic:", response);
+          if (response.successCount > 0) {
+            console.log("Successfully subscribed to topic:", response);
+          } else {
+            console.error("Failed to subscribe to topic:", response.errors);
+          }
         })
         .catch((error) => {
-          console.log("Error subscribing to topic:", error);
+         console.log("Error subscribing to topic:", error);
         });
 
         messaging.subscribeToTopic(FcmTokenDetails, "all_users")
-        .then((response) => {
-          console.log("Successfully subscribed to topic:", response);
+       .then((response) => {
+          if (response.successCount > 0) {
+            console.log("Successfully subscribed to topic:", response);
+          } else {
+            console.error("Failed to subscribe to topic:", response.errors);
+          }
         })
         .catch((error) => {
-          console.log("Error subscribing to topic:", error);
+         console.log("Error subscribing to topic:", error);
         });
       }
 
@@ -591,19 +607,27 @@ const verifyOTP = async (req, res) => {
         user.token = FcmTokenDetails;
 
         messaging.subscribeToTopic(FcmTokenDetails, "customers")
-        .then((response) => {
-          console.log("Successfully subscribed to topic:", response);
+         .then((response) => {
+          if (response.successCount > 0) {
+            console.log("Successfully subscribed to topic:", response);
+          } else {
+            console.error("Failed to subscribe to topic:", response.errors);
+          }
         })
         .catch((error) => {
-          console.log("Error subscribing to topic:", error);
+         console.log("Error subscribing to topic:", error);
         });
 
         messaging.subscribeToTopic(FcmTokenDetails, "all_users")
-        .then((response) => {
-          console.log("Successfully subscribed to topic:", response);
+         .then((response) => {
+          if (response.successCount > 0) {
+            console.log("Successfully subscribed to topic:", response);
+          } else {
+            console.error("Failed to subscribe to topic:", response.errors);
+          }
         })
         .catch((error) => {
-          console.log("Error subscribing to topic:", error);
+         console.log("Error subscribing to topic:", error);
         });
       }
       await user.save();
@@ -626,19 +650,27 @@ const verifyOTP = async (req, res) => {
         user.token = FcmTokenDetails;
 
         messaging.subscribeToTopic(FcmTokenDetails, "owners")
-        .then((response) => {
-          console.log("Successfully subscribed to topic:", response);
+         .then((response) => {
+          if (response.successCount > 0) {
+            console.log("Successfully subscribed to topic:", response);
+          } else {
+            console.error("Failed to subscribe to topic:", response.errors);
+          }
         })
         .catch((error) => {
-          console.log("Error subscribing to topic:", error);
+         console.log("Error subscribing to topic:", error);
         });
 
         messaging.subscribeToTopic(FcmTokenDetails, "all_users")
         .then((response) => {
-          console.log("Successfully subscribed to topic:", response);
+          if (response.successCount > 0) {
+            console.log("Successfully subscribed to topic:", response);
+          } else {
+            console.error("Failed to subscribe to topic:", response.errors);
+          }
         })
         .catch((error) => {
-          console.log("Error subscribing to topic:", error);
+         console.log("Error subscribing to topic:", error);
         });
       }
       await user.save();

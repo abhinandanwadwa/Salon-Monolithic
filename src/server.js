@@ -13,7 +13,7 @@ import Artistrouter from "./Routes/Artist.routes.js";
 import Servicerouter from "./Routes/Services.routes.js";
 import Appointmentrouter from "./Routes/appointment.routes.js";
 import Salonrouter from "./Routes/Salon.routes.js";
-import Adminrouter from "./Routes/admin.routes.js";
+import Adminrouter from "./Routes/Admin.routes.js";
 import Offerrouter from "./Routes/Offer.routes.js";
 import Reviewrouter from "./Routes/Review.routes.js";
 import { messaging } from "./Controllers/fcmClient.js";
@@ -25,6 +25,9 @@ import { razorpayWebhook } from "./Controllers/transcation.controller.js";
 // } from "./services/whatsappService.js"; // Import Baileys functions
 
 const app = express();
+
+// Trust the first proxy (needed for correct client IP detection behind proxies)
+app.set("trust proxy", 1);
 
 app.post(
   "/api/payments/razorpay-webhook",
