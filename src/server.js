@@ -110,6 +110,38 @@ app.post("/api/notification", async (req, res) => {
   }
 });
 
+app.post("/api/addFcmToken", async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    messaging
+      .subscribeToTopic(token, "all_users")
+      .then((response) => {
+        if (response.successCount > 0) {
+          console.log("Successfully subscribed to topic:", response);
+        } else {
+          console.error("Failed to subscribe to topic:", response.errors);
+        }
+      })
+      .catch((error) => {
+        console.log("Error subscribing to topic:", error);
+      });
+
+    if (!token) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Token is required" });
+    }
+    // Assuming you have a User model and you're saving the token there
+    await UserModel.findByIdAndUpdate(user, { token: token });
+    res
+      .status(200)
+      .json({ success: true, message: "Token saved successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 app.use(notfound);
 app.use(errorHandler);
 
