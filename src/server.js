@@ -133,7 +133,6 @@ app.post("/api/addFcmToken", async (req, res) => {
         .json({ success: false, message: "Token is required" });
     }
     // Assuming you have a User model and you're saving the token there
-    await UserModel.findByIdAndUpdate(user, { token: token });
     res
       .status(200)
       .json({ success: true, message: "Token saved successfully" });
