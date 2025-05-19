@@ -4,6 +4,7 @@ import {
   sendNotifications,
   AddBanner,
   DelteBanner,
+  toggleBanner,
   GetAllBanners,
 } from "../Controllers/Admin.controller.js";
 import express from "express";
@@ -54,6 +55,13 @@ Adminrouter.delete(
   verify,
   roleAuthorization(["Admin"]),
   DelteBanner
+);
+
+Adminrouter.put(
+  "/toggle-banner/:id",
+  verify,
+  roleAuthorization(["Admin"]),
+  toggleBanner
 );
 
 // Adminrouter.post(

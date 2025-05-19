@@ -123,6 +123,34 @@ const DelteBanner = async (req, res) => {
   }
 };
 
+const toggleBanner = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const banner = await Banner.findById(id);
+    if (!banner) {
+      return res.status(404).json({
+        success: false,
+        message: "Banner not found",
+      });
+    }
+
+    banner.isActive = !banner.isActive;
+    await banner.save();
+
+    return res.status(200).json({
+      success: true,
+      data: banner,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in toggling banner",
+    });
+  }
+}
+
 
 
 const sendNotifications = async (req, res) => {
@@ -189,4 +217,4 @@ const sendNotifications = async (req, res) => {
 };
 
 
-export { GetAllCustomers, GetAllAppointments, AddBanner, GetAllBanners, DelteBanner , sendNotifications };
+export { GetAllCustomers, GetAllAppointments, AddBanner, GetAllBanners, DelteBanner , sendNotifications,toggleBanner };
