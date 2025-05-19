@@ -6,6 +6,7 @@ import TransactionModel from "../Models/transaction.js"; // Assuming this is the
 import WalletModel from "../Models/wallet.js";
 import SalonModel from "../Models/Salon.js";
 import UserModel from "../Models/User.js";
+import CustomerModel from "../Models/Customer.js";
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const day = date.getDate();
@@ -279,9 +280,10 @@ export const razorpayWebhook = async (req, res) => {
         }
 
         appointment.paymentStatus = "Paid";
+        const customer = await CustomerModel.findById(appointment.user);
 
         const wallet = await WalletModel.findOne({
-          userId: appointment.user,
+          userId: customer.userId,
         });
 
         if (appointment.billingDetails.offerCashbackEarned > 0) {
