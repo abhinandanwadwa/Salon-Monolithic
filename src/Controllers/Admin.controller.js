@@ -27,14 +27,45 @@ const GetAllCustomers = async (req, res) => {
   }
 };
 
+//apply pagination
 const GetAllAppointments = async (req, res) => {
   try {
-    const Appointments = await AppointmentModel.find()
-      .populate("user")
-      .populate("salon");
+    const { page = 1, limit = 10 } = req.query;
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const appointments = await AppointmentModel.find()
+      .populate({
+        path: "user",
+        populate: {
+          path: "userId", // Assuming Customer model has a userId field referencing User
+          select: "name phoneNumber email", // Select specific fields from User
+        },
+      })
+      .populate({
+        path: "services.service",
+        model: "Service", // Explicitly state the model for nested population
+      })
+      .populate({
+        path: "salon",
+        // You can add specific selections for salon if needed
+        // select: 'SalonName address SalonPhoneNumber CoverImage'
+      })
+      .populate("Review") // Populates the Review field
+      .populate("offerApplied") // Populates the offerApplied field
+      .sort({ createdAt: -1 }) // Optional: sort by creation date
+      .skip(skip)
+      .limit(limitNumber);
+
+    const totalAppointments = await AppointmentModel.countDocuments();
+
     return res.status(200).json({
       success: true,
-      data: Appointments,
+      data: appointments,
+      totalPages: Math.ceil(totalAppointments / limitNumber),
+      currentPage: pageNumber,
+      totalAppointments: totalAppointments,
     });
   } catch (error) {
     console.log(error);
@@ -149,9 +180,7 @@ const toggleBanner = async (req, res) => {
       message: "Error in toggling banner",
     });
   }
-}
-
-
+};
 
 const sendNotifications = async (req, res) => {
   try {
@@ -201,7 +230,6 @@ const sendNotifications = async (req, res) => {
       message: "Notification sent successfully.",
       fcmResponse: response,
     });
-
   } catch (error) {
     console.error("Error sending notification:", error);
     let errorMessage = "Failed to send notification.";
@@ -216,5 +244,12 @@ const sendNotifications = async (req, res) => {
   }
 };
 
-
-export { GetAllCustomers, GetAllAppointments, AddBanner, GetAllBanners, DelteBanner , sendNotifications,toggleBanner };
+export {
+  GetAllCustomers,
+  GetAllAppointments,
+  AddBanner,
+  GetAllBanners,
+  DelteBanner,
+  sendNotifications,
+  toggleBanner,
+};
