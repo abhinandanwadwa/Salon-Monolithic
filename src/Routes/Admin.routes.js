@@ -5,6 +5,7 @@ import {
   AddBanner,
   DelteBanner,
   toggleBanner,
+  getActiveBanner,
   GetAllBanners,
 } from "../Controllers/Admin.controller.js";
 import express from "express";
@@ -64,7 +65,10 @@ Adminrouter.put(
   toggleBanner
 );
 
-// Adminrouter.post(
-
+Adminrouter.get(
+  "/get-active-banner",
+  verify,
+  getActiveBanner
+);
 
 export default Adminrouter;

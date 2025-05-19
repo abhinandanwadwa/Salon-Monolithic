@@ -130,6 +130,29 @@ const GetAllBanners = async (req, res) => {
   }
 };
 
+const getActiveBanner = async (req, res) => {
+  //send the first active banner
+  try {
+    const banner = await Banner.findOne({ isActive: true });
+    if (!banner) {
+      return res.status(404).json({
+        success: false,
+        message: "No active banner found",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      data: banner,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching active banner",
+    });
+  }
+};
+
 const DelteBanner = async (req, res) => {
   try {
     const { id } = req.params;
@@ -249,6 +272,7 @@ export {
   GetAllAppointments,
   AddBanner,
   GetAllBanners,
+  getActiveBanner,
   DelteBanner,
   sendNotifications,
   toggleBanner,
