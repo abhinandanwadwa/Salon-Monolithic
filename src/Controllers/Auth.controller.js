@@ -338,6 +338,13 @@ const sendOTP = async (req, res) => {
 
     const API = process.env.FAST2SMS_AUTH_KEY;
 
+    if(phoneNumber == 9478552947 || phoneNumber == "9478552947"){
+      user.otp = "0000";
+      user.otpExpiration = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes expiration for testing
+      await user.save();
+      console.log("Testing mode: Using fixed OTP 0000");
+    } 
+
     const Url = `https://www.fast2sms.com/dev/bulkV2?authorization=${API}&route=dlt&sender_id=MACVEN&message=171246&variables_values=${otp}%7C&flash=0&numbers=${phoneNumber}`;
     const response = await axios.get(Url);
     // console.log(otp)
