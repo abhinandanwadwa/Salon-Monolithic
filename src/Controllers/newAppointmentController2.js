@@ -84,13 +84,14 @@ const getTotalCost = async (req, res) => {
       success: true,
       message: "Total cost calculated successfully",
       data: {
-        serviceCost: calculationResult.costs.totalServiceCost,
-        discountApplied: calculationResult.costs.discountAmount,
-        potentialCashback: calculationResult.costs.offerCashback, // Cashback TO BE earned
-        walletSavingsApplied: calculationResult.costs.walletSavingsUsed, // Amount deducted FROM wallet
+        totalServiceCost: calculationResult.costs.totalServiceCost,
+        discountAmount: calculationResult.costs.discountAmount,
+        offerCashbackEarned: calculationResult.costs.offerCashback, // Cashback TO BE earned
+        walletSavingsUsed: calculationResult.costs.walletSavingsUsed, // Amount deducted FROM wallet
         platformFee: calculationResult.costs.platformFee,
-        approxBill: calculationResult.costs.finalPayableAmount,
-        walletBalanceAvailable: calculationResult.costs.walletBalanceAvailable, // Show current balance
+        gst: calculationResult.costs.gst,
+        billBeforeDiscount: calculationResult.costs.billBeforeDiscount,
+        finalPayableAmount: calculationResult.costs.finalPayableAmount,
         offerDetails: calculationResult.offerDetails, // Include details if offer applied
         offerValidationError: calculationResult.offerValidationError, // Let FE know if offer failed
       },
