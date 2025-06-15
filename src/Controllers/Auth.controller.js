@@ -1657,6 +1657,45 @@ const deleteOwner = async (req, res) => {
   }
 };
 
+const deleteCustomer = async (req, res) => {
+  try {
+    const { phoneNumber } = req.body;
+    const customer = await CustomerModel.findOne({ userId: req.user._id });
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
+    }
+    const user = await UserModel.find({ phoneNumber });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const wallet = await WalletModel.findOne({ userId: user._id });
+    if (wallet) {
+      await WalletModel.findOneAndDelete({ userId: user._id });
+    }
+
+    await CustomerModel.findOneAndDelete({ userId: user._id });
+    await UserModel.findOneAndDelete({ phoneNumber });
+    return res.status(200).json({
+      success: true,
+      message: "Customer deleted successfully",
+    });
+  }
+  catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in deleting Customer",
+    });
+  }
+}
+
 /**
  * @desc Logout
  * @route POST /api/auth/logout
@@ -1697,4 +1736,5 @@ export {
   getSalonsubAdmins,
   removesubAdmin,
   deleteOwner,
+  deleteCustomer,
 };
