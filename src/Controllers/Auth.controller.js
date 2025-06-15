@@ -1623,33 +1623,9 @@ const deleteOwner = async (req, res) => {
     if (salon) {
       const services = await Service.find({ salon: salon._id });
 
-      const serviceArtist = await ServiceArtist.find({
-        Service: { $in: services.map((service) => service._id) },
-      });
-
-      if (serviceArtist.length) {
-        await ServiceArtist.deleteMany({
-          Service: { $in: services.map((service) => service._id) },
-        });
-      }
 
       if (services.length) {
         await Service.deleteMany({ salon: salon._id });
-      }
-
-      const artists = await ArtistModel.find({ salon: salon._id });
-      const users = await UserModel.find({
-        _id: { $in: artists.map((artist) => artist.userId) },
-      });
-
-      if (users.length) {
-        await UserModel.deleteMany({
-          _id: { $in: artists.map((artist) => artist.userId) },
-        });
-      }
-
-      if (artists.length) {
-        await ArtistModel.deleteMany({ salon: salon._id });
       }
 
       if (salon.appointments.length) {
