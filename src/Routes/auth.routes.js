@@ -13,6 +13,7 @@ import {
   removesubAdmin,
   deleteOwner,
   getUserDetails,
+  deleteCustomer
 } from "../Controllers/Auth.controller.js";
 import rateLimit from "express-rate-limit";
 
@@ -68,5 +69,12 @@ Authrouter.post(
 );
 
 Authrouter.delete("/deleteOwner", deleteOwner);
+
+Authrouter.delete(
+  "/deleteCustomer",
+  verify,
+  // roleAuthorization(["Owner"]),
+  deleteCustomer
+);
 
 export default Authrouter;

@@ -1659,7 +1659,7 @@ const deleteOwner = async (req, res) => {
 
 const deleteCustomer = async (req, res) => {
   try {
-    const { phoneNumber } = req.body;
+    // const { phoneNumber } = req.body;
     const customer = await CustomerModel.findOne({ userId: req.user._id });
     if (!customer) {
       return res.status(404).json({
@@ -1667,7 +1667,21 @@ const deleteCustomer = async (req, res) => {
         message: "Customer not found",
       });
     }
-    const user = await UserModel.find({ phoneNumber });
+    const appointments = await AppointmentModel.find({ user: customer._id });
+    //check if customer has any booked or confirmed appointments status
+    if (appointments.length > 0) {
+      const hasBookedOrConfirmed = appointments.some(
+        (appointment) => appointment.Status === "Booked" || appointment.Status === "Confirmed"
+      );
+      if (hasBookedOrConfirmed) {
+        return res.status(400).json({
+          success: false,
+          message: "Customer has booked or confirmed appointments",
+        });
+      }
+    }
+    
+    const user = await UserModel.findById(req.user._id);
     if (!user) {
       return res.status(404).json({
         success: false,
