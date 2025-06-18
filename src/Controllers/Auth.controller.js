@@ -1695,7 +1695,7 @@ const deleteCustomer = async (req, res) => {
     }
 
     await CustomerModel.findOneAndDelete({ userId: user._id });
-    await UserModel.findOneAndDelete({ phoneNumber });
+    await UserModel.findOneAndDelete({ _id:user._id });
     return res.status(200).json({
       success: true,
       message: "Customer deleted successfully",
