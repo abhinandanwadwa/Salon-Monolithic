@@ -260,7 +260,7 @@ const createAppointment = async (req, res) => {
       })),
       billingDetails: {
         totalServiceCost: baseForDeductionsAndDiscounts.toFixed(2),
-        gst: gst.toFixed(2), // GST applied on totalServiceCost
+        gst: gstPayable.toFixed(2), // GST applied on totalServiceCost
         walletSavingsUsed: walletSavingsUsed.toFixed(2), // Amount deducted from wallet
         platformFee: platformFee.toFixed(2),
         billBeforeDiscount: null,
