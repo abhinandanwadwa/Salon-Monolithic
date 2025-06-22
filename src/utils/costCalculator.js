@@ -1,54 +1,50 @@
-// utils/costCalculator.js (or within AppointmentsController.js)
+// utils/costCalculator.js
 import mongoose from "mongoose";
-import moment from "moment"; // Make sure moment is imported
+import moment from "moment";
 import ServiceModel from "../Models/Services.js";
 import OfferModel from "../Models/Offer.js";
 import CustomerModel from "../Models/Customer.js";
 import WalletModel from "../Models/wallet.js";
 import SalonModel from "../Models/Salon.js";
 
-const PLATFORM_FEE = 0;
+const PLATFORM_FEE = 0; // Assuming this is applied before final GST in both cases
+const GST_RATE = 0.18; // Example: 18% GST. Store this in a config or fetch from salon if it varies.
 
-// Define specific error codes for offer validation issues
 const OfferErrorCodes = {
     NOT_FOUND: "OFFER_NOT_FOUND",
     EXPIRED: "OFFER_EXPIRED",
     ALREADY_USED: "OFFER_ALREADY_USED",
     INVALID_DAY: "OFFER_INVALID_DAY",
-    DATE_REQUIRED: "OFFER_APPOINTMENT_DATE_REQUIRED", // When date needed for day validation but not provided
-    INVALID_DATA: "OFFER_INVALID_DATA", // Offer structure itself is bad
+    DATE_REQUIRED: "OFFER_APPOINTMENT_DATE_REQUIRED",
+    INVALID_DATA: "OFFER_INVALID_DATA",
 };
 
+// Helper for rounding
+const roundToTwo = (num) => parseFloat(num.toFixed(2));
 
 export const calculateDetailedCosts = async (userId, salonId, servicesInput, offerCode, appointmentDate) => {
   try {
-    // --- 1. Fetch User Data ---
     const customer = await CustomerModel.findOne({ userId }).populate("offers");
     const wallet = await WalletModel.findOne({ userId });
+    const salon = await SalonModel.findById(salonId);
 
-
-    // Basic data validation
     if (!customer) return { success: false, isOfferError: false, message: "Customer not found", errorCode: "CUSTOMER_NOT_FOUND" };
     if (!wallet) return { success: false, isOfferError: false, message: "Wallet not found", errorCode: "WALLET_NOT_FOUND" };
+    if (!salon) return { success: false, isOfferError: false, message: "Salon not found", errorCode: "SALON_NOT_FOUND" };
     if (!servicesInput || servicesInput.length === 0) {
          return { success: false, isOfferError: false, message: "No services selected", errorCode: "SERVICES_REQUIRED" };
     }
 
-
-    const salon = await SalonModel.findById(salonId);
     const currentWalletBalance = wallet.balance;
-
-    // --- 2. Calculate Base Service & Customization Cost ---
     const serviceIds = servicesInput.map(s => new mongoose.Types.ObjectId(s.serviceId));
     const fetchedServices = await ServiceModel.find({ _id: { $in: serviceIds } });
 
-    let totalServiceCost = 0;
+    let initialServiceSum = 0; // This is the sum of ServiceCost/OptionPrice
     const calculatedServices = [];
 
     for (const inputService of servicesInput) {
         const service = fetchedServices.find(s => s._id.toString() === inputService.serviceId);
         if (!service) {
-            // If a service ID provided doesn't exist
              return { success: false, isOfferError: false, message: `Service with ID ${inputService.serviceId} not found`, errorCode: "SERVICE_NOT_FOUND" };
         }
 
@@ -58,168 +54,123 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
         if (inputService.selectedOptionId) {
             const option = service.CustomizationOptions.find(opt => opt._id.toString() === inputService.selectedOptionId);
             if (!option) {
-                 // If a selected option ID doesn't exist for the service
                  return { success: false, isOfferError: false, message: `Customization option ${inputService.selectedOptionId} not found for service ${service.ServiceName}`, errorCode: "OPTION_NOT_FOUND" };
-                // Or use console.warn and base price if desired:
-                // console.warn(`Customization option ${inputService.selectedOptionId} not found for service ${service.ServiceName}. Using base price.`);
             } else {
-                costForItem = option.OptionPrice;
+                // If option is found, add its price to the service cost
+                // costForItem = option.OptionPrice;
+                costForItem += option.OptionPrice; // Add option price to service cost
                 chosenOption = { optionId: option._id, optionName: option.OptionName, optionPrice: option.OptionPrice };
             }
         }
-        totalServiceCost += costForItem;
+        initialServiceSum += costForItem;
         calculatedServices.push({
             serviceId: service._id,
             serviceName: service.ServiceName,
-            baseCost: service.ServiceCost,
-            finalCost: costForItem,
+            inputCost: costForItem, // The cost as per DB (could be inclusive or exclusive of GST)
             chosenOption: chosenOption
         });
     }
+    initialServiceSum = roundToTwo(initialServiceSum);
 
-    // ---  Salon GST and GST Calculation ---
-    let gst;
-    if(salon && salon.Gst) {
-        const gstPercentage = 0.18; // Assuming GST is 18%
-        const gstAmount = (totalServiceCost * gstPercentage) / 100;
-        gst = gstAmount;
-        // Add GST to total service cost
-        totalServiceCost += gstAmount;
-    }else{
-        //consider inclusive GST
-        const gstPercentage = 0.18; // Assuming GST is 18%
-        // Calculate GST amount based on the total service cost
-        // GST is included in the total service cost, so we need to extract it
-        const gstAmount = (totalServiceCost * gstPercentage) / (100 + gstPercentage);
-        gst = gstAmount;
+    // --- Determine Base Cost for Deductions (Pre-GST Base) ---
+    // This is the crucial part based on your notes
+    let baseCostForDeductions;
+    let originalGstAmountInPrice = 0; // Only relevant if prices are inclusive
+    const pricesIncludeGst = !salon.Gst; // If salon.Gst is false or undefined, prices are inclusive
+
+    if (pricesIncludeGst) {
+        baseCostForDeductions = roundToTwo(initialServiceSum / (1 + GST_RATE));
+    } else {
+        baseCostForDeductions = initialServiceSum;
     }
 
+    // --- Apply Wallet Deduction (Applied on the pre-GST base) ---
+    const walletSavingsUsed = roundToTwo(Math.min(baseCostForDeductions, currentWalletBalance));
+    const costAfterWallet = roundToTwo(baseCostForDeductions - walletSavingsUsed);
 
+    // --- Add Platform Fee (Applied on the pre-GST base after wallet) ---
+    const billBeforeDiscountPreGst = roundToTwo(costAfterWallet + PLATFORM_FEE);
 
-    // --- 3. Apply Wallet Deduction FIRST ---
-    const walletSavingsUsed = Math.min(totalServiceCost, currentWalletBalance);
-    const costAfterWallet = totalServiceCost - walletSavingsUsed;
-
-    // --- 4. Add Platform Fee to get Bill Before Discount ---
-    const billBeforeDiscount = costAfterWallet + PLATFORM_FEE;
-
-    // --- 5. Apply Offer (Discount and Cashback) ---
+    // --- Apply Offer (Discount) ---
     let discountAmount = 0;
-    let cashbackAmount = 0;
     let appliedOffer = null;
-    // No offerValidationError variable needed, return directly
 
     if (offerCode) {
         offerCode = offerCode.toUpperCase();
         const offer = await OfferModel.findOne({ OfferName: offerCode, salon: salonId });
 
         if (!offer) {
-             // --- Offer Not Found Error ---
-             return {
-                 success: false,
-                 isOfferError: true, // Flag indicating the error is offer-related
-                 errorCode: OfferErrorCodes.NOT_FOUND,
-                 message: "Offer code not found or not valid for this salon."
-             };
+             return { success: false, isOfferError: true, errorCode: OfferErrorCodes.NOT_FOUND, message: "Offer code not found or not valid for this salon."};
         }
-
-        // --- Offer Validations ---
+        // ... (Offer validations: expiry, usage, day, data - KEEP YOUR EXISTING VALIDATIONS HERE)
         let validationDate = appointmentDate ? moment(appointmentDate) : null;
         let expiryCheckDate = validationDate ? validationDate.startOf('day') : moment().startOf('day');
         const offerEndDateMoment = moment(offer.OfferEndDate).endOf('day');
 
-        // 1. Expiry Check
         if (offerEndDateMoment.isBefore(expiryCheckDate)) {
-            // --- Offer Expired Error ---
-            return {
-                success: false,
-                isOfferError: true,
-                errorCode: OfferErrorCodes.EXPIRED,
-                message: "This offer has expired" + (validationDate ? " for the selected date." : ".")
-            };
+            return { success: false, isOfferError: true, errorCode: OfferErrorCodes.EXPIRED, message: "This offer has expired" + (validationDate ? " for the selected date." : ".") };
         }
 
-        // 2. Usage Check
-        // const hasUsedOffer = customer.offers.some(usedOffer => usedOffer._id.equals(offer._id));
-        // if (hasUsedOffer) {
-        //      // --- Offer Already Used Error ---
-        //     return {
-        //         success: false,
-        //         isOfferError: true,
-        //         errorCode: OfferErrorCodes.ALREADY_USED,
-        //         message: "You have already used this offer code."
-        //     };
-        // }
-
-        // 3. Day Check (Requires validationDate derived from appointmentDate)
         if (offer.OfferDays && offer.OfferDays.length > 0) {
              if (!validationDate) {
-                 // --- Date Required Error ---
-                 return {
-                     success: false,
-                     isOfferError: true,
-                     errorCode: OfferErrorCodes.DATE_REQUIRED,
-                     message: "Please select an appointment date to use this offer code (it's only valid on specific days)."
-                 };
+                 return { success: false, isOfferError: true, errorCode: OfferErrorCodes.DATE_REQUIRED, message: "Please select an appointment date to use this offer code." };
              }
              const Days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
              const appointmentDayName = Days[validationDate.day()];
-             const isValidDay = offer.OfferDays.includes(appointmentDayName);
-
-             if (!isValidDay) {
-                  // --- Invalid Day Error ---
-                 return {
-                     success: false,
-                     isOfferError: true,
-                     errorCode: OfferErrorCodes.INVALID_DAY,
-                     message: `This offer is not valid on a ${appointmentDayName}.`
-                 };
+             if (!offer.OfferDays.includes(appointmentDayName)) {
+                 return { success: false, isOfferError: true, errorCode: OfferErrorCodes.INVALID_DAY, message: `This offer is not valid on a ${appointmentDayName}.` };
              }
         }
-
-        // 4. Data Check
         if (offer.OfferDiscountinPercentage === undefined && offer.offerCashbackinPercentage === undefined) {
-            console.error(`Offer ${offer.OfferName} (${offer._id}) has invalid data - no discount or cashback percentage defined.`);
-             // --- Invalid Data Error ---
-            return {
-                success: false,
-                isOfferError: true,
-                errorCode: OfferErrorCodes.INVALID_DATA,
-                message: "Offer data is invalid. Please contact support." // User-friendly message
-            };
+            return { success: false, isOfferError: true, errorCode: OfferErrorCodes.INVALID_DATA, message: "Offer data is invalid." };
         }
         // --- End Offer Validations ---
 
-        // If all validations passed:
         appliedOffer = offer;
         if (offer.OfferDiscountinPercentage > 0) {
-            discountAmount = (billBeforeDiscount * offer.OfferDiscountinPercentage) / 100;
-            discountAmount = Math.min(discountAmount, billBeforeDiscount);
+            // Discount is applied on the pre-GST amount after wallet and platform fee
+            discountAmount = roundToTwo((billBeforeDiscountPreGst * offer.OfferDiscountinPercentage) / 100);
+            discountAmount = Math.min(discountAmount, billBeforeDiscountPreGst); // Cap discount
         }
-        // Cashback calculation comes later
     } // End if(offerCode)
 
-    // --- 6. Calculate Final Payable Amount ---
-    const finalPayableAmount = Math.max(0, billBeforeDiscount - discountAmount);
+    const subTotalAfterDiscountPreGst = roundToTwo(billBeforeDiscountPreGst - discountAmount);
 
-    // --- 7. Calculate Cashback based on Final Payable Amount ---
+    // --- Calculate Final GST to be Paid ---
+    // This GST is calculated on the subTotalAfterDiscountPreGst
+    const gstPayable = roundToTwo(subTotalAfterDiscountPreGst * GST_RATE);
+
+    // --- Calculate Final Payable Amount ---
+    const finalPayableAmount = roundToTwo(subTotalAfterDiscountPreGst + gstPayable);
+
+    // --- Calculate Cashback (based on Final Payable Amount) ---
+    let cashbackAmount = 0;
     if (appliedOffer && appliedOffer.offerCashbackinPercentage > 0) {
-         cashbackAmount = (finalPayableAmount * appliedOffer.offerCashbackinPercentage) / 100;
+         cashbackAmount = roundToTwo((finalPayableAmount * appliedOffer.offerCashbackinPercentage) / 100);
     }
 
-    // --- 8. Prepare SUCCESS Result Object ---
     return {
       success: true,
-      isOfferError: false, // Explicitly false on success
+      isOfferError: false,
       costs: {
-        totalServiceCost: totalServiceCost,
-        gst: gst,
+        initialServiceSum: initialServiceSum, // Sum of (service/option prices) from DB
+        pricesIncludeGst: pricesIncludeGst, // boolean: true if initialServiceSum included GST
+        gstRate: GST_RATE, // The GST rate used for calculation
+
+        baseForDeductionsAndDiscounts: baseCostForDeductions, // initialServiceSum or its pre-GST equivalent
+        originalGstAmountInPrice: pricesIncludeGst ? originalGstAmountInPrice : 0, // GST amount if it was part of initialServiceSum
+
         walletSavingsUsed: walletSavingsUsed,
         platformFee: PLATFORM_FEE,
-        billBeforeDiscount: billBeforeDiscount,
+        
+        billBeforeDiscountPreGst: billBeforeDiscountPreGst, // Cost after wallet & platform_fee, before discount, pre-GST
         discountAmount: discountAmount,
-        finalPayableAmount: finalPayableAmount,
-        offerCashback: cashbackAmount, // Renamed for clarity from offerCashbackEarned
+        
+        subTotalAfterDiscountPreGst: subTotalAfterDiscountPreGst, // This is the "Amount" (Rs 517.96 or Rs 640) in your notes
+        gstPayable: gstPayable, // The GST calculated on subTotalAfterDiscountPreGst (Rs 93.23 or Rs 115.2)
+
+        finalPayableAmount: finalPayableAmount, // The final amount customer pays (Rs 611 or Rs 755)
+        offerCashback: cashbackAmount, // (Rs 122 if 20% on Rs 611)
         walletBalanceAvailable: currentWalletBalance
       },
       offerDetails: appliedOffer ? {
@@ -228,19 +179,20 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
         discountPercentage: appliedOffer.OfferDiscountinPercentage,
         cashbackPercentage: appliedOffer.offerCashbackinPercentage,
       } : null,
-      calculatedServices: calculatedServices,
-      // No offerValidationError needed here anymore
+      calculatedServices: calculatedServices.map(cs => ({
+          ...cs,
+          // Add effective costs per service if needed after pro-rating discounts/wallet,
+          // for now, inputCost is shown.
+      })),
     };
 
   } catch (error) {
-    // --- Catch unexpected errors during calculation ---
     console.error("Error in calculateDetailedCosts:", error);
-    // Return a generic server error structure
     return {
         success: false,
-        isOfferError: false, // Not specifically an offer validation error
+        isOfferError: false,
         message: error.message || "An unexpected error occurred while calculating costs.",
-        errorCode: "CALCULATION_ERROR" // Generic code for unexpected issues
+        errorCode: "CALCULATION_ERROR"
     };
   }
 };

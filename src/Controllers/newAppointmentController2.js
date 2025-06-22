@@ -34,73 +34,105 @@ const formatDate = (dateString) => {
   return `${day}${daySuffix(day)} ${month} ${year}`;
 };
 
+const roundToTwo = (num) => parseFloat(num.toFixed(2));
+
 const getTotalCost = async (req, res) => {
   try {
-    // Expects: { services: [{ serviceId, selectedOptionId? }], offerCode?, salonId }
-    // salonId is needed if an offerCode is provided for validation
     const { services, offerCode, salonId, appointmentDate } = req.body;
-    const user = req.user._id;
+    const user = req.user._id; // Assuming req.user is populated by authentication middleware
 
     // Basic validation
     if (!services || !Array.isArray(services) || services.length === 0) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Services array is required." });
+      return res.status(400).json({ success: false, message: "Services array is required." });
     }
-    if (offerCode && !salonId) {
-      return res.status(400).json({
-        success: false,
-        message: "Salon ID is required when using an offer code.",
-      });
+    // salonId is required by calculateDetailedCosts to fetch salon details (e.g., for salon.Gst flag)
+    // and for offer validation if an offerCode is provided.
+    if (!salonId) {
+        return res.status(400).json({ success: false, message: "Salon ID is required." });
     }
+    // appointmentDate is optional for calculateDetailedCosts overall,
+    // but calculateDetailedCosts itself will return an error if an offer requires it and it's missing.
 
-    // Use the helper function (passing null for appointmentDate as it's not strictly needed here,
-    // unless offers are day-specific and you want to preview for a future date)
-    const calculationResult = await calculateDetailedCosts(
+    let calculationResult = await calculateDetailedCosts(
       user,
       salonId,
       services,
       offerCode,
       appointmentDate
-    ); // Pass null for date in getTotalCost
+    );
 
-    if (!calculationResult.success) {
-      // Handle specific errors, e.g., offer validation errors
-      if (calculationResult.offerValidationError) {
-        return res.status(400).json({
-          success: false,
-          message: `Offer Error: ${calculationResult.offerValidationError}`,
-          // Optionally return costs calculated *without* the invalid offer
-        });
-      }
-      // General calculation error
-      return res
-        .status(400)
-        .json({ success: false, message: calculationResult.message });
+    let offerValidationErrorForResponse = null;
+
+    // Scenario: An offer was attempted, but it failed validation.
+    // We should then calculate the cost without the offer and report the offer's error message.
+    if (!calculationResult.success && calculationResult.isOfferError) {
+      offerValidationErrorForResponse = calculationResult.message; // Store the original offer error message
+
+      // Attempt to calculate costs again, this time without any offer.
+      const fallbackCalculationResult = await calculateDetailedCosts(
+        user,
+        salonId,
+        services,
+        null, // No offer code for the fallback calculation
+        appointmentDate // Pass appointmentDate along; it might be used for non-offer related logic if any
+      );
+      calculationResult = fallbackCalculationResult; // Use the result of the fallback calculation going forward
     }
 
-    // Return the calculated costs
+
+
+    // After potential fallback, check if the calculation was ultimately successful.
+    if (!calculationResult.success) {
+      // This means:
+      // 1. The initial calculation failed for a non-offer reason (e.g., service not found, customer not found).
+      // OR
+      // 2. The initial calculation failed due to an offer error, AND the subsequent fallback calculation (without offer) also failed.
+      return res.status(400).json({
+        success: false,
+        message: calculationResult.message,
+        errorCode: calculationResult.errorCode, // Provide specific error code if available from calculateDetailedCosts
+      });
+    }
+
+    // If we reach here, 'calculationResult' holds a successful cost calculation
+    // (either with the original offer, or without an offer if the original offer failed and fallback succeeded).
+    const { costs, offerDetails: successfulOfferDetails } = calculationResult;
+
+    console.log("Calculated Costs:", costs); // Log the costs for debugging
+
+    // Construct 'totalServiceCost' for the response as per original intent:
+    // This is the sum of catalog prices (service.ServiceCost or option.OptionPrice).
+    // - If catalog prices are GST-inclusive, this value is the direct sum (costs.initialServiceSum).
+    // - If catalog prices are GST-exclusive AND GST is applicable, this value reflects (sum of prices + GST on that sum).
+    let responseTotalServiceCost = costs.baseForDeductionsAndDiscounts;
+    // if (!costs.pricesIncludeGst && costs.gstRate > 0) { // If prices are exclusive AND GST is applicable (gstRate > 0)
+    //     responseTotalServiceCost = roundToTwo(costs.initialServiceSum * (1 + costs.gstRate));
+    // }
+
+    // Construct the response data object with the exact variable names requested
     return res.status(200).json({
       success: true,
       message: "Total cost calculated successfully",
       data: {
-        totalServiceCost: calculationResult.costs.totalServiceCost,
-        discountAmount: calculationResult.costs.discountAmount,
-        offerCashbackEarned: calculationResult.costs.offerCashback, // Cashback TO BE earned
-        walletSavingsUsed: calculationResult.costs.walletSavingsUsed, // Amount deducted FROM wallet
-        platformFee: calculationResult.costs.platformFee,
-        gst: calculationResult.costs.gst,
-        billBeforeDiscount: calculationResult.costs.billBeforeDiscount,
-        finalPayableAmount: calculationResult.costs.finalPayableAmount,
-        offerDetails: calculationResult.offerDetails, // Include details if offer applied
-        offerValidationError: calculationResult.offerValidationError, // Let FE know if offer failed
+        totalServiceCost: responseTotalServiceCost,
+        discountAmount: costs.discountAmount,
+        offerCashbackEarned: costs.offerCashback,
+        walletSavingsUsed: costs.walletSavingsUsed,
+        platformFee: costs.platformFee,
+        gst: costs.gstPayable, // This is the final GST amount calculated on the taxable base
+        // billBeforeDiscount: costs.billBeforeDiscountPreGst, // This is the base amount (pre-GST) on which the discount was applied
+        finalPayableAmount: costs.finalPayableAmount,
+        offerDetails: successfulOfferDetails, // Contains details of the offer if one was successfully applied; null otherwise
+        offerValidationError: offerValidationErrorForResponse, // Contains the error message if an offer was attempted but failed
       },
     });
+
   } catch (error) {
-    console.error("Error in getTotalCost:", error);
+    console.error("Error in getTotalCost controller:", error); // Log the actual error
     return res.status(500).json({
       success: false,
-      message: "Internal server error fetching cost",
+      message: "Internal server error while calculating total cost.",
+      // errorCode: "INTERNAL_SERVER_ERROR" // You can add a generic error code for internal errors
     });
   }
 };
