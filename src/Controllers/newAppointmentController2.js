@@ -34,7 +34,13 @@ const formatDate = (dateString) => {
   return `${day}${daySuffix(day)} ${month} ${year}`;
 };
 
-const roundToTwo = (num) => parseFloat(num.toFixed(2));
+const roundToTwo = (num) => {
+  if (typeof num !== 'number' || isNaN(num)) {
+    // console.warn(`roundToTwo received non-numeric input: ${num}. Returning 0.`); // Optional warning
+    return 0; // Or throw an error, or return NaN, depending on desired strictness
+  }
+  return parseFloat(num.toFixed(2));
+};
 
 const getTotalCost = async (req, res) => {
   try {
@@ -212,69 +218,69 @@ const createAppointment = async (req, res) => {
       });
     }
 
+    // ...
     const { costs, offerDetails, calculatedServices: detailedCalculatedServices } = calculationResult;
 
     // --- Extract cost components from the new `costs` structure ---
     const {
-        initialServiceSum,         // Sum of (service/option prices) from DB
-        pricesIncludeGst,          // boolean: true if initialServiceSum included GST
-        gstRate,                   // The GST rate used
-        baseForDeductionsAndDiscounts, // initialServiceSum or its pre-GST equivalent
+        initialServiceSum,
+        pricesIncludeGst,
+        gstRate,
+        baseForDeductionsAndDiscounts,
         walletSavingsUsed,
         platformFee,
         discountAmount,
-        subTotalAfterDiscountPreGst, // "Amount" after discount, before final GST
-        gstPayable,                // Final GST amount to be paid
+        subTotalAfterDiscountPreGst,
+        gstPayable,
         finalPayableAmount,
         offerCashback,
-        // originalGstAmountInPrice // available if needed
-        // billBeforeDiscountPreGst // available if needed, equivalent to subTotalAfterDiscountPreGst + discountAmount - platformFee
     } = costs;
 
     const appliedOfferId = offerDetails ? offerDetails.offerId : null;
     
-
-
-    const currentWalletBalance = wallet.balance; // Re-fetch or use reliable fetched value
+    // --- CHECK WALLET (already correct in your code) ---
+    const currentWalletBalance = wallet.balance;
     if (walletSavingsUsed > currentWalletBalance) {
       return res.status(400).json({
         success: false,
-        message: `Insufficient wallet balance. Required: ${walletSavingsUsed}, Available: ${currentWalletBalance}`,
+        message: `Insufficient wallet balance. Required: ${roundToTwo(walletSavingsUsed)}, Available: ${roundToTwo(currentWalletBalance)}`,
       });
     }
+
+    // --- Calculate the actual billBeforeDiscount ---
+    // This is the amount (pre-GST, after wallet, after platform fee) on which the offer discount was applied.
+    const actualBillBeforeDiscount = roundToTwo(baseForDeductionsAndDiscounts - walletSavingsUsed + platformFee);
 
     // --- Create Appointment ---
     const newAppointment = await AppointmentModel.create({
       salon: salonId,
       user: customer._id,
       name: customer.name,
-      // Store the detailed services breakdown including options
-      services: calculationResult.calculatedServices.map((s) => ({
-        serviceName: s.serviceName, // Store the name of the service
-        serviceCustomizationName: s.chosenOption
-          ? s.chosenOption.optionName
-          : null, // Store the name of the chosen option if any
-        service: s.serviceId, // Store reference to the service
-        selectedOption: s.chosenOption ? s.chosenOption.optionId : null, // Store reference to chosen option if any
-        calculatedCost: s.finalCost, // Store the cost used for this service item
+      services: detailedCalculatedServices.map((s) => ({ // Use detailedCalculatedServices
+        serviceName: s.serviceName,
+        serviceCustomizationName: s.chosenOption ? s.chosenOption.optionName : null,
+        service: s.serviceId,
+        selectedOption: s.chosenOption ? s.chosenOption.optionId : null,
+        calculatedCost: roundToTwo(s.inputCost), // FIX: Use s.inputCost and round it
       })),
       billingDetails: {
-        totalServiceCost: baseForDeductionsAndDiscounts.toFixed(2),
-        gst: gstPayable.toFixed(2), // GST applied on totalServiceCost
-        walletSavingsUsed: walletSavingsUsed.toFixed(2), // Amount deducted from wallet
-        platformFee: platformFee.toFixed(2),
-        billBeforeDiscount: null,
-        discountAmount: discountAmount.toFixed(2),
-        finalPayableAmount: finalPayableAmount.toFixed(2), // This is the key payment amount
-        offerCashbackEarned: offerCashback.toFixed(2),
+        // totalServiceCost definition from your latest getTotalCost logic
+        totalServiceCost: roundToTwo(baseForDeductionsAndDiscounts),
+        gst: roundToTwo(gstPayable), // Assuming your schema calls it 'gst' for gstPayable
+        walletSavingsUsed: roundToTwo(walletSavingsUsed),
+        platformFee: roundToTwo(platformFee),
+        billBeforeDiscount: actualBillBeforeDiscount, // FIX: Provide the calculated value
+        discountAmount: roundToTwo(discountAmount),
+        finalPayableAmount: roundToTwo(finalPayableAmount),
+        offerCashbackEarned: roundToTwo(offerCashback),
       },
       notes: notes || null,
-
       appointmentDate: appointmentDate,
       appointmentStartTime: appointmentStartTime,
       Status: "Booked",
-      offerApplied: appliedOfferId, // Store the ID of the offer used, if any
+      offerApplied: appliedOfferId,
     });
+// ... rest of your function
 
     const appointmentId = newAppointment._id;
 
