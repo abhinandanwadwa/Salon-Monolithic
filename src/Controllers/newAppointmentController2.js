@@ -190,7 +190,6 @@ const createAppointment = async (req, res) => {
     }
 
     // --- Calculate Costs Reliably on Backend ---
-    // Pass the actual appointmentDate for accurate offer day validation
     const calculationResult = await calculateDetailedCosts(
       userId,
       salonId,
@@ -199,40 +198,44 @@ const createAppointment = async (req, res) => {
       appointmentDate
     );
 
-    // Handle calculation errors (e.g., service not found, invalid offer applied *during booking*)
+
     if (!calculationResult.success) {
-      // Distinguish offer validation errors from others
-      if (calculationResult.offerValidationError) {
-        return res.status(400).json({
-          success: false,
-          message: `Offer Error: ${calculationResult.offerValidationError}`,
-          // Maybe suggest booking without the offer?
-        });
-      }
+      // If an offer was attempted and failed, calculationResult will have isOfferError: true.
+      // Unlike getTotalCost, for createAppointment, if the offer is invalid at the point of booking,
+      // we should probably fail the booking rather than silently booking without the offer,
+      // unless business logic dictates otherwise. The current logic correctly fails.
       return res.status(400).json({
         success: false,
-        message:
-          calculationResult.message || "Failed to calculate final costs.",
+        message: calculationResult.message || "Failed to calculate final costs for booking.",
+        errorCode: calculationResult.errorCode, // Provide specific error code
+        isOfferError: calculationResult.isOfferError // Indicate if it was an offer issue
       });
     }
 
-    // --- Check Wallet Balance before proceeding ---
-    // Ensure the user *still* has enough balance for the calculated deduction
-    const currentWalletBalance = wallet.balance; // Re-fetch or use reliable fetched value
-    const {
-      walletSavingsUsed,
-      offerCashback,
-      finalPayableAmount,
-      gst,
-      discountAmount,
-      billBeforeDiscount,
-      platformFee,
-      totalServiceCost,
-    } = calculationResult.costs;
-    const appliedOfferId = calculationResult.offerDetails
-      ? calculationResult.offerDetails.offerId
-      : null;
+    const { costs, offerDetails, calculatedServices: detailedCalculatedServices } = calculationResult;
 
+    // --- Extract cost components from the new `costs` structure ---
+    const {
+        initialServiceSum,         // Sum of (service/option prices) from DB
+        pricesIncludeGst,          // boolean: true if initialServiceSum included GST
+        gstRate,                   // The GST rate used
+        baseForDeductionsAndDiscounts, // initialServiceSum or its pre-GST equivalent
+        walletSavingsUsed,
+        platformFee,
+        discountAmount,
+        subTotalAfterDiscountPreGst, // "Amount" after discount, before final GST
+        gstPayable,                // Final GST amount to be paid
+        finalPayableAmount,
+        offerCashback,
+        // originalGstAmountInPrice // available if needed
+        // billBeforeDiscountPreGst // available if needed, equivalent to subTotalAfterDiscountPreGst + discountAmount - platformFee
+    } = costs;
+
+    const appliedOfferId = offerDetails ? offerDetails.offerId : null;
+    
+
+
+    const currentWalletBalance = wallet.balance; // Re-fetch or use reliable fetched value
     if (walletSavingsUsed > currentWalletBalance) {
       return res.status(400).json({
         success: false,
@@ -256,11 +259,11 @@ const createAppointment = async (req, res) => {
         calculatedCost: s.finalCost, // Store the cost used for this service item
       })),
       billingDetails: {
-        totalServiceCost: totalServiceCost.toFixed(2),
+        totalServiceCost: baseForDeductionsAndDiscounts.toFixed(2),
         gst: gst.toFixed(2), // GST applied on totalServiceCost
         walletSavingsUsed: walletSavingsUsed.toFixed(2), // Amount deducted from wallet
         platformFee: platformFee.toFixed(2),
-        billBeforeDiscount: billBeforeDiscount.toFixed(2),
+        billBeforeDiscount: null,
         discountAmount: discountAmount.toFixed(2),
         finalPayableAmount: finalPayableAmount.toFixed(2), // This is the key payment amount
         offerCashbackEarned: offerCashback.toFixed(2),
