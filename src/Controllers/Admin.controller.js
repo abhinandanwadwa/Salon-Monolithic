@@ -133,7 +133,7 @@ const GetAllBanners = async (req, res) => {
 const getActiveBanner = async (req, res) => {
   //send the first active banner
   try {
-    const banner = await Banner.findOne({ isActive: true });
+    const banner = await Banner.find({ isActive: true });
     if (!banner) {
       return res.status(404).json({
         success: false,
