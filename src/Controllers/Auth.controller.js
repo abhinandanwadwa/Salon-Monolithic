@@ -1617,8 +1617,9 @@ const removesubAdmin = async (req, res) => {
 
 const deleteOwner = async (req, res) => {
   try {
-    const { phoneNumber } = req.body;
-    const salon = await SalonModel.findOne({ phoneNumber });
+    const { salonId } = req.body;
+    const salon = await SalonModel.findById(salonId);
+    const user = await UserModel.findById(salon.userId);
 
     if (salon) {
       const services = await Service.find({ salon: salon._id });
@@ -1628,7 +1629,7 @@ const deleteOwner = async (req, res) => {
         await Service.deleteMany({ salon: salon._id });
       }
 
-      
+
 
       if (salon.appointments.length) {
         await AppointmentModel.deleteMany({ _id: { $in: salon.appointments } });
@@ -1644,7 +1645,8 @@ const deleteOwner = async (req, res) => {
 
       await SalonModel.findOneAndDelete({ _id: salon._id });
     }
-    await UserModel.findOneAndDelete({ phoneNumber });
+    await CustomerModel.findOneAndDelete({ userId: user._id });
+    await UserModel.findOneAndDelete({ _id: user._id });
 
     return res.status(200).json({
       success: true,
