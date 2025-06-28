@@ -245,11 +245,11 @@ const createSalonByAdmin = async (req, res) => {
 
     let Gstbool;
 
-    if (gst === "True") {
+    if (gst === "true") {
       Gstbool = true;
     }
 
-    if (gst === "False") {
+    if (gst === "false") {
       Gstbool = false;
     }
 
