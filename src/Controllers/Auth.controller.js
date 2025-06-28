@@ -1628,6 +1628,8 @@ const deleteOwner = async (req, res) => {
         await Service.deleteMany({ salon: salon._id });
       }
 
+      
+
       if (salon.appointments.length) {
         await AppointmentModel.deleteMany({ _id: { $in: salon.appointments } });
       }

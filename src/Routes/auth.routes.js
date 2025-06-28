@@ -68,7 +68,7 @@ Authrouter.post(
   removesubAdmin
 );
 
-Authrouter.delete("/deleteOwner", deleteOwner);
+Authrouter.delete("/deleteOwner",verify,roleAuthorization(["Admin"]) , deleteOwner);
 
 Authrouter.delete(
   "/deleteCustomer",
