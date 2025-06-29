@@ -1,0 +1,25 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": [
+          "G2FX6JBUVF.com.salondekho.saloncustomerapp"
+        ],
+        "paths": [
+          "*"
+        ],
+        "components": [
+          {
+            "/": "/*"
+          }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "G2FX6JBUVF.com.salondekho.saloncustomerapp"
+    ]
+  }
+}
