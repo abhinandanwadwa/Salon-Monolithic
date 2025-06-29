@@ -19,6 +19,12 @@ import Reviewrouter from "./Routes/Review.routes.js";
 import { messaging } from "./Controllers/fcmClient.js";
 import paymentRouter from "./Routes/payment.routes.js";
 import { razorpayWebhook } from "./Controllers/transcation.controller.js";
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent in module type
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 // import {
 //   connectToWhatsApp,
 //   sendWhatsAppMessage,
@@ -37,9 +43,10 @@ app.post(
 
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
-
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(cookieParser());
+
 
 app.use(
   cors({

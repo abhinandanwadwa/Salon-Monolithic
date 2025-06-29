@@ -1,0 +1,9 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.salondekho.saloncustomerapp",
+    "sha256_cert_fingerprints":
+    ["27:e9:59:2b:e6:23:bc:ac:79:fe:61:df:84:bd:aa:f7:f0:74:d1:08:cf:d0:71:aa:d9:88:f0:03:36:05:bf:e8"]
+  }
+}]
