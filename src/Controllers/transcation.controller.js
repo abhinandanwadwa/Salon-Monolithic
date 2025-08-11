@@ -8,7 +8,9 @@ import SalonModel from "../Models/Salon.js";
 import UserModel from "../Models/User.js";
 import CustomerModel from "../Models/Customer.js";
 import moment from "moment";
-import { messaging } from "firebase-admin"; // Assuming you're using Firebase
+import { messaging } from "./fcmClient.js";
+
+// import { messaging } from "firebase-admin"; // Assuming you're using Firebase
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
