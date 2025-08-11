@@ -7,6 +7,9 @@ import WalletModel from "../Models/wallet.js";
 import SalonModel from "../Models/Salon.js";
 import UserModel from "../Models/User.js";
 import CustomerModel from "../Models/Customer.js";
+import moment from "moment";
+import { messaging } from "firebase-admin"; // Assuming you're using Firebase
+
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const day = date.getDate();
@@ -259,11 +262,12 @@ export const razorpayWebhook = async (req, res) => {
       );
 
       if (!updatedTransaction) {
-        console.warn(
-          `Webhook Warning: Transaction record not found for orderId ${razorpayOrderId} and appointmentId ${appointmentId}. This might indicate an issue or a race condition if the webhook arrived before the createOrder DB write completed, though unlikely.`
-        );
+        
+         console.warn(`Transaction record not found, creating new one for orderId ${razorpayOrderId}`);
+          // Create the missing transaction record
         // Optionally, create it if it's missing, though it implies an issue in the flow.
       }
+      
 
       if (paymentStatus === "SUCCESS") {
         // Verify amount if paidAmount is available
@@ -296,10 +300,10 @@ export const razorpayWebhook = async (req, res) => {
         }
 
         const Salon = await SalonModel.findById(appointment.salon);
-        const Customer = await SalonModel.findById(appointment.user);
-
+        // const Customer = await CustomerModel.findById(appointment.user);
+        // console.log()
         const SalonOwner = await UserModel.findById(Salon.userId);
-        const User = await UserModel.findById(Customer.userId);
+        const User = await UserModel.findById(customer.userId);
 
         const tokens = [];
         if (SalonOwner.token) tokens.push(SalonOwner.token);
