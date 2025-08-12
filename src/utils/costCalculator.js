@@ -79,9 +79,11 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
     const pricesIncludeGst = !salon.Gst; // If salon.Gst is false or undefined, prices are inclusive
 
     if (pricesIncludeGst) {
-        baseCostForDeductions = roundToTwo(initialServiceSum / (1 + GST_RATE));
-    } else {
         baseCostForDeductions = initialServiceSum;
+    } else {
+        // add GST to the initial service sum to get the pre-GST base
+        gst = initialServiceSum * GST_RATE;
+        baseCostForDeductions = roundToTwo(initialServiceSum + gst);
     }
 
     // --- Apply Wallet Deduction (Applied on the pre-GST base) ---
@@ -138,7 +140,7 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
 
     // --- Calculate Final GST to be Paid ---
     // This GST is calculated on the baseCostForDeductions
-    const gstPayable = roundToTwo(baseCostForDeductions * GST_RATE);
+    const gstPayable = roundToTwo(initialServiceSum * GST_RATE);
 
     // --- Calculate Final Payable Amount ---
     const finalPayableAmount = roundToTwo(subTotalAfterDiscountPreGst + gstPayable);
