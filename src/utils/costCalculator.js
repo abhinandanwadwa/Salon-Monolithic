@@ -137,8 +137,8 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
     const subTotalAfterDiscountPreGst = roundToTwo(billBeforeDiscountPreGst - discountAmount);
 
     // --- Calculate Final GST to be Paid ---
-    // This GST is calculated on the subTotalAfterDiscountPreGst
-    const gstPayable = roundToTwo(subTotalAfterDiscountPreGst * GST_RATE);
+    // This GST is calculated on the baseCostForDeductions
+    const gstPayable = roundToTwo(baseCostForDeductions * GST_RATE);
 
     // --- Calculate Final Payable Amount ---
     const finalPayableAmount = roundToTwo(subTotalAfterDiscountPreGst + gstPayable);
@@ -157,7 +157,7 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
         pricesIncludeGst: pricesIncludeGst, // boolean: true if initialServiceSum included GST
         gstRate: GST_RATE, // The GST rate used for calculation
 
-        baseForDeductionsAndDiscounts: baseCostForDeductions, // initialServiceSum or its pre-GST equivalent
+        baseForDeductionsAndDiscounts: pricesIncludeGst ? initialServiceSum : baseCostForDeductions, // initialServiceSum or its pre-GST equivalent
         originalGstAmountInPrice: pricesIncludeGst ? originalGstAmountInPrice : 0, // GST amount if it was part of initialServiceSum
 
         walletSavingsUsed: walletSavingsUsed,
@@ -167,7 +167,7 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
         discountAmount: discountAmount,
         
         subTotalAfterDiscountPreGst: subTotalAfterDiscountPreGst, // This is the "Amount" (Rs 517.96 or Rs 640) in your notes
-        gstPayable: gstPayable, // The GST calculated on subTotalAfterDiscountPreGst (Rs 93.23 or Rs 115.2)
+        gstPayable: pricesIncludeGst ? 0 : gstPayable, // The GST calculated on subTotalAfterDiscountPreGst (Rs 93.23 or Rs 115.2)
 
         finalPayableAmount: finalPayableAmount, // The final amount customer pays (Rs 611 or Rs 755)
         offerCashback: cashbackAmount, // (Rs 122 if 20% on Rs 611)

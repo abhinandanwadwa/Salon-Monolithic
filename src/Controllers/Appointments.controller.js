@@ -1333,7 +1333,7 @@ const getAppointments = async (req, res) => {
       .populate("services")
       .populate({
         path: "salon",
-        select: "SalonName startTime endTime",
+        select: "SalonName startTime endTime CoverImage",
         populate: {
           path: "Reviews",
         },
