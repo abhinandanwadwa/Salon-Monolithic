@@ -143,7 +143,7 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
     const gstPayable = roundToTwo(initialServiceSum * GST_RATE);
 
     // --- Calculate Final Payable Amount ---
-    const finalPayableAmount = roundToTwo(subTotalAfterDiscountPreGst + gstPayable);
+    const finalPayableAmount = roundToTwo(subTotalAfterDiscountPreGst);
 
     // --- Calculate Cashback (based on Final Payable Amount) ---
     let cashbackAmount = 0;
@@ -159,7 +159,7 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
         pricesIncludeGst: pricesIncludeGst, // boolean: true if initialServiceSum included GST
         gstRate: GST_RATE, // The GST rate used for calculation
 
-        baseForDeductionsAndDiscounts: pricesIncludeGst ? initialServiceSum : baseCostForDeductions, // initialServiceSum or its pre-GST equivalent
+        baseForDeductionsAndDiscounts: initialServiceSum, // initialServiceSum or its pre-GST equivalent
         originalGstAmountInPrice: pricesIncludeGst ? originalGstAmountInPrice : 0, // GST amount if it was part of initialServiceSum
 
         walletSavingsUsed: walletSavingsUsed,
