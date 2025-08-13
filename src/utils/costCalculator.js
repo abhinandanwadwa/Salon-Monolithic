@@ -82,7 +82,7 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
         baseCostForDeductions = initialServiceSum;
     } else {
         // add GST to the initial service sum to get the pre-GST base
-        gst = initialServiceSum * GST_RATE;
+        let gst = initialServiceSum * GST_RATE;
         baseCostForDeductions = roundToTwo(initialServiceSum + gst);
     }
 
