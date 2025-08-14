@@ -58,7 +58,7 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
             } else {
                 // If option is found, add its price to the service cost
                 // costForItem = option.OptionPrice;
-                costForItem += option.OptionPrice; // Add option price to service cost
+                costForItem = option.OptionPrice; // Add option price to service cost
                 chosenOption = { optionId: option._id, optionName: option.OptionName, optionPrice: option.OptionPrice };
             }
         }
@@ -159,7 +159,7 @@ export const calculateDetailedCosts = async (userId, salonId, servicesInput, off
         pricesIncludeGst: pricesIncludeGst, // boolean: true if initialServiceSum included GST
         gstRate: GST_RATE, // The GST rate used for calculation
 
-        baseForDeductionsAndDiscounts: initialServiceSum, // initialServiceSum or its pre-GST equivalent
+        baseForDeductionsAndDiscounts: pricesIncludeGst ? initialServiceSum : baseCostForDeductions, // initialServiceSum or its pre-GST equivalent
         originalGstAmountInPrice: pricesIncludeGst ? originalGstAmountInPrice : 0, // GST amount if it was part of initialServiceSum
 
         walletSavingsUsed: walletSavingsUsed,
