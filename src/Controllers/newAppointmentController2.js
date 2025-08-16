@@ -10,6 +10,7 @@ import OfferModel from "../Models/Offer.js";
 import Service from "../Models/Services.js";
 import { messaging } from "./fcmClient.js";
 import WalletModel from "../Models/wallet.js";
+import { sendPendingAppointment } from "../utils/whatsappUtility.js";
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -324,6 +325,18 @@ const createAppointment = async (req, res) => {
     //   netChange: netWalletChange,
     //   newBalance: newBalance, // Calculated for logging, actual update done by $inc
     // });
+
+    // --- Send WhatsApp Notification ---
+
+    await sendPendingAppointment(
+      customer.mobileNumber,
+      customer.name,
+      //first service name from the services array
+      detailedCalculatedServices[0].serviceName,
+      salon.SalonName,
+      formatDate(appointmentDate),
+      moment(appointmentStartTime).format("hh:mm A")
+    );
 
     const SalonOwner = await UserModel.findById(salon.userId);
 
