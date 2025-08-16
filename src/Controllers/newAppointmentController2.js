@@ -301,29 +301,29 @@ const createAppointment = async (req, res) => {
     salon.appointments.push(appointmentId);
     await salon.save();
 
-    // Update Wallet Balance (Debit savings used, Credit cashback earned)
-    // only reduce the wallet balance by the amount used, dont add cashback to the wallet
-    const netWalletChange = -walletSavingsUsed; // Negative for debit
-    const newBalance = currentWalletBalance + netWalletChange; // Calculate new balance
-    // Note: cashback is not added to the wallet immediately, but can be tracked in billingDetails
+    // // Update Wallet Balance (Debit savings used, Credit cashback earned)
+    // // only reduce the wallet balance by the amount used, dont add cashback to the wallet
+    // const netWalletChange = -walletSavingsUsed; // Negative for debit
+    // const newBalance = currentWalletBalance + netWalletChange; // Calculate new balance
+    // // Note: cashback is not added to the wallet immediately, but can be tracked in billingDetails
 
-    // Update wallet (using findOneAndUpdate for atomicity on the wallet doc)
-    await WalletModel.findOneAndUpdate(
-      { userId: userId },
-      {
-        $inc: { balance: netWalletChange }, // Increment/decrement balance atomically
-        $push: { appointmentHistory: appointmentId }, // Push appointment ID to the appointments array
-      },
-      { new: true } // Return updated doc if needed, though not strictly necessary here
-    );
+    // // Update wallet (using findOneAndUpdate for atomicity on the wallet doc)
+    // await WalletModel.findOneAndUpdate(
+    //   { userId: userId },
+    //   {
+    //     $inc: { balance: netWalletChange }, // Increment/decrement balance atomically
+    //     $push: { appointmentHistory: appointmentId }, // Push appointment ID to the appointments array
+    //   },
+    //   { new: true } // Return updated doc if needed, though not strictly necessary here
+    // );
 
-    console.log("Wallet updated:", {
-      oldBalance: currentWalletBalance,
-      cashBackAdded: offerCashback,
-      walletSavingsUsed: walletSavingsUsed,
-      netChange: netWalletChange,
-      newBalance: newBalance, // Calculated for logging, actual update done by $inc
-    });
+    // console.log("Wallet updated:", {
+    //   oldBalance: currentWalletBalance,
+    //   cashBackAdded: offerCashback,
+    //   walletSavingsUsed: walletSavingsUsed,
+    //   netChange: netWalletChange,
+    //   newBalance: newBalance, // Calculated for logging, actual update done by $inc
+    // });
 
     const SalonOwner = await UserModel.findById(salon.userId);
 
