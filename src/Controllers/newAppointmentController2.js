@@ -10,7 +10,7 @@ import OfferModel from "../Models/Offer.js";
 import Service from "../Models/Services.js";
 import { messaging } from "./fcmClient.js";
 import WalletModel from "../Models/wallet.js";
-import { sendPendingAppointment } from "../utils/whatsappUtility.js";
+import { sendRescheduledAppointment ,sendCancelByCustomerToOwner , sendRescheduleByCustomerToOwner} from "../utils/whatsappUtility.js";
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -488,6 +488,8 @@ const cancelAppointment = async (req, res) => {
     appointment.Status = "Cancelled";
     await appointment.save();
 
+    const customer = await CustomerModel.findById(appointment.user);
+
     const salon = await SalonModel.findById(appointment.salon);
     const SalonOwner = await UserModel.findById(salon.userId);
 
@@ -512,6 +514,17 @@ const cancelAppointment = async (req, res) => {
           console.error("Error sending message:", error);
         });
     }
+
+    sendCancelByCustomerToOwner(
+      SalonOwner.phoneNumber,
+      SalonOwner.name,
+      customer.name,
+      customer.phoneNumber,
+      appointment.services[0].serviceName,
+      date,
+      TIME,
+      appointment.billingDetails.finalPayableAmount.toString()
+    );
 
     return res.status(200).json({
       success: true,
@@ -559,6 +572,7 @@ const rescheduleAppointment = async (req, res) => {
 
     await appointment.save();
 
+    const customer = await CustomerModel.findById(appointment.user);
     const salon = await SalonModel.findById(appointment.salon);
     const SalonOwner = await UserModel.findById(salon.userId);
     const newTime = moment(appointment.appointmentStartTime).format("hh:mm A");
@@ -582,6 +596,26 @@ const rescheduleAppointment = async (req, res) => {
           console.error("Error sending message:", error);
         });
     }
+
+    sendRescheduledAppointment(
+      customer.phoneNumber,
+      customer.name,
+      appointment.services[0].serviceName,
+      salon.SalonName,
+      neDate,
+      newTime
+    );
+
+    sendRescheduleByCustomerToOwner(
+      SalonOwner.phoneNumber,
+      SalonOwner.name,
+      customer.name,
+      customer.phoneNumber,
+      appointment.services[0].serviceName,
+      neDate,
+      newTime,
+      appointment.billingDetails.finalPayableAmount.toString()
+    );
 
     return res.status(200).json({
       success: true,
