@@ -157,3 +157,106 @@ export const sendPaymentFailed = async (recipientNumber, customerName, amount, s
   const variables = [customerName, amount, serviceName, salonName];
   return await sendMessage(4172, recipientNumber, variables);
 };
+
+/**
+ * Sends a review request after a service. ⭐
+ * @param {string} recipientNumber 
+ * @param {string} customerName 
+ * @param {string} salonName 
+ * @param {string} reviewLink - A link to the review page.
+ */
+export const sendReviewRequest = async (recipientNumber, customerName, salonName, reviewLink) => {
+  const variables = [customerName, salonName, reviewLink];
+  return await sendMessage(4173, recipientNumber, variables);
+};
+
+/**
+ * Sends a special offer or promotion. ✨
+ * @param {string} recipientNumber 
+ * @param {string} customerName 
+ * @param {string} salonName 
+ * @param {string} discount - e.g., "20%".
+ * @param {string} couponCode 
+ */
+export const sendOfferNotification = async (recipientNumber, customerName, salonName, discount, couponCode) => {
+  const variables = [customerName, salonName, discount, couponCode];
+  return await sendMessage(4174, recipientNumber, variables);
+};
+
+/**
+ * Sends an appointment reminder. 🔔
+ * @param {string} recipientNumber 
+ * @param {string} customerName 
+ * @param {string} serviceName 
+ * @param {string} salonName 
+ * @param {string} date 
+ * @param {string} time 
+ */
+export const sendAppointmentReminder = async (recipientNumber, customerName, serviceName, salonName, date, time) => {
+  const variables = [customerName, serviceName, salonName, date, time];
+  return await sendMessage(4175, recipientNumber, variables);
+};
+
+/**
+ * Notifies the salon owner of a new booking. ✅
+ * @param {string} recipientNumber - The owner's mobile number.
+ * @param {string} ownerName 
+ * @param {string} customerName 
+ * @param {string} customerPhone 
+ * @param {string} serviceName 
+ * @param {string} date 
+ * @param {string} time 
+ * @param {string} amount 
+ */
+export const sendNewBookingToOwner = async (recipientNumber, ownerName, customerName, customerPhone, serviceName, date, time, amount) => {
+  const variables = [ownerName, customerName, customerPhone, serviceName, date, time, amount];
+  return await sendMessage(4665, recipientNumber, variables);
+};
+
+/**
+ * Notifies the salon owner that they have rescheduled an appointment. 🔄
+ * @param {string} recipientNumber - The owner's mobile number.
+ * @param {string} ownerName 
+ * @param {string} customerName 
+ * @param {string} customerPhone 
+ * @param {string} serviceName 
+ * @param {string} newDate 
+ * @param {string} newTime 
+ * @param {string} amount 
+ */
+export const sendRescheduleByOwnerToOwner = async (recipientNumber, ownerName, customerName, customerPhone, serviceName, newDate, newTime, amount) => {
+  const variables = [ownerName, customerName, customerPhone, serviceName, newDate, newTime, amount];
+  return await sendMessage(4666, recipientNumber, variables);
+};
+
+/**
+ * Notifies the salon owner that a customer has cancelled an appointment. ❌
+ * @param {string} recipientNumber - The owner's mobile number.
+ * @param {string} ownerName 
+ * @param {string} customerName 
+ * @param {string} customerPhone 
+ * @param {string} serviceName 
+ * @param {string} date 
+ * @param {string} time 
+ * @param {string} amount 
+ */
+export const sendCancelByCustomerToOwner = async (recipientNumber, ownerName, customerName, customerPhone, serviceName, date, time, amount) => {
+  const variables = [ownerName, customerName, customerPhone, serviceName, date, time, amount];
+  return await sendMessage(4667, recipientNumber, variables);
+};
+
+/**
+ * Notifies the salon owner of a reschedule request from a customer. 🔄
+ * @param {string} recipientNumber - The owner's mobile number.
+ * @param {string} ownerName 
+ * @param {string} customerName 
+ * @param {string} customerPhone 
+ * @param {string} serviceName 
+ * @param {string} newDate 
+ * @param {string} newTime 
+ * @param {string} amount 
+ */
+export const sendRescheduleByCustomerToOwner = async (recipientNumber, ownerName, customerName, customerPhone, serviceName, newDate, newTime, amount) => {
+  const variables = [ownerName, customerName, customerPhone, serviceName, newDate, newTime, amount];
+  return await sendMessage(4668, recipientNumber, variables);
+};

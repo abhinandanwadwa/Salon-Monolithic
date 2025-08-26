@@ -16,6 +16,7 @@ import WalletModel from "../Models/wallet.js";
 import axios from "axios";
 import Statistic from "../Models/Statistics.js";
 import dotenv from "dotenv";
+import { sendWelcomeMessage } from "../utils/whatsappUtility.js";
 
 dotenv.config();
 
@@ -1397,6 +1398,8 @@ const addName = async (req, res) => {
 
     await customer.save();
     await user1.save();
+
+    sendWelcomeMessage(user1.phoneNumber, user1.name);
 
     return res.status(200).json({
       success: true,
