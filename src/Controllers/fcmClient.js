@@ -3,7 +3,7 @@ import { getMessaging } from "firebase-admin/messaging";
 import admin from "firebase-admin";
 import dotenv from "dotenv";
 dotenv.config();
-import serviceAccount from "../../salondekho-55d7c-firebase-adminsdk-s6yy5-768fa5b955.json" assert { type: "json" };
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 const app = initializeApp({
     credential: admin.credential.cert(serviceAccount),
