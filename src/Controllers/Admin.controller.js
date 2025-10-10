@@ -80,7 +80,7 @@ const AddBanner = async (req, res) => {
   try {
     const { title, link, isActive } = req.body;
 
-    const imageUrl = req.file.location;
+    const imageUrl = req.file.azureUrl;
 
     if (!imageUrl) {
       return res.status(400).json({

@@ -134,7 +134,7 @@ const createSalon = async (req, res) => {
     // }
 
 
-    const CoverImage = req.file ? req.file.location : null;
+    const CoverImage = req.file ? req.file.azureUrl : null;
 
     // convert salonPhoneNumber to number from string
     const salonNumber = parseInt(salonPhoneNumber);
@@ -324,7 +324,7 @@ const createSalonByAdmin = async (req, res) => {
     // }
 
 
-    const CoverImage = req.file ? req.file.location : null;
+    const CoverImage = req.file ? req.file.azureUrl : null;
 
     // convert salonPhoneNumber to number from string
     const salonNumber = parseInt(salonPhoneNumber);
@@ -986,7 +986,7 @@ const uploadBrochure = async (req, res) => {
     }
 
     brochurePhotos.forEach((file) => {
-      salon.Brochure.push(file.location); // or file.filename depending on how you want to store the reference
+      salon.Brochure.push(file.azureUrl); // or file.filename depending on how you want to store the reference
     });
 
     await salon.save();
@@ -1099,7 +1099,7 @@ const AddPhotos = async (req, res) => {
       salon = await SalonModel.findOne({ Artists: artist._id });
     }
 
-    const coverImageUrl = req.file.location;
+    const coverImageUrl = req.file.azureUrl;
     salon.CoverImage = coverImageUrl || salon.CoverImage || null;
 
     await salon.save();
@@ -1145,7 +1145,7 @@ const AddStorePhotos = async (req, res) => {
     }
 
     storephotos.forEach((file) => {
-      salon.StorePhotos.push(file.location); // or file.filename depending on how you want to store the reference
+      salon.StorePhotos.push(file.azureUrl); // or file.filename depending on how you want to store the reference
     });
 
     await salon.save();
@@ -1542,7 +1542,7 @@ const AddStorePhotosbyAdmin = async (req, res) => {
     }
 
     storephotos.forEach((file) => {
-      salon.StorePhotos.push(file.location); // or file.filename depending on how you want to store the reference
+      salon.StorePhotos.push(file.azureUrl); // or file.filename depending on how you want to store the reference
     });
 
     await salon.save();
@@ -1633,7 +1633,7 @@ const AddsalonPhotosbyAdmin = async (req, res) => {
     }
 
     salonPhotos.forEach((file) => {
-      salon.salonPhotos.push(file.location); // or file.filename depending on how you want to store the reference
+      salon.salonPhotos.push(file.azureUrl); // or file.filename depending on how you want to store the reference
     });
 
     await salon.save();

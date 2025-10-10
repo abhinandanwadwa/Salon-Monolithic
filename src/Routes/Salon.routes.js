@@ -25,7 +25,7 @@ import {
   deleteStorePhotosByAdmin,
 } from "../Controllers/Salon.controller.js";
 import { verify, roleAuthorization } from "../middlewares/authenticated.js";
-import upload from "../utils/s3Multer.js";
+import upload , { uploadToAzure } from "../utils/s3Multer.js";
 import express from "express";
 
 const Salonrouter = express.Router();
@@ -35,6 +35,7 @@ Salonrouter.post(
   verify,
   roleAuthorization(["Owner"]),
   upload.single("CoverImage"),
+  uploadToAzure,
   createSalon
 );
 
@@ -43,6 +44,7 @@ Salonrouter.post(
   verify,
   roleAuthorization(["Admin"]),
   upload.single("CoverImage"),
+  uploadToAzure,
   createSalonByAdmin
 );
 
@@ -53,6 +55,7 @@ Salonrouter.post(
   verify,
   roleAuthorization(["Owner", "subAdmin"]),
   upload.array("brochurePhotos"),
+  uploadToAzure,
   uploadBrochure
 );
 
@@ -90,6 +93,7 @@ Salonrouter.post(
   verify,
   roleAuthorization(["Owner", "subAdmin"]),
   upload.single("CoverImage"),
+  uploadToAzure,
   AddPhotos
 );
 
@@ -105,6 +109,7 @@ Salonrouter.post(
   verify,
   roleAuthorization(["Owner", "subAdmin"]),
   upload.array("StorePhotos"),
+  uploadToAzure,
   AddStorePhotos
 );
 
@@ -162,6 +167,7 @@ Salonrouter.post(
   verify,
   roleAuthorization(["Admin"]),
   upload.array("StorePhotos"),
+  uploadToAzure,
   AddStorePhotosbyAdmin
 );
 
@@ -170,6 +176,7 @@ Salonrouter.post(
   verify,
   roleAuthorization(["Admin"]),
   upload.array("StorePhotos"),
+  uploadToAzure,
   AddsalonPhotosbyAdmin
 );
 

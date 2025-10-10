@@ -1,30 +1,65 @@
-import { S3Client } from "@aws-sdk/client-s3";
 import multer from "multer";
-import multerS3 from 'multer-s3';
-import dotenv from 'dotenv';
+import { BlobServiceClient } from "@azure/storage-blob";
+import dotenv from "dotenv";
 dotenv.config();
 
+// 1️⃣ Setup Azure Blob Service Client
+const blobServiceClient = BlobServiceClient.fromConnectionString(
+  process.env.AZURE_STORAGE_CONNECTION_STRING
+);
 
-const s3 = new S3Client({
-    region: process.env.AWS_REGION,
-    credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    },
-});
+// 2️⃣ Define your container (similar to an S3 bucket)
+const containerName = process.env.AZURE_CONTAINER_NAME || "salonblob";
+const containerClient = blobServiceClient.getContainerClient(containerName);
 
-const upload = multer({
-    storage: multerS3({
-        s3: s3,
-        bucket: process.env.AWS_BUCKET_NAME,
-        acl: 'public-read',
-        metadata: function (req, file, cb) {
-            cb(null, { fieldName: file.fieldname });
-        },
-        key: function (req, file, cb) {
-            cb(null, `images/${Date.now().toString()}-${file.originalname}`);
-        }
-    })
-});
+// 3️⃣ Custom Multer storage engine for Azure
+const azureStorage = multer.memoryStorage(); // store in memory temporarily
+
+const upload = multer({ storage: azureStorage });
+
+// 4️⃣ Middleware to upload to Azure after Multer processes file(s)
+export const uploadToAzure = async (req, res, next) => {
+  try {
+    // Handle single file upload
+    if (req.file) {
+      const blobName = `images/${Date.now()}-${req.file.originalname}`;
+      const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+      await blockBlobClient.upload(req.file.buffer, req.file.size, {
+        blobHTTPHeaders: { blobContentType: req.file.mimetype },
+      });
+
+      req.file.azureUrl = blockBlobClient.url;
+      req.file.azureBlobName = blobName;
+    }
+
+    // Handle multiple files upload
+    if (req.files && Array.isArray(req.files)) {
+      const uploadPromises = req.files.map(async (file) => {
+        const blobName = `images/${Date.now()}-${file.originalname}`;
+        const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+        await blockBlobClient.upload(file.buffer, file.size, {
+          blobHTTPHeaders: { blobContentType: file.mimetype },
+        });
+
+        file.azureUrl = blockBlobClient.url;
+        file.azureBlobName = blobName;
+      });
+
+      await Promise.all(uploadPromises);
+    }
+
+    // If no files uploaded, skip (don't error - some routes might be optional)
+    if (!req.file && !req.files) {
+      return next();
+    }
+
+    next();
+  } catch (err) {
+    console.error("Azure upload failed:", err);
+    res.status(500).json({ message: "Upload to Azure failed", error: err.message });
+  }
+};
 
 export default upload;

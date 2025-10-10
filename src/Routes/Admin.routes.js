@@ -10,7 +10,7 @@ import {
 } from "../Controllers/Admin.controller.js";
 import express from "express";
 import { verify, roleAuthorization } from "../middlewares/authenticated.js";
-import upload from "../utils/s3Multer.js";
+import upload, { uploadToAzure } from "../utils/s3Multer.js";
 
 const Adminrouter = express.Router();
 
@@ -38,6 +38,7 @@ Adminrouter.post(
 Adminrouter.post(
   "/add-banner",
   upload.single("imageUrl"),
+  uploadToAzure,
   verify,
   roleAuthorization(["Admin"]),
   AddBanner
