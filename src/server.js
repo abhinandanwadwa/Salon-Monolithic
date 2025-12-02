@@ -1,6 +1,9 @@
 import dotenv from "dotenv";
 dotenv.config(); // Load environment variables at the very top
 
+// Initialize logger early to capture all logs
+import logger, { requestLoggerMiddleware, getLogsHtml } from "./utils/logger.js";
+
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -47,6 +50,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(cookieParser());
 
+// Request logger middleware - logs all incoming requests
+app.use(requestLoggerMiddleware);
+
+// Logs viewer endpoint - renders HTML with logs from last hour
+app.get("/logs", (req, res) => {
+  const minutes = parseInt(req.query.minutes) || 60;
+  res.send(getLogsHtml(minutes));
+});
 
 app.use(
   cors({
@@ -77,28 +88,6 @@ app.use("/api/review", Reviewrouter);
 app.use("/api/admin", Adminrouter);
 app.use("/api/payments", paymentRouter);
 
-// // Example route to send a WhatsApp message (for testing)
-// app.post("/api/whatsapp/send", async (req, res) => {
-//   try {
-//     const { to, message } = req.body; // to should be like "91xxxxxxxxxx"
-//     if (!to || !message) {
-//       return res
-//         .status(400)
-//         .json({
-//           success: false,
-//           message: "Missing 'to' or 'message' in request body",
-//         });
-//     }
-//     const recipientJid = `${to}@s.whatsapp.net`;
-//     await sendWhatsAppMessage(recipientJid, message);
-//     res
-//       .status(200)
-//       .json({ success: true, message: "WhatsApp message sending initiated." });
-//   } catch (error) {
-//     console.error("Error in /api/whatsapp/send:", error);
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// });
 
 app.post("/api/notification", async (req, res) => {
   try {
@@ -156,10 +145,7 @@ ConnectDB()
   .then(() => {
     app.listen(process.env.PORT, () => {
       console.log(`Server is running on port ${process.env.PORT}`);
-      // Initialize WhatsApp connection when server starts
-      // connectToWhatsApp().catch((err) =>
-      //   console.error("Failed to connect to WhatsApp:", err)
-      // );
+  
     });
   })
   .catch((error) => {
