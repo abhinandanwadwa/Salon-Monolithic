@@ -46,27 +46,45 @@ const roundToTwo = (num) => {
 const getTotalCost = async (req, res) => {
   try {
     const { services, offerCode, salonId, appointmentDate } = req.body;
-    const user = req.user._id; // Assuming req.user is populated by authentication middleware
+    const user = req.user._id;
+
+    // DEBUG: Log the incoming offer code
+    console.log("=== getTotalCost Debug ===");
+    console.log("Offer Code received:", offerCode, "| Type:", typeof offerCode);
+    console.log("Appointment Date:", appointmentDate);
+    console.log("Services:", JSON.stringify(services));
 
     // Basic validation
     if (!services || !Array.isArray(services) || services.length === 0) {
       return res.status(400).json({ success: false, message: "Services array is required." });
     }
-    // salonId is required by calculateDetailedCosts to fetch salon details (e.g., for salon.Gst flag)
-    // and for offer validation if an offerCode is provided.
     if (!salonId) {
         return res.status(400).json({ success: false, message: "Salon ID is required." });
     }
-    // appointmentDate is optional for calculateDetailedCosts overall,
-    // but calculateDetailedCosts itself will return an error if an offer requires it and it's missing.
+
+    // Normalize offerCode - treat empty strings as null
+    const normalizedOfferCode = offerCode && typeof offerCode === 'string' && offerCode.trim() !== '' 
+      ? offerCode.trim() 
+      : null;
+    
+    console.log("Normalized Offer Code:", normalizedOfferCode);
 
     let calculationResult = await calculateDetailedCosts(
       user,
       salonId,
       services,
-      offerCode,
+      normalizedOfferCode,  // Use normalized offer code
       appointmentDate
     );
+
+    // DEBUG: Log the calculation result
+    console.log("Calculation Result Success:", calculationResult.success);
+    console.log("Is Offer Error:", calculationResult.isOfferError);
+    console.log("Offer Details:", JSON.stringify(calculationResult.offerDetails));
+    console.log("Costs:", JSON.stringify(calculationResult.costs));
+    if (!calculationResult.success) {
+      console.log("Calculation Error Message:", calculationResult.message);
+    }
 
     let offerValidationErrorForResponse = null;
 
