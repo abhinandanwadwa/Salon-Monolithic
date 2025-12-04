@@ -10,7 +10,7 @@ import OfferModel from "../Models/Offer.js";
 import Service from "../Models/Services.js";
 import { messaging } from "./fcmClient.js";
 import WalletModel from "../Models/wallet.js";
-import { sendRescheduledAppointment ,sendCancelByCustomerToOwner , sendRescheduleByCustomerToOwner} from "../utils/whatsappUtility.js";
+import { sendRescheduledAppointment,sendPendingAppointment ,sendCancelByCustomerToOwner , sendRescheduleByCustomerToOwner} from "../utils/whatsappUtility.js";
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -135,7 +135,9 @@ const getTotalCost = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error in getTotalCost controller:", error); // Log the actual error
+    console.error("Error in getTotalCost controller:", error.message);
+    console.error("Stack trace:", error.stack);
+    console.error("Request body:", JSON.stringify(req.body, null, 2));
     return res.status(500).json({
       success: false,
       message: "Internal server error while calculating total cost.",
@@ -369,7 +371,10 @@ const createAppointment = async (req, res) => {
       data: newAppointment, // Return the created appointment object
     });
   } catch (error) {
-    console.error("Error in creating appointment:", error);
+    console.error("Error in creating appointment:", error.message);
+    console.error("Stack trace:", error.stack);
+    console.error("User ID:", req.user?._id);
+    console.error("Request body:", JSON.stringify(req.body, null, 2));
     // Check for specific Mongoose validation errors if needed
     return res.status(500).json({
       success: false,
@@ -440,7 +445,10 @@ const acceptOrRejectAppointment = async (req, res) => {
       data: appointment,
     });
   } catch (error) {
-    console.error("Error in accepting/rejecting appointment:", error);
+    console.error("Error in accepting/rejecting appointment:", error.message);
+    console.error("Stack trace:", error.stack);
+    console.error("Appointment ID:", req.params?.appointmentId);
+    console.error("Status:", req.body?.status);
     return res.status(500).json({
       success: false,
       message: "Error in processing appointment",
@@ -532,7 +540,9 @@ const cancelAppointment = async (req, res) => {
       data: appointment,
     });
   } catch (error) {
-    console.error("Error in cancelling appointment:", error);
+    console.error("Error in cancelling appointment:", error.message);
+    console.error("Stack trace:", error.stack);
+    console.error("Appointment ID:", req.params?.appointmentId);
     return res.status(500).json({
       success: false,
       message: "Error in cancelling appointment",
@@ -623,7 +633,11 @@ const rescheduleAppointment = async (req, res) => {
       data: appointment,
     });
   } catch (error) {
-    console.error("Error in rescheduling appointment:", error);
+    console.error("Error in rescheduling appointment:", error.message);
+    console.error("Stack trace:", error.stack);
+    console.error("Appointment ID:", req.params?.appointmentId);
+    console.error("New Date:", req.body?.newDate);
+    console.error("New Start Time:", req.body?.newStartTime);
     return res.status(500).json({
       success: false,
       message: "Error in rescheduling appointment",

@@ -75,6 +75,10 @@ class Logger {
 
   // Add a custom log entry (for request logging)
   logRequest(req, res, duration) {
+    // Skip logging requests to /logs endpoint
+    if (req.originalUrl.startsWith('/logs')) {
+      return;
+    }
     this.addLog('REQUEST', [
       `${req.method} ${req.originalUrl} - ${res.statusCode} - ${duration}ms - IP: ${req.ip}`
     ]);
